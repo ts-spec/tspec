@@ -1,6 +1,7 @@
-import { DefineApiSpec } from "../src/types/DefineApiSpec";
+import { DefineApiSpec, ExpressHandler } from "../src/types/DefineApiSpec";
 
 type Series = {
+  id: number,
   thumbnail: Thumbnail
 };
 
@@ -9,7 +10,7 @@ type Thumbnail = {
 };
 
 type GetSeriesSpecDescription = 'Retrieve a series';
-type GetSeriesSpecRaw = {
+export type GetSeriesSpec = DefineApiSpec<{
   url: `GET /manta/v1/series/{id}`;
   summary: "Retrieve a series";
   description: GetSeriesSpecDescription;
@@ -23,6 +24,15 @@ type GetSeriesSpecRaw = {
   };
   auth: "JWT";
   response: Series;
-};
+}>;
 
-export type GetSeriesSpec = DefineApiSpec<GetSeriesSpecRaw>;
+export const getSeries: ExpressHandler<GetSeriesSpec> = async (req, res) => {
+  // req and res are fully typed
+  const { id } = req.params;
+  res.json({
+    id,
+    thumbnail: {
+      xlarge: "https://example.com/series/1255/thumbnail.jpg",
+    },
+  });
+}
