@@ -64,7 +64,7 @@ const getVisitor = (
     // // We might brand DefineApiSpec, and access is branded using the type checker
 
     const output = resolve({ typeNode: node.type, current: { typeChecker } });
-    fs.writeFileSync("output.json", JSON.stringify(output, undefined, 2));
+    fs.writeFileSync("output2.json", JSON.stringify(output, undefined, 2));
 
     // const specName = node.name.text;
     // const [specNode] = node.type.typeArguments ?? [];

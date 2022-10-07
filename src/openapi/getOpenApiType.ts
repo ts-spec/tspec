@@ -109,9 +109,9 @@ const getOpenApiTypeForUnionType = (unionType: Tspec.UnionType, title?: string):
 }
 
 const getOpenApiTypeForObjectLiteral = (objectLiteral: Tspec.ObjectType, title?: string): OpenAPIV3.SchemaObject => {
-  const properties = buildProperties(objectLiteral.properties);
+  const properties = buildProperties(objectLiteral.properties || []);
   const additionalProperties = objectLiteral.additionalProperties && getOpenApiType(objectLiteral.additionalProperties);
-  const required = objectLiteral.properties.filter(prop => prop.required && !hasUndefined(prop)).map(prop => prop.name);
+  const required = (objectLiteral.properties || []).filter(prop => prop.required && !hasUndefined(prop)).map(prop => prop.name);
 
   return {
     title,
