@@ -20,12 +20,6 @@ export type GetBookApiSpec = DefineApiSpec<{
   response: Book,
 }>;
 
-declare module 'tspec' {
-  interface ApiSpec {
-    getBook: GetBookApiSpec,
-  }
-}
-
 // generate OpenAPI Spec
 const openAPISpec = generateSpec(options);
 
