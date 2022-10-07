@@ -1,144 +1,165 @@
 {
-    "typeName": "refAlias",
-    "refName": "DefineApiSpec_GetSeriesSpecRaw_",
-    "type": {
-        "typeName": "refAlias",
-        "refName": "GetSeriesSpecRaw",
+  "typeName": "refAlias",
+  "refName": "DefineApiSpec__url%3A%60GET%2Fmanta%2Fv1%2Fseries%2F_id_%60--summary-Retrieveaseries--description-GetSeriesSpecDescription--tags%3A%5BSeries.Front%5D--path%3A_%2F***Seriesid*%40example1255*%2Fid-number--_--query%3A_debug%3F%3Aboolean--_--auth-JWT--response-Series--__",
+  "type": {
+    "typeName": "nestedObjectLiteral",
+    "properties": [
+      {
+        "deprecated": false,
+        "name": "url",
+        "required": true,
         "type": {
+          "typeName": "enum",
+          "enums": [
+            "GET /manta/v1/series/{id}"
+          ]
+        }
+      },
+      {
+        "deprecated": false,
+        "name": "summary",
+        "required": true,
+        "type": {
+          "typeName": "enum",
+          "enums": [
+            "Retrieve a series"
+          ]
+        }
+      },
+      {
+        "deprecated": false,
+        "name": "description",
+        "required": true,
+        "type": {
+          "typeName": "refAlias",
+          "refName": "GetSeriesSpecDescription",
+          "type": {
+            "typeName": "enum",
+            "enums": [
+              "Retrieve a series"
+            ]
+          },
+          "deprecated": false
+        }
+      },
+      {
+        "deprecated": false,
+        "name": "tags",
+        "required": true,
+        "type": {
+          "typeName": "tuple",
+          "types": [
+            {
+              "typeName": "enum",
+              "enums": [
+                "Series"
+              ]
+            },
+            {
+              "typeName": "enum",
+              "enums": [
+                "Front"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "deprecated": false,
+        "name": "path",
+        "required": true,
+        "type": {
+          "typeName": "nestedObjectLiteral",
+          "properties": [
+            {
+              "example": 1255,
+              "description": "Series id",
+              "deprecated": false,
+              "name": "id",
+              "required": true,
+              "type": {
+                "typeName": "number"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "deprecated": false,
+        "name": "query",
+        "required": true,
+        "type": {
+          "typeName": "nestedObjectLiteral",
+          "properties": [
+            {
+              "deprecated": false,
+              "name": "debug",
+              "required": false,
+              "type": {
+                "typeName": "boolean"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "deprecated": false,
+        "name": "auth",
+        "required": true,
+        "type": {
+          "typeName": "enum",
+          "enums": [
+            "JWT"
+          ]
+        }
+      },
+      {
+        "deprecated": false,
+        "name": "response",
+        "required": true,
+        "type": {
+          "typeName": "refAlias",
+          "refName": "Series",
+          "type": {
             "typeName": "nestedObjectLiteral",
             "properties": [
-                {
-                    "deprecated": false,
-                    "name": "url",
-                    "required": true,
-                    "type": {
-                        "typeName": "enum",
-                        "enums": [
-                            "GET /manta/v1/series/{id}"
-                        ]
-                    }
-                },
-                {
-                    "deprecated": false,
-                    "name": "summary",
-                    "required": true,
-                    "type": {
-                        "typeName": "enum",
-                        "enums": [
-                            "Retrieve a series"
-                        ]
-                    }
-                },
-                {
-                    "deprecated": false,
-                    "name": "description",
-                    "required": true,
-                    "type": {
-                        "typeName": "refAlias",
-                        "refName": "GetSeriesSpecDescription",
-                        "type": {
-                            "typeName": "enum",
-                            "enums": [
-                                "Retrieve a series"
-                            ]
-                        },
-                        "deprecated": false
-                    }
-                },
-                {
-                    "deprecated": false,
-                    "name": "tags",
-                    "required": true,
-                    "type": {
-                        "typeName": "tuple",
-                        "types": [
-                            {
-                                "typeName": "enum",
-                                "enums": [
-                                    "Series"
-                                ]
-                            },
-                            {
-                                "typeName": "enum",
-                                "enums": [
-                                    "Front"
-                                ]
-                            }
-                        ]
-                    }
-                },
-                {
-                    "deprecated": false,
-                    "name": "path",
-                    "required": true,
-                    "type": {
-                        "typeName": "nestedObjectLiteral",
-                        "properties": [
-                            {
-                                "example": 1255,
-                                "description": "Series id",
-                                "deprecated": false,
-                                "name": "id",
-                                "required": true,
-                                "type": {
-                                    "typeName": "number"
-                                }
-                            }
-                        ]
-                    }
-                },
-                {
-                    "deprecated": false,
-                    "name": "auth",
-                    "required": true,
-                    "type": {
-                        "typeName": "enum",
-                        "enums": [
-                            "JWT"
-                        ]
-                    }
-                },
-                {
-                    "deprecated": false,
-                    "name": "response",
-                    "required": true,
-                    "type": {
-                        "typeName": "refAlias",
-                        "refName": "Series",
-                        "type": {
-                            "typeName": "nestedObjectLiteral",
-                            "properties": [
-                                {
-                                    "deprecated": false,
-                                    "name": "thumbnail",
-                                    "required": true,
-                                    "type": {
-                                        "typeName": "refAlias",
-                                        "refName": "Thumbnail",
-                                        "type": {
-                                            "typeName": "nestedObjectLiteral",
-                                            "properties": [
-                                                {
-                                                    "deprecated": false,
-                                                    "name": "xlarge",
-                                                    "required": true,
-                                                    "type": {
-                                                        "typeName": "string"
-                                                    }
-                                                }
-                                            ]
-                                        },
-                                        "deprecated": false
-                                    }
-                                }
-                            ]
-                        },
-                        "deprecated": false
-                    }
+              {
+                "deprecated": false,
+                "name": "id",
+                "required": true,
+                "type": {
+                  "typeName": "number"
                 }
+              },
+              {
+                "deprecated": false,
+                "name": "thumbnail",
+                "required": true,
+                "type": {
+                  "typeName": "refAlias",
+                  "refName": "Thumbnail",
+                  "type": {
+                    "typeName": "nestedObjectLiteral",
+                    "properties": [
+                      {
+                        "deprecated": false,
+                        "name": "xlarge",
+                        "required": true,
+                        "type": {
+                          "typeName": "string"
+                        }
+                      }
+                    ]
+                  },
+                  "deprecated": false
+                }
+              }
             ]
-        },
-        "deprecated": false
-    },
-    "deprecated": false
+          },
+          "deprecated": false
+        }
+      }
+    ]
+  },
+  "deprecated": false
 }

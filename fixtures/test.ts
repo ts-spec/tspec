@@ -22,6 +22,9 @@ export type GetSeriesSpec = DefineApiSpec<{
      */
     id: number;
   };
+  query: {
+    debug?: boolean;
+  };
   auth: "JWT";
   response: Series;
 }>;
