@@ -1,5 +1,5 @@
 # tspec
-Type driven OpenAPI Specification
+Type-based OpenAPI Specification
 
 ## How to use?
 ```ts
