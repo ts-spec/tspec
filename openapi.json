@@ -1,0 +1,90 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Series"
+    },
+    {
+      "name": "Front"
+    }
+  ],
+  "paths": {
+    "/manta/v1/series/{id}": {
+      "get": {
+        "tags": [
+          "Series",
+          "Front"
+        ],
+        "summary": "Retrieve a series",
+        "description": "Retrieve a series",
+        "operationId": "GetSeries",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Series id",
+            "required": true,
+            "schema": {
+              "type": "number"
+            },
+            "example": 1255
+          },
+          {
+            "name": "debug",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "id": {
+                      "type": "number"
+                    },
+                    "thumbnail": {
+                      "properties": {
+                        "xlarge": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "xlarge"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "thumbnail"
+                  ],
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    }
+  }
+}
