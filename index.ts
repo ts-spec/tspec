@@ -11,5 +11,14 @@ const program = ts.createProgram([FILE_NAME], {});
 
 extract(program);
 
-const openApiSpec = generateOpenApiSpec([mockSpec]);
+const openApiSpec = generateOpenApiSpec([mockSpec], {
+  components: {
+    securitySchemes: {
+      JWT: {
+        type: "http",
+        scheme: "bearer",
+      },
+    },
+  },
+});
 fs.writeFileSync("openapi.json", JSON.stringify(openApiSpec, undefined, 2));
