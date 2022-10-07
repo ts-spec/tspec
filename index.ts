@@ -5,7 +5,7 @@ import { mockSpec } from "./fixtures/openapiTest";
 import { extract } from "./src/extractor";
 import { generateOpenApiSpec } from "./src/openapi";
 
-const FILE_NAME = "./fixtures/test.ts";
+const FILE_NAME = "./fixtures/testHard.ts";
 
 const program = ts.createProgram([FILE_NAME], {});
 
