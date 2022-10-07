@@ -26,10 +26,24 @@ export const getJSDocFormat = (node: ts.Node) => {
 
 export const getJSDocDescription = (node: ts.Node, typeChecker: ts.TypeChecker) => {
   const symbol = getSymbolAtLocation(node, typeChecker);
+  if (!symbol) {
+    return undefined;
+  }
+
+  /**
+   * TODO: Workaround for what seems like a bug in the compiler
+   * Warrants more investigation and possibly a PR against typescript
+   */
+  if (node.kind === ts.SyntaxKind.Parameter) {
+    // TypeScript won't parse jsdoc if the flag is 4, i.e. 'Property'
+    symbol.flags = 0;
+  }
+  
   const comments = symbol.getDocumentationComment(typeChecker);
   if (comments.length) {
     return ts.displayPartsToString(comments);
   }
+
   return undefined;
 }
 

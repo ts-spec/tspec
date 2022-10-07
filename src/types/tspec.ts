@@ -161,7 +161,7 @@ export namespace Tspec {
     path?: Tspec.Property & { type: Tspec.ObjectType },
     query?: Tspec.Property & { type: Tspec.ObjectType },
     body?: Tspec.Property & { type: Tspec.ObjectType },
-    response: Tspec.Property & { type: Tspec.ObjectType },
+    response: Tspec.Property,
   }
 }
 
