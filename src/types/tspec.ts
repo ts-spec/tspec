@@ -1,4 +1,5 @@
 import ts from "typescript";
+import { ApiSpec } from "./DefineApiSpec";
 
 export namespace Tspec {
   export type NumberFormat = 'int32' | 'int64' | 'float' | 'double';
@@ -16,7 +17,6 @@ export namespace Tspec {
     | 'undefined' 
     | 'any' 
     | 'intersection'  
-    | 'buffer'
     | 'nestedObjectLiteral'
     | 'object' 
     | 'array' 
@@ -45,7 +45,6 @@ export namespace Tspec {
     additionalProperties?: Type;
   }
   export interface ObjectsNoPropsType extends TypeBase { typeName: 'object' }
-  export interface BufferType extends TypeBase { typeName: 'buffer' }
 
   export interface Property {
     description?: string;
@@ -85,7 +84,13 @@ export namespace Tspec {
     typeName: 'refAlias';
   }
 
+  export interface NeverType extends TypeBase {
+    typeName: 'never'
+  }
+
   export type ReferenceType = RefEnumType | RefObjectType | RefAliasType;
+
+  export type ObjectType = NestedObjectLiteralType | RefObjectType;
 
   export type Type =
     | PrimitiveType
@@ -93,14 +98,14 @@ export namespace Tspec {
     | EnumType
     | ArrayType
     | TupleType
-    | BufferType
     | AnyType
     | RefEnumType
     | RefObjectType
     | RefAliasType
     | NestedObjectLiteralType
     | UnionType
-    | IntersectionType;
+    | IntersectionType
+    | NeverType;
 
   export interface Context {
     [name: string]: ts.TypeReferenceNode | ts.TypeNode;
@@ -150,5 +155,13 @@ export namespace Tspec {
   
   export type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.PropertySignature | ts.TypeAliasDeclaration | ts.EnumMember;
   export type UsableDeclarationWithoutPropertySignature = Exclude<UsableDeclaration, ts.PropertySignature>;
+
+  export interface ParsedApiSpec extends ApiSpec {
+    operationId: string,
+    path?: Tspec.Property & { type: Tspec.ObjectType },
+    query?: Tspec.Property & { type: Tspec.ObjectType },
+    body?: Tspec.Property & { type: Tspec.ObjectType },
+    response: Tspec.Property & { type: Tspec.ObjectType },
+  }
 }
 

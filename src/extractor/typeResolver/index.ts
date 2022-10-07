@@ -26,6 +26,12 @@ export const resolve = (params: Tspec.ResolveParamsBase): Tspec.Type => {
     };
   }
 
+  if (typeNode.kind === ts.SyntaxKind.NeverKeyword) {
+    return <Tspec.NeverType> {
+      typeName: 'never',
+    };
+  }
+
   if (ts.isArrayTypeNode(typeNode)) {
     return <Tspec.ArrayType>{
       typeName: 'array',
@@ -392,12 +398,12 @@ const resolveTypeReferenceNode = ({ typeNode, current, context, parentNode }: Ts
     }
 
     if (typeReference.typeName.text === 'Buffer') {
-      const bufferMetaType: Tspec.BufferType = { typeName: 'buffer' };
+      const bufferMetaType: Tspec.StringType = { typeName: 'string', format: 'binary' };
       return bufferMetaType;
     }
 
     if (typeReference.typeName.text === 'Readable') {
-      const streamMetaType: Tspec.BufferType = { typeName: 'buffer' };
+      const streamMetaType: Tspec.StringType = { typeName: 'string', format: 'binary' };
       return streamMetaType;
     }
 
