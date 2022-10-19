@@ -5,29 +5,31 @@ export namespace Tspec {
   export type NumberFormat = 'int32' | 'int64' | 'float' | 'double';
   export type StringFormat = 'date' | 'date-time' | 'byte' | 'binary' | 'password';
 
-  export type TypeName = 
+  export type TypeName =
+    | 'literal'
     | 'integer'
-    | 'number' 
-    | 'string' 
-    | 'boolean' 
-    | 'void' 
+    | 'number'
+    | 'string'
+    | 'boolean'
+    | 'void'
     | 'enum'
     | 'tuple'
     | 'union'
-    | 'undefined' 
-    | 'any' 
-    | 'intersection'  
+    | 'undefined'
+    | 'any'
+    | 'intersection'
     | 'nestedObjectLiteral'
-    | 'object' 
-    | 'array' 
+    | 'object'
+    | 'array'
     | 'refAlias'
-    | 'null' 
+    | 'null'
     | 'never';
 
   interface TypeBase {
     typeName: TypeName;
   }
 
+  export interface LiteralType extends TypeBase { typeName: 'literal', value: string | number | boolean | null };
   export interface NumberType extends TypeBase { typeName: 'integer' | 'number', format?: NumberFormat }
   export interface StringType extends TypeBase { typeName: 'string', format?: StringFormat }
   export interface BooleanType extends TypeBase { typeName: 'boolean' }
@@ -93,6 +95,7 @@ export namespace Tspec {
   export type ObjectType = NestedObjectLiteralType | RefObjectType;
 
   export type Type =
+    | LiteralType
     | PrimitiveType
     | ObjectsNoPropsType
     | EnumType
@@ -106,13 +109,6 @@ export namespace Tspec {
     | UnionType
     | IntersectionType
     | NeverType;
-
-  export interface Context {
-    [name: string]: ts.TypeReferenceNode | ts.TypeNode;
-  }
-  export interface Current {
-    typeChecker: ts.TypeChecker;
-  }
 
   export interface ResolveParamsBase {
     typeNode: ts.TypeNode,
