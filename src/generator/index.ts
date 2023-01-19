@@ -1,4 +1,4 @@
-import { buildGenerator, JsonSchemaGenerator, Definition } from 'typescript-json-schema';
+import { buildGenerator } from 'typescript-json-schema';
 import * as ts from 'typescript';
 import path from 'path';
 
@@ -28,7 +28,7 @@ const getProgram = async (projectPath: string) => {
   if(!program) throw Error('Failed to create program');
   return program; 
 }
-const findTspecSymbolNames=  async (program: ts.Program) => {
+const findTspecSymbolNames = async (program: ts.Program) => {
   const typeChecker = program.getTypeChecker();
 
   const sourceFiles = program.getSourceFiles();
@@ -60,18 +60,6 @@ const buildJsonSchemaGenerator = async (program: ts.Program) => {
 
   return generator;
 }
-
-const buildOpenApi = (schema: Definition) => {
-  if(schema.type == 'object' && schema.properties) {
-    if( Object.hasOwnProperty('url') &&  Object.hasOwnProperty('response')){ //ApiSpec 이라 가정
-      console.log(JSON.stringify(schema))
-      // openAPI에 추가
-    }
-  } else {
-    //ref로 추가
-  }
-}
-
 
 const getSchemas = async () => {
   const program = await getProgram(projectPath);
