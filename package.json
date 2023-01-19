@@ -11,5 +11,8 @@
   },
   "scripts": {
     "start": "ts-node index.ts"
+  },
+  "dependencies": {
+    "typescript-json-schema": "^0.55.0"
   }
 }
