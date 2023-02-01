@@ -13,6 +13,7 @@
     "start": "ts-node index.ts"
   },
   "dependencies": {
-    "typescript-json-schema": "^0.55.0"
+    "typescript-json-schema": "^0.55.0",
+    "yaml": "^2.2.1"
   }
 }
