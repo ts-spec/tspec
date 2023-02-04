@@ -31,7 +31,7 @@ export const isIntegerSchemaObject = (
   if (isReferenceObject(schema)) {
     return false;
   }
-  if (schema['type']  === 'integer') {
+  if (schema['type'] === 'integer') {
     return true;
   }
   return false;
@@ -55,7 +55,7 @@ export const isBooleanSchemaObject = (
   if (isReferenceObject(schema)) {
     return false;
   }
-  if (schema['type']  === 'boolean') {
+  if (schema['type'] === 'boolean') {
     return true;
   }
   return false;
@@ -79,10 +79,7 @@ export const isObjectSchemaObject = (
   if (isReferenceObject(schema)) {
     return false;
   }
-  if (
-    schema['type'] === 'object' &&
-    schema['properties']!==undefined
-  ) {
+  if (schema['type'] === 'object' && schema['properties'] !== undefined) {
     return true;
   }
   return false;
@@ -94,10 +91,7 @@ export const isArraySchemaObject = (
   if (isReferenceObject(schema)) {
     return false;
   }
-  if (
-    schema['type'] === 'array' &&
-    schema['items']!==undefined
-  ) {
+  if (schema['type'] === 'array' && schema['items'] !== undefined) {
     return true;
   }
   return false;

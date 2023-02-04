@@ -148,7 +148,6 @@ export const buildPathsObject = async (routerSchemas: oapiSchema[]) => {
       continue;
     }
     const routerInfo = routerSchema['properties'];
-
     for await (const [signature, val] of Object.entries(routerInfo)) {
       const { operationObject, url, method } =
         await buildOperationObjectWithPathInfo(val);

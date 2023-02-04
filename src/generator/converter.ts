@@ -1,9 +1,14 @@
 import { OpenAPIV3 as oapi3 } from 'openapi-types';
 import * as tjs from 'typescript-json-schema';
 
-import { isConcrete, isDefinitionBoolean, isNullableObject, isReferenceObject, oapiSchema  } from './utils';
-
-// $ref를 대체하려면 dependency graph 그려야함
+import {
+  isConcrete,
+  isDefinitionBoolean,
+  isNullableObject,
+  isObjectSchemaObject,
+  isReferenceObject,
+  oapiSchema,
+} from './utils';
 
 const createItem = async (items: tjs.DefinitionOrBoolean[]) => {
   let nullable = false;
@@ -24,13 +29,14 @@ const createItem = async (items: tjs.DefinitionOrBoolean[]) => {
   if (filteredSchema.length === 0) {
     return nullableProperty;
   } else if (filteredSchema.length === 1) {
-    if (isReferenceObject(filteredSchema[0]) && nullable) {
+    const onlySchema = filteredSchema[0];
+    if (isReferenceObject(onlySchema) && nullable) {
       return {
-        anyOf: [filteredSchema[0], nullableProperty],
+        anyOf: [onlySchema, nullableProperty],
       };
     }
     return {
-      ...filteredSchema[0],
+      ...onlySchema,
       ...nullableProperty,
     };
   } else if (filteredSchema.length > 1) {
@@ -41,15 +47,6 @@ const createItem = async (items: tjs.DefinitionOrBoolean[]) => {
   }
 };
 
-export const filterNullObject = (schema: oapiSchema | undefined) => {
-  if (!schema) {
-    return false;
-  }
-  if (isNullableObject(schema)) {
-    return false;
-  }
-  return true;
-};
 const convertItems = async (
   items: tjs.DefinitionOrBoolean | tjs.DefinitionOrBoolean[],
 ) => {
@@ -77,7 +74,6 @@ export const convertProperties = async (obj: {
   return convertedObj;
 };
 
-// oneOf 체크 
 const convertSchemaArray = async (
   defs: tjs.DefinitionOrBoolean[],
   property: 'anyOf' | 'oneOf' | 'allOf',
@@ -90,19 +86,19 @@ const convertSchemaArray = async (
   const filteredDefs = await Promise.all(
     defs.map(async (def) => {
       const convertedDef = await convertDefinition(def);
+      // undefined 제외
       if (!convertedDef) {
         return undefined;
       }
+      // {nullable: true}인 경우 nullable = true하고 제외
       if (isNullableObject(convertedDef)) {
         nullable = true;
         return undefined;
       }
+
       if (property === 'allOf') {
-        //다 합하기
-        if (
-          !isReferenceObject(convertedDef) &&
-          convertedDef.type === 'object'
-        ) {
+        // object의 proeprty 모아서 하나의 object로 만들기
+        if (isObjectSchemaObject(convertedDef)) {
           object['properties'] = {
             ...object['properties'],
             ...convertedDef['properties'],
@@ -110,6 +106,7 @@ const convertSchemaArray = async (
           return undefined;
         }
       }
+
       return convertedDef;
     }),
   );
@@ -122,6 +119,7 @@ const convertSchemaArray = async (
   if (convertedSchema.length === 1) {
     const onlySchema = convertedSchema[0];
     if (isReferenceObject(onlySchema) && nullable) {
+      // ReferenceObject는 다른 속성들과 함께 사용할 수 없음
       schema[property] = [onlySchema, { nullable }];
     } else {
       schema = onlySchema;
@@ -139,7 +137,7 @@ const convertSchemaArray = async (
   return schema;
 };
 
-export const extractSubschemaProperty = async (
+export const convertSubschemaProperty = async (
   def: tjs.Definition,
 ): Promise<
   Pick<oapi3.BaseSchemaObject, 'allOf' | 'anyOf' | 'oneOf' | 'not'>
@@ -148,7 +146,6 @@ export const extractSubschemaProperty = async (
   let schema: oapi3.BaseSchemaObject = {};
 
   if (allOf) {
-    //다 Object일 경우?
     const convertedSchemaArray = await convertSchemaArray(allOf, 'allOf');
     schema = { ...schema, ...convertedSchemaArray };
   }
@@ -261,15 +258,13 @@ const covertToObjectSchemaObject = async (
   def: tjs.Definition,
 ): Promise<oapi3.SchemaObject> => {
   const commonSchema = extractCommonProperty(def);
-  //dependencies, patternProperties 제외
-  //propertyNames 보류
+
   const {
     maxProperties,
     minProperties,
     required,
     properties,
     additionalProperties,
-    propertyNames,
   } = def;
 
   const convertedAdditionalProperties = additionalProperties
@@ -333,7 +328,7 @@ const convertType = async (
 
   const refinedSchemas = splitedSchemas
     .filter(isConcrete)
-    .map((schema) => ({ ...schema, ...commonSchema }));
+    .map((schema) => ({ ...schema, ...commonSchema })); // 모든 property는 동시에 만족해야함
 
   const referenceObject = def.$ref
     ? {
@@ -358,6 +353,7 @@ const convertType = async (
     if (isReferenceObject(onlySchema)) {
       const baseSchema = { ...commonSchema, ...nullableProperty };
       if (Object.keys(baseSchema).length > 0) {
+        // reference object는 baseSchema랑 같이 사용할 수 없음
         return {
           allOf: [baseSchema, onlySchema],
         };
@@ -384,7 +380,7 @@ export const convertDefinition = async (
     return undefined;
   }
   const commonProperty = extractCommonProperty(def);
-  const subschemaProperty = await extractSubschemaProperty(def);
+  const subschemaProperty = await convertSubschemaProperty(def);
 
   const commonSchema = {
     ...commonProperty,

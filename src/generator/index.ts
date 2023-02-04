@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { OpenAPIV3 } from 'openapi-types';
 import path from 'path';
 import * as ts from 'typescript';
 import { buildGenerator, Definition } from 'typescript-json-schema';
@@ -89,7 +90,7 @@ const getSchemaMap = async (
 ): Promise<Map<string, oapiSchema>> => {
   const schemaMap: Map<string, oapiSchema> = new Map();
 
-  console.log(JSON.stringify(def.definitions));
+  console.log(JSON.stringify(def.definitions)); // 여러 symbol을 한번에 찾으면 schema가 모두 definitions에 들어감
   if (def.definitions) {
     for (const [key, val] of Object.entries(def.definitions)) {
       if (!val) {
@@ -105,19 +106,27 @@ const getSchemaMap = async (
   return schemaMap;
 };
 
-const build = async (sMap: Map<string, oapiSchema>, routerNames: string[]) => {
+const write = async (openapi: OpenAPIV3.Document) => {
+  fs.writeFileSync('./output/openapi.yaml', stringify(openapi));
+};
+
+const buildOpenApi = async (
+  sMap: Map<string, oapiSchema>,
+  routerNames: string[],
+) => {
   const routers = routerNames.map((name) => sMap.get(name)).filter(isConcrete);
   const openapi = await ob.buildOpenApiDocument(routers);
 
   for await (const routerName of routerNames) {
+    // Router schema는 제거
     sMap.delete(routerName);
   }
   openapi['components'] = await ob.buildComponentsObject(sMap);
 
-  fs.writeFileSync('./output/openapi.yaml', stringify(openapi));
+  await write(openapi);
 };
 
 prebuild().then(async (schema) => {
   const schemaMap = await getSchemaMap(schema);
-  await build(schemaMap, ['SeriesRouter1', 'SeriesRouter2']);
+  await buildOpenApi(schemaMap, ['SeriesRouter1', 'SeriesRouter2']);
 });
