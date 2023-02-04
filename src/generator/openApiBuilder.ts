@@ -74,13 +74,14 @@ const buildRequestBodyObject = async (
 const buildParameterObjects = async (
   schema: oapiSchema,
   parameterIn: 'query' | 'path',
-) => {
+): Promise<oapi3.ParameterObject[]| undefined>=> {
   if (!isObjectSchemaObject(schema)) {
     return undefined;
   }
   const paramterObjects: oapi3.ParameterObject[] = [];
   for (const [key, val] of Object.entries(schema.properties)) {
-    const param = { name: key, in: parameterIn, schema: val };
+    const param: oapi3.ParameterObject = { name: key, in: parameterIn, schema: val };
+    if(parameterIn === 'path') param['required'] = true; // path는 required
     paramterObjects.push(param);
   }
   return paramterObjects;
@@ -155,7 +156,7 @@ export const buildPathsObject = async (routerSchemas: oapiSchema[]) => {
       if (!pathsObject[url]) {
         pathsObject[url] = {};
       }
-      pathsObject[url]![method as oapi3.HttpMethods] = operationObject;
+      pathsObject[url]![method.toLowerCase() as oapi3.HttpMethods] = operationObject;
     }
   }
   return pathsObject;
