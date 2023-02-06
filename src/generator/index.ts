@@ -36,7 +36,7 @@ const getTspecSignatures = (p: ts.Program) => {
         return;
       }
 
-      if ((node.type?.typeName as any)?.escapedText !== 'RegisterApiSpec') {
+      if ((node.type?.typeName as any)?.right?.escapedText !== 'RegisterApiSpec') {
         return;
       }
       const name = node.name.escapedText as string;

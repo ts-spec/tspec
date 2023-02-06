@@ -15,13 +15,13 @@ export namespace Tspec {
   type QueryParamValue = string | number | boolean | string[] | number[] | boolean[];
   type QueryParam = { [key: string]: QueryParamValue }
 
-  interface ApiSpecBase<P extends PathParam = PathParam, Q extends QueryParam = QueryParam> {
+  interface ApiSpecBase<Res extends any = any, P extends PathParam = PathParam, Q extends QueryParam = QueryParam> {
     summary?: string,
     description?: string,
     tags?: string[],
     auth?: string,
     path?: P, query?: Q, body?: {},
-    responses: { [code: number]: any }, error?: { [key: string]: {} },
+    responses: { [code: number]: Res }, error?: { [key: string]: {} },
   }
 
   export type ApiSpec<T extends ApiSpecBase> = T;
@@ -63,7 +63,7 @@ export namespace Tspec {
   type ObjectToUnion<T extends {}> = T[keyof T];
 
   export type ExpressHandler<Spec extends ApiSpecBase> = RequestHandler<
-  Spec['path'], ObjectToUnion<Spec['responses']>, Spec['body'], Spec['query']
+    Spec['path'], ObjectToUnion<Spec['responses']>, Spec['body'], Spec['query']
   >;
 
   export interface GenerateParams {
