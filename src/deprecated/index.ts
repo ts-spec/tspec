@@ -1,7 +1,7 @@
 import ts from "typescript";
 import fs from 'fs';
 
-import { mockSpec } from "../../fixtures/openapiTest";
+import { mockSpec } from "./fixtures/openapiTest";
 import { extract } from "./extractor";
 import { generateOpenApiSpec } from "./openapi";
 

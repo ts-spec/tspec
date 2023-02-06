@@ -1,4 +1,4 @@
-import { DefineApiSpec, ExpressHandler } from "../src/types/DefineApiSpec";
+import { DefineApiSpec, ExpressHandler } from "../types/DefineApiSpec";
 
 type Nullable<T> = T | null;
 type Optional<T> = T | undefined;

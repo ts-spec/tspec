@@ -80,4 +80,7 @@ export namespace Tspec {
   }
 
   export type OpenapiDocument = OpenAPIV3.Document;
+
+  /** @TJS-type integer */
+  export type Integer = number;
 }
