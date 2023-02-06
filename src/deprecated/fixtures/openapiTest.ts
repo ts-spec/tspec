@@ -1,4 +1,4 @@
-import { Tspec } from '../src/types/tspec';
+import { Tspec } from '../../types/tspec';
 
 export const mockSpec: Tspec.ParsedApiSpec = {
   operationId: 'GetSeries',
