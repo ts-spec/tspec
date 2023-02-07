@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 import { OpenAPIV3 } from 'openapi-types';
 
 export namespace Tspec {
-  type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   type Url = `/${string}`;
   type UrlWithMethod = `${Method} ${Url}`;
 
@@ -10,10 +10,10 @@ export namespace Tspec {
   type ParseUrl<P extends UrlWithMethod> = P extends `${Method} /${infer U}` ? U : never;
 
   type PathParamValue = string | number;
-  type PathParam = { [key: string]: PathParamValue }
+  export type PathParam = { [key: string]: PathParamValue }
 
   type QueryParamValue = string | number | boolean | string[] | number[] | boolean[];
-  type QueryParam = { [key: string]: QueryParamValue }
+  export type QueryParam = { [key: string]: QueryParamValue }
 
   interface ApiSpecBase<Res extends any = any, P extends PathParam = PathParam, Q extends QueryParam = QueryParam> {
     summary?: string,
@@ -60,10 +60,10 @@ export namespace Tspec {
     }
   };
 
-  type ObjectToUnion<T extends {}> = T[keyof T];
+  type ValueOf<T extends {}> = T[keyof T];
 
   export type ExpressHandler<Spec extends ApiSpecBase> = RequestHandler<
-    Spec['path'], ObjectToUnion<Spec['responses']>, Spec['body'], Spec['query']
+    Spec['path'], ValueOf<Spec['responses']>, Spec['body'], Spec['query']
   >;
 
   export interface GenerateParams {
