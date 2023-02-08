@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-unresolved
 import { RequestHandler } from 'express';
 import { OpenAPIV3 } from 'openapi-types';
 
@@ -15,7 +16,11 @@ export namespace Tspec {
   type QueryParamValue = string | number | boolean | string[] | number[] | boolean[];
   export type QueryParam = { [key: string]: QueryParamValue }
 
-  interface ApiSpecBase<Res extends any = any, P extends PathParam = PathParam, Q extends QueryParam = QueryParam> {
+  interface ApiSpecBase<
+    Res extends any = any,
+    P extends PathParam = PathParam,
+    Q extends QueryParam = QueryParam
+  > {
     summary?: string,
     description?: string,
     tags?: string[],
@@ -67,7 +72,7 @@ export namespace Tspec {
   >;
 
   export interface GenerateParams {
-    specPathGlobs: string[],
+    specPathGlobs?: string[],
     tsconfigPath?: string,
     outputPath?: string,
     specVersion?: 3,

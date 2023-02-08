@@ -1,28 +1,30 @@
 # tspec
-Type-based OpenAPI Specification
+Generate OpenAPI Specification from TypeScript types
 
 ## How to use?
 ```ts
-import { DefineApiSpec, generateSpec } from 'tspec'
+import { Tspec, generateSpec } from 'tspec'
 
-export type GetBookApiSpec = DefineApiSpec<{
-  url: 'GET /books/{id}',
-  summary: 'Retrieve a book',
-  description: 'Retrieve a book',
-  tags: ['Book'],
-  path: {
-    /**
-     * Book id
-     * @example 1234
-     */
-    id: number,
+// 1. Define API Specifications
+export type PetApiSpec = Tspec.RegisterApiSpec<{
+  baseUrl: '/pet',
+  specs: {
+    'GET /{id}': {
+      summary: 'Find pet by ID',
+      path: {
+        /**
+         * pet id
+         * @examples [1234]
+         * */
+        id: string,
+      },
+      responses: { 200: Pet },
+    },
   },
-  response: Book,
 }>;
 
-// generate OpenAPI Spec
-const openAPISpec = generateSpec(options);
-
+// 2. generate OpenAPI Spec
+const openAPISpec = await generateSpec();
 ```
 
 ## Philosophy

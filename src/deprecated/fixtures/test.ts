@@ -1,32 +1,32 @@
-import { DefineApiSpec, ExpressHandler } from "../types/DefineApiSpec";
+import { DefineApiSpec, ExpressHandler } from '../types/DefineApiSpec';
 
 type Series = {
   id: number,
-  thumbnail: Thumbnail
+  thumbnail: Thumbnail,
 };
 
 type Thumbnail = {
-  xlarge: string
+  xlarge: string,
 };
 
 type GetSeriesSpecDescription = 'Retrieve a series';
 export type GetSeriesSpec = DefineApiSpec<{
-  url: `GET /manta/v1/series/{id}`;
-  summary: "Retrieve a series";
-  description: GetSeriesSpecDescription;
-  tags: ["Series", "Front"];
+  url: 'GET /manta/v1/series/{id}',
+  summary: 'Retrieve a series',
+  description: GetSeriesSpecDescription,
+  tags: ['Series', 'Front'],
   path: {
     /**
      * Series id
      * @example 1255
      */
-    id: number;
-  };
+    id: number,
+  },
   query: {
-    debug?: boolean;
-  };
-  auth: "JWT";
-  response: Series;
+    debug?: boolean,
+  },
+  auth: 'JWT',
+  response: Series,
 }>;
 
 export const getSeries: ExpressHandler<GetSeriesSpec> = async (req, res) => {
@@ -35,7 +35,7 @@ export const getSeries: ExpressHandler<GetSeriesSpec> = async (req, res) => {
   res.json({
     id,
     thumbnail: {
-      xlarge: "https://example.com/series/1255/thumbnail.jpg",
+      xlarge: 'https://example.com/series/1255/thumbnail.jpg',
     },
   });
-}
+};

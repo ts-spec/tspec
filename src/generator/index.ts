@@ -167,7 +167,7 @@ const convertToOpenapiSchemas = async (
   return escapeSchemaNames(openapiSchemas);
 };
 
-const getOpenapiSchemas = async (tsconfigPath = 'tsconfig.json', specPathGlobs: string[]) => {
+const getOpenapiSchemas = async (tsconfigPath: string, specPathGlobs: string[]) => {
   const compilerOptions = getCompilerOptions(tsconfigPath);
   const files = getProgramFiles(compilerOptions, specPathGlobs);
 
@@ -192,9 +192,7 @@ const getOpenapiSchemas = async (tsconfigPath = 'tsconfig.json', specPathGlobs: 
 
 type Schema = OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject;
 
-const accessProperty = (
-  obj: Schema | undefined, key: string, schemas: SchemaMapping,
-): Schema | undefined => {
+const accessProperty = (obj: Schema | undefined, key: string, schemas: SchemaMapping): Schema | undefined => {
   if (!obj) {
     return undefined;
   }
@@ -209,9 +207,7 @@ const accessProperty = (
   return obj.properties && obj.properties[key];
 };
 
-const getPropertyByPath = (
-  obj: Schema | undefined, path: string, schemas: SchemaMapping,
-): Schema | undefined => {
+const getPropertyByPath = (obj: Schema | undefined, path: string, schemas: SchemaMapping): Schema | undefined => {
   const [first, ...rest] = path.split('.');
   const firstValue = accessProperty(obj, first, schemas);
   if (rest.length === 0) {
@@ -237,9 +233,7 @@ const getTextPropertyByPath = <O extends { required: boolean }>(
   return text as string;
 };
 
-const getTextListPropertyByPath = (
-  obj: Schema, path: string, schemas: SchemaMapping, options?: { required: boolean },
-): string[] => {
+const getTextListPropertyByPath = (obj: Schema, path: string, schemas: SchemaMapping, options?: { required: boolean }): string[] => {
   const value = getPropertyByPath(obj, path, schemas);
   if (!options?.required && !value) {
     return [];
@@ -264,9 +258,7 @@ const getSchemaPropertiesByPath = <O extends { required: boolean }>(
   return value.properties;
 };
 
-const getOpenapiPaths = (
-  openapiSchemas: SchemaMapping, tspecSymbols: string[],
-): OpenAPIV3.PathsObject => {
+const getOpenapiPaths = (openapiSchemas: SchemaMapping, tspecSymbols: string[]): OpenAPIV3.PathsObject => {
   const paths: OpenAPIV3.PathsObject = {};
   tspecSymbols.forEach((tspecSymbol) => {
     const { properties: ApiSpecs = {} } = openapiSchemas[tspecSymbol];
@@ -276,9 +268,7 @@ const getOpenapiPaths = (
         ?.toLowerCase() as OpenAPIV3.HttpMethods;
       const summary = getTextPropertyByPath(value, 'summary', openapiSchemas);
       const tags = getTextListPropertyByPath(value, 'tags', openapiSchemas);
-      const responses = getSchemaPropertiesByPath(
-        value, 'responses', openapiSchemas, { required: true },
-      );
+      const responses = getSchemaPropertiesByPath(value, 'responses', openapiSchemas, { required: true });
       const path = getSchemaPropertiesByPath(value, 'path', openapiSchemas);
       const query = getSchemaPropertiesByPath(value, 'query', openapiSchemas);
       const body = getSchemaPropertiesByPath(value, 'body', openapiSchemas);
@@ -318,10 +308,15 @@ const getOpenapiPaths = (
   return paths;
 };
 
-export const generateTspec = async (params: Tspec.GenerateParams): Promise<OpenAPIV3.Document> => {
+export const generateTspec = async (
+  params: Tspec.GenerateParams = {},
+): Promise<OpenAPIV3.Document> => {
   const {
     openapiSchemas, tspecSymbols,
-  } = await getOpenapiSchemas(params.tsconfigPath, params.specPathGlobs);
+  } = await getOpenapiSchemas(
+    params.tsconfigPath || 'tsconfig.json',
+    params.specPathGlobs || ['src/**/*.ts'],
+  );
 
   const paths = getOpenapiPaths(openapiSchemas, tspecSymbols);
   const schemas = Object.fromEntries(
