@@ -72,7 +72,9 @@ const runCli = async () => {
   }
 
   const generateTspecParams: Tspec.GenerateParams = {
-    specPathGlobs: args.specPathGlobs.map((glob) => glob.toString()),
+    specPathGlobs: args.specPathGlobs.length > 0
+    ? args.specPathGlobs.map((glob) => glob.toString())
+    : defaultArgs.specPathGlobs,
     tsconfigPath: args.tsconfigPath,
     outputPath: args.outputPath,
     specVersion: (args.specVersion ?? defaultArgs.specVersion) as SupportedSpecVersion,
