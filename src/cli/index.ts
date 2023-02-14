@@ -68,7 +68,7 @@ const runCli = async () => {
     .argv;
 
   if (args.specVersion && !Object.values(SupportedSpecVersion).includes(args.specVersion)) {
-    throw new Error('Tspec currently supports only OpenAPI Spec with version 3.');
+    throw new Error(`Tspec currently supports only OpenAPI Spec with version ${Object.values(SupportedSpecVersion).join(', ')}.`);
   }
 
   const generateTspecParams: Tspec.GenerateParams = {
