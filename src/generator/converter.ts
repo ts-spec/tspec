@@ -335,7 +335,7 @@ const convertType = async (
         $ref: def.$ref.replace(
           /(#\/definitions\/)(\w)/,
           '#/components/schemas/$2',
-        ),
+        ).replace(/[^A-Za-z0-9_.-]/g, '_'),
       }
     : undefined;
   if (referenceObject) {

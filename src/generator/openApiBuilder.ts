@@ -74,14 +74,20 @@ const buildRequestBodyObject = async (
 const buildParameterObjects = async (
   schema: oapiSchema,
   parameterIn: 'query' | 'path',
-): Promise<oapi3.ParameterObject[]| undefined>=> {
+): Promise<oapi3.ParameterObject[] | undefined> => {
   if (!isObjectSchemaObject(schema)) {
     return undefined;
   }
   const paramterObjects: oapi3.ParameterObject[] = [];
   for (const [key, val] of Object.entries(schema.properties)) {
-    const param: oapi3.ParameterObject = { name: key, in: parameterIn, schema: val };
-    if(parameterIn === 'path') param['required'] = true; // path는 required
+    const param: oapi3.ParameterObject = {
+      name: key,
+      in: parameterIn,
+      schema: val,
+    };
+    if (parameterIn === 'path') {
+      param['required'] = true;
+    } // path는 required
     paramterObjects.push(param);
   }
   return paramterObjects;
@@ -155,8 +161,11 @@ export const buildPathsObject = async (routerSchemas: oapiSchema[]) => {
 
       if (!pathsObject[url]) {
         pathsObject[url] = {};
+        operationObject['operationId'] = `${routerSchema}_${signature.replace(/\s/g, '_')}`
       }
-      pathsObject[url]![method.toLowerCase() as oapi3.HttpMethods] = operationObject;
+      
+      pathsObject[url]![method.toLowerCase() as oapi3.HttpMethods] =
+        operationObject;
     }
   }
   return pathsObject;
@@ -172,7 +181,7 @@ export const buildBasicOpenApiDocument = (): oapi3.Document => {
 };
 
 const buildInfoObject = (
-  title = 'openAPI',
+  title = 'Tspec API',
   version = '0.0.1',
 ): oapi3.InfoObject => {
   return { title, version };
@@ -180,8 +189,9 @@ const buildInfoObject = (
 
 export const buildOpenApiDocument = async (
   routerSchemas: oapiSchema[],
+  basicOpenApiDocument?: oapi3.Document,
 ): Promise<oapi3.Document<{}>> => {
-  const openApiDocument = buildBasicOpenApiDocument();
+  const openApiDocument = basicOpenApiDocument ?? buildBasicOpenApiDocument();
   const pathsObject = await buildPathsObject(routerSchemas);
 
   openApiDocument['paths'] = pathsObject;

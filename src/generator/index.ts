@@ -1,96 +1,143 @@
 import fs from 'fs';
+import { glob } from 'glob';
 import { OpenAPIV3 } from 'openapi-types';
-import path from 'path';
 import * as ts from 'typescript';
-import { buildGenerator, Definition } from 'typescript-json-schema';
-import { stringify } from 'yaml';
+import * as TJS from 'typescript-json-schema';
+
+import { Tspec } from '../types/tspec';
+import { assertIsDefined, isDefined } from '../utils/types';
 
 import * as c from './converter';
 import * as ob from './openApiBuilder';
 import { isConcrete, oapiSchema } from './utils';
 
-const projectPath = '/Users/yeji/ridi/backends/';
-
-// 제거
-const getProgram = async (projectPath: string) => {
-  const config = ts.readJsonConfigFile(
-    path.resolve(projectPath, 'tsconfig.json'),
-    ts.sys.readFile,
-  );
-
-  const parsedConfigContents = ts.parseJsonSourceFileConfigFileContent(
-    config,
-    ts.sys,
-    path.resolve(projectPath),
-    {},
-    path.resolve(projectPath, 'tsconfig.json'),
-  );
-
-  const compilerHost = ts.createCompilerHost(parsedConfigContents.options);
-  if (!compilerHost) {
-    throw Error('Failed to create compiler host');
+const getCompilerOptions = (tsconfigPath: string) => {
+  const { config, error } = ts.readConfigFile(tsconfigPath, ts.sys.readFile);
+  if (error) {
+    throw new Error(error.messageText as string);
   }
-  const program = ts.createProgram({
-    rootNames: parsedConfigContents.fileNames,
-    options: parsedConfigContents.options,
-    host: compilerHost,
+  return config.compilerOptions;
+};
+
+const getProgramFiles = (
+  compilerOptions: ts.CompilerOptions,
+  specPathGlobs: string[],
+) => {
+  const typeFiles = [
+    ...(compilerOptions.typeRoots || []),
+    compilerOptions.baseUrl,
+  ].flatMap((typeRoot) => glob.sync(`${typeRoot}/**/*.d.ts`));
+  const specFiles = specPathGlobs.flatMap((specPathGlob) =>
+    glob.sync(specPathGlob),
+  );
+  return [...typeFiles, ...specFiles];
+};
+
+const isNodeExported = (node: ts.Node): boolean =>
+  // eslint-disable-next-line no-bitwise
+  (ts.getCombinedModifierFlags(node as ts.Declaration) &
+    ts.ModifierFlags.Export) !==
+    0 ||
+  (!!node.parent && node.parent.kind === ts.SyntaxKind.SourceFile);
+
+const getTspecSignatures = (p: ts.Program) => {
+  const entryPoints = p
+    .getRootFileNames()
+    .map((entryPointName) => p.getSourceFile(entryPointName))
+    .filter(isDefined);
+
+  const names: string[] = [];
+  entryPoints.forEach((srcFile) => {
+    ts.forEachChild(srcFile, (node) => {
+      if (!isNodeExported(node)) {
+        return;
+      }
+
+      if (
+        !ts.isTypeAliasDeclaration(node) ||
+        !ts.isTypeReferenceNode(node.type)
+      ) {
+        return;
+      }
+
+      if (
+        (node.type?.typeName as any)?.right?.escapedText !== 'RegisterApiSpec'
+      ) {
+        return;
+      }
+      const name = node.name.escapedText as string;
+      if (names.includes(name)) {
+        throw new Error(`Duplicate name: ${name}`);
+      }
+      names.push(name);
+    });
   });
 
-  if (!program) {
-    throw Error('Failed to create program');
+  return names;
+};
+
+const getOpenapiSchemas = async (
+  tsconfigPath = 'tsconfig.json',
+  specPathGlobs: string[],
+) => {
+  const compilerOptions = getCompilerOptions(tsconfigPath);
+  const files = getProgramFiles(compilerOptions, specPathGlobs);
+
+  const settings: TJS.PartialArgs = {
+    required: true,
+    noExtraProps: true,
+    strictNullChecks: true,
+    // rejectDateType: true,
+  };
+  const program = TJS.getProgramFromFiles(files, compilerOptions);
+  const generator = TJS.buildGenerator(program, settings);
+  assertIsDefined(generator);
+
+  const tspecSymbols = getTspecSignatures(program as ts.Program);
+  const { definitions: jsonSchemas } =
+    generator.getSchemaForSymbols(tspecSymbols);
+  assertIsDefined(jsonSchemas);
+
+  const openapiSchemas = await getSchemaMap(jsonSchemas);
+
+  return { openapiSchemas, tspecSymbols };
+};
+
+export const generateTspec = async (
+  params: Tspec.GenerateParams,
+): Promise<OpenAPIV3.Document> => {
+  const { openapiSchemas: openapiSchemaMap, tspecSymbols } =
+    await getOpenapiSchemas(params.tsconfigPath, params.specPathGlobs);
+
+  const openapi = await buildOpenApi(openapiSchemaMap, tspecSymbols);
+
+  // params 정보 입력
+  openapi['opeanpi'] = (params.specVersion === 3 && '3.0.3') || '3.0.3';
+  if (params.openapi?.securityDefinitions) {
+    if (!openapi['components']) {
+      openapi['components'] = {};
+    }
+    openapi['components']!['securitySchemes'] =
+      params.openapi?.securityDefinitions;
   }
-  return program;
-};
-
-// 제거
-const findTspecSymbolNames = async (program: ts.Program) => {
-  const typeChecker = program.getTypeChecker();
-
-  const sourceFiles = program.getSourceFiles();
-
-  const tspecSymbolNames: string[] = sourceFiles
-    .filter((file) => file.fileName.endsWith('.tspec.ts'))
-    .flatMap((file) => {
-      const symbol = typeChecker.getSymbolAtLocation(file);
-      const exports = symbol?.exports;
-      const tspecSymbolNames: string[] = [];
-
-      exports?.forEach((val, key) => {
-        //val.parent가 tspec인지 확인?
-        tspecSymbolNames.push(key.toString());
-      });
-
-      return tspecSymbolNames;
-    });
-
-  return tspecSymbolNames;
-};
-
-// 제거
-const buildJsonSchemaGenerator = async (program: ts.Program) => {
-  const generator = await buildGenerator(program, {});
-  if (!generator) {
-    throw Error('Failed to build JsonSchemaGenerator');
+  if (params.openapi?.servers) {
+    openapi['servers'] = params.openapi?.servers;
   }
 
-  return generator;
-};
+  if (params.outputPath) {
+    fs.writeFileSync(params.outputPath, JSON.stringify(openapi, null, 2));
+  }
 
-// 제거
-const prebuild = async () => {
-  const program = await getProgram(projectPath);
-  const generator = await buildJsonSchemaGenerator(program);
-  const tspecSymbolNames = await findTspecSymbolNames(program);
-  const schemas = generator.getSchemaForSymbols(tspecSymbolNames, true);
-  return schemas;
+  return openapi;
 };
 
 const getSchemaMap = async (
-  def: Definition,
+  def: TJS.Definition,
 ): Promise<Map<string, oapiSchema>> => {
   const schemaMap: Map<string, oapiSchema> = new Map();
 
-  console.log(JSON.stringify(def.definitions)); // 여러 symbol을 한번에 찾으면 schema가 모두 definitions에 들어감
+  // 여러 symbol을 찾으면 schema가 모두 definitions에 들어감
+  console.log(JSON.stringify(def.definitions)); 
   if (def.definitions) {
     for (const [key, val] of Object.entries(def.definitions)) {
       if (!val) {
@@ -98,16 +145,12 @@ const getSchemaMap = async (
       }
       const convertedProperty = await c.convertDefinition(val);
       if (convertedProperty) {
-        schemaMap.set(key, convertedProperty);
+        schemaMap.set(key.replace(/[^A-Za-z0-9_.-]/g, '_'), convertedProperty);
       }
     }
   }
 
   return schemaMap;
-};
-
-const write = async (openapi: OpenAPIV3.Document) => {
-  fs.writeFileSync('./output/openapi.yaml', stringify(openapi));
 };
 
 const buildOpenApi = async (
@@ -123,10 +166,11 @@ const buildOpenApi = async (
   }
   openapi['components'] = await ob.buildComponentsObject(sMap);
 
-  await write(openapi);
+  return openapi;
 };
 
-prebuild().then(async (schema) => {
-  const schemaMap = await getSchemaMap(schema);
-  await buildOpenApi(schemaMap, ['SeriesRouter1', 'SeriesRouter2']);
-});
+/**
+ * 제대로 동작하지 않는 케이스 (테스트 케이스)
+ * 1. Partial of Record
+ * export type BlockRegions = Partial<Record<'es' | 'en', { blockAt: string }>>;
+ */

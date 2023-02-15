@@ -2,8 +2,8 @@ import ts from "typescript";
 import fs from 'fs';
 
 import { mockSpec } from "./fixtures/openapiTest";
-import { extract } from "./src/extractor";
-import { generateOpenApiSpec } from "./src/openapi";
+import { extract } from "./extractor";
+import { generateOpenApiSpec } from "./openapi";
 
 const FILE_NAME = "./fixtures/testHard.ts";
 

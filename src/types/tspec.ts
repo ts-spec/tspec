@@ -1,167 +1,86 @@
-import ts from "typescript";
-import { ApiSpec } from "./DefineApiSpec";
+import { RequestHandler } from 'express';
+import { OpenAPIV3 } from 'openapi-types';
 
 export namespace Tspec {
-  export type NumberFormat = 'int32' | 'int64' | 'float' | 'double';
-  export type StringFormat = 'date' | 'date-time' | 'byte' | 'binary' | 'password';
+  type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  type Url = `/${string}`;
+  type UrlWithMethod = `${Method} ${Url}`;
 
-  export type TypeName = 
-    | 'integer'
-    | 'number' 
-    | 'string' 
-    | 'boolean' 
-    | 'void' 
-    | 'enum'
-    | 'tuple'
-    | 'union'
-    | 'undefined' 
-    | 'any' 
-    | 'intersection'  
-    | 'nestedObjectLiteral'
-    | 'object' 
-    | 'array' 
-    | 'refAlias'
-    | 'null' 
-    | 'never';
+  type ParseMethod<P extends UrlWithMethod> = P extends `${infer M} /${string}` ? M : never;
+  type ParseUrl<P extends UrlWithMethod> = P extends `${Method} /${infer U}` ? U : never;
 
-  interface TypeBase {
-    typeName: TypeName;
+  type PathParamValue = string | number;
+  type PathParam = { [key: string]: PathParamValue }
+
+  type QueryParamValue = string | number | boolean | string[] | number[] | boolean[];
+  type QueryParam = { [key: string]: QueryParamValue }
+
+  interface ApiSpecBase<Res extends any = any, P extends PathParam = PathParam, Q extends QueryParam = QueryParam> {
+    summary?: string,
+    description?: string,
+    tags?: string[],
+    auth?: string,
+    path?: P, query?: Q, body?: {},
+    responses: { [code: number]: Res }, error?: { [key: string]: {} },
   }
 
-  export interface NumberType extends TypeBase { typeName: 'integer' | 'number', format?: NumberFormat }
-  export interface StringType extends TypeBase { typeName: 'string', format?: StringFormat }
-  export interface BooleanType extends TypeBase { typeName: 'boolean' }
-  export interface VoidType extends TypeBase { typeName: 'void' }
-  export interface UndefinedType extends TypeBase { typeName: 'undefined' }
-  export interface EnumType extends TypeBase { typeName: 'enum', enums: Array<string | number | boolean | null> }
-  export interface ArrayType extends TypeBase { typeName: 'array', itemType: Type }
-  export interface TupleType extends TypeBase { typeName: 'tuple', types: Type[] }
-  export interface UnionType extends TypeBase { typeName: 'union', types: Type[] }
-  export interface IntersectionType extends TypeBase { typeName: 'intersection', types: Type[] }
-  export interface AnyType extends TypeBase { typeName: 'any' }
-  export interface NestedObjectLiteralType extends TypeBase {
-    typeName: 'nestedObjectLiteral';
-    properties: Property[];
-    additionalProperties?: Type;
-  }
-  export interface ObjectsNoPropsType extends TypeBase { typeName: 'object' }
+  export type ApiSpec<T extends ApiSpecBase> = T;
 
-  export interface Property {
-    description?: string;
-    format?: string;
-    example?: unknown;
-    name: string;
-    type: Type;
-    required: boolean;
-    deprecated: boolean;
+  interface Controller<
+    Specs extends { [path: UrlWithMethod]: ApiSpecBase } = { [path: UrlWithMethod]: ApiSpecBase }
+  > extends Pick<ApiSpecBase, 'tags' | 'auth'> {
+    baseUrl?: string,
+    specs: Specs,
   }
 
-  export type PrimitiveType = NumberType | StringType | BooleanType | VoidType | UndefinedType;
+  type WithBaseUrl <Base extends string | undefined, U extends string> = Base extends string
+    ? `${Base}/${U}`
+    : U;
 
-  export type RefTypeName = 'refObject' | 'refEnum' | 'refAlias';
+  type ParsePathKeys<U extends string> = U extends `${string}/{${infer P}}${infer R}`
+    ? R extends string
+        ? P | ParsePathKeys<R>
+        : P
+    : never;
 
-  export interface ReferenceTypeBase {
-    description?: string;
-    typeName: RefTypeName;
-    refName: string;
-    example?: unknown;
-    deprecated: boolean;
+  export type RegisterApiSpec<T extends Controller<{
+    [P in Extract<keyof T['specs'], UrlWithMethod>]: Omit<T['specs'][P], 'path'> & {
+      path?: { [key in ParsePathKeys<WithBaseUrl<T['baseUrl'], ParseUrl<P>>>]: PathParamValue },
+      tags?: string[],
+    }
+  }>> = {
+    [P in Extract<keyof T['specs'], UrlWithMethod>]: Omit<T['specs'][P], 'tags'> & {
+      method: ParseMethod<P>,
+      url: WithBaseUrl<T['baseUrl'], ParseUrl<P>>,
+      // concat tuple type T['tags'] and T['specs'][P]['tags']
+      tags: [
+        ...(T['tags'] extends string[] ? T['tags'] : []),
+        ...(T['specs'][P]['tags'] extends string[] ? T['specs'][P]['tags'] : [])
+      ],
+    }
+  };
+
+  type ObjectToUnion<T extends {}> = T[keyof T];
+
+  export type ExpressHandler<Spec extends ApiSpecBase> = RequestHandler<
+    Spec['path'], ObjectToUnion<Spec['responses']>, Spec['body'], Spec['query']
+  >;
+
+  export interface GenerateParams {
+    specPathGlobs: string[],
+    tsconfigPath?: string,
+    outputPath?: string,
+    specVersion?: 3,
+    openapi?: {
+      title?: string,
+      version?: string,
+      securityDefinitions?: OpenAPIV3.ComponentsObject['securitySchemes'],
+      servers?: OpenAPIV3.ServerObject[],
+    },
   }
 
-  export interface RefEnumType extends ReferenceTypeBase {
-    typeName: 'refEnum';
-    enums: Array<string | number>;
-    enumVarnames?: string[];
-  }
+  export type OpenapiDocument = OpenAPIV3.Document;
 
-  export interface RefObjectType extends ReferenceTypeBase {
-    typeName: 'refObject';
-    properties: Property[];
-    additionalProperties?: Type;
-  }
-
-  export interface RefAliasType extends Omit<Property, 'name' | 'required'>, ReferenceTypeBase {
-    typeName: 'refAlias';
-  }
-
-  export interface NeverType extends TypeBase {
-    typeName: 'never'
-  }
-
-  export type ReferenceType = RefEnumType | RefObjectType | RefAliasType;
-
-  export type ObjectType = NestedObjectLiteralType | RefObjectType;
-
-  export type Type =
-    | PrimitiveType
-    | ObjectsNoPropsType
-    | EnumType
-    | ArrayType
-    | TupleType
-    | AnyType
-    | RefEnumType
-    | RefObjectType
-    | RefAliasType
-    | NestedObjectLiteralType
-    | UnionType
-    | IntersectionType
-    | NeverType;
-
-  export interface Context {
-    [name: string]: ts.TypeReferenceNode | ts.TypeNode;
-  }
-  export interface Current {
-    typeChecker: ts.TypeChecker;
-  }
-
-  export interface ResolveParamsBase {
-    typeNode: ts.TypeNode,
-    current: Current,
-    parentNode?: ts.Node,
-    context?: Context,
-    referencer?: ts.TypeNode
-  }
-
-  export interface ResolveTypeLiteralParams extends ResolveParamsBase {
-    typeNode: ts.TypeLiteralNode,
-    context: Context,
-  }
-
-  export interface ResolveMappedTypeParams extends ResolveParamsBase {
-    typeNode: ts.MappedTypeNode,
-    context: Context,
-    referencer: ts.TypeNode
-  }
-
-  export interface ResolveKeyofTypeParams extends ResolveParamsBase {
-    typeNode: ts.TypeOperatorNode,
-    context: Context,
-  }
-
-  export interface ResolveIndexedAccessTypeParams extends ResolveParamsBase {
-    typeNode: ts.IndexedAccessTypeNode,
-    context: Context,
-  }
-
-  export interface ResolveTypeReferenceParams extends ResolveParamsBase {
-    typeNode: ts.TypeReferenceNode,
-    context: Context,
-  }
-
-  export interface ResolveConditionalTypeParams extends ResolveParamsBase {
-    typeNode: ts.ConditionalTypeNode,
-    context: Context,
-  }
-  
-  export type UsableDeclaration = ts.InterfaceDeclaration | ts.ClassDeclaration | ts.PropertySignature | ts.TypeAliasDeclaration | ts.EnumMember;
-  export type UsableDeclarationWithoutPropertySignature = Exclude<UsableDeclaration, ts.PropertySignature>;
-
-  export interface ParsedApiSpec extends ApiSpec {
-    operationId: string,
-    path?: Tspec.Property & { type: Tspec.ObjectType },
-    query?: Tspec.Property & { type: Tspec.ObjectType },
-    body?: Tspec.Property & { type: Tspec.ObjectType },
-    response: Tspec.Property,
-  }
+  /** @TJS-type integer */
+  export type Integer = number;
 }
-
