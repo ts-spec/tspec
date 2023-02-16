@@ -3,26 +3,26 @@ import { OpenAPIV3 as oapi3 } from 'openapi-types';
 export type oapiSchema = oapi3.SchemaObject | oapi3.ReferenceObject;
 
 export interface NumberSchemaObject extends oapi3.NonArraySchemaObject {
-  type: 'number';
+  type: 'number',
 }
 
 export interface StringSchemaObject extends oapi3.NonArraySchemaObject {
-  type: 'string';
+  type: 'string',
 }
 
 export interface IntegerSchemaObject extends oapi3.NonArraySchemaObject {
-  type: 'integer';
+  type: 'integer',
 }
 
 export interface BooleanSchemaObject extends oapi3.NonArraySchemaObject {
-  type: 'boolean';
+  type: 'boolean',
 }
 
 export interface ObjectSchemaObject extends oapi3.NonArraySchemaObject {
-  type: 'object';
+  type: 'object',
   properties: {
-    [name: string]: oapi3.ReferenceObject | oapi3.SchemaObject;
-  };
+    [name: string]: oapi3.ReferenceObject | oapi3.SchemaObject,
+  },
 }
 
 export const isIntegerSchemaObject = (
@@ -31,7 +31,7 @@ export const isIntegerSchemaObject = (
   if (isReferenceObject(schema)) {
     return false;
   }
-  if (schema['type'] === 'integer') {
+  if (schema.type === 'integer') {
     return true;
   }
   return false;
@@ -43,7 +43,7 @@ export const isNumberSchemaObject = (
   if (isReferenceObject(schema)) {
     return false;
   }
-  if (schema['type'] === 'number') {
+  if (schema.type === 'number') {
     return true;
   }
   return false;
@@ -55,7 +55,7 @@ export const isBooleanSchemaObject = (
   if (isReferenceObject(schema)) {
     return false;
   }
-  if (schema['type'] === 'boolean') {
+  if (schema.type === 'boolean') {
     return true;
   }
   return false;
@@ -67,7 +67,7 @@ export const isStringSchemaObject = (
   if (isReferenceObject(schema)) {
     return false;
   }
-  if (schema['type'] === 'string') {
+  if (schema.type === 'string') {
     return true;
   }
   return false;
@@ -79,7 +79,7 @@ export const isObjectSchemaObject = (
   if (isReferenceObject(schema)) {
     return false;
   }
-  if (schema['type'] === 'object' && schema['properties'] !== undefined) {
+  if (schema.type === 'object' && schema.properties !== undefined) {
     return true;
   }
   return false;
@@ -91,7 +91,7 @@ export const isArraySchemaObject = (
   if (isReferenceObject(schema)) {
     return false;
   }
-  if (schema['type'] === 'array' && schema['items'] !== undefined) {
+  if (schema.type === 'array' && schema.items !== undefined) {
     return true;
   }
   return false;
@@ -110,7 +110,7 @@ export const isNullableObject = (schema: oapiSchema) => {
   if (isReferenceObject(schema)) {
     return false;
   }
-  if (Object.keys(schema).length === 1 && schema['nullable'] === true) {
+  if (Object.keys(schema).length === 1 && schema.nullable === true) {
     return true;
   }
   return false;

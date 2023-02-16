@@ -1,4 +1,5 @@
 import fs from 'fs';
+
 import { glob } from 'glob';
 import { OpenAPIV3 } from 'openapi-types';
 import * as ts from 'typescript';
@@ -9,7 +10,7 @@ import { assertIsDefined, isDefined } from '../utils/types';
 
 import * as c from './converter';
 import * as ob from './openApiBuilder';
-import { isConcrete, oapiSchema } from './utils';
+import { oapiSchema } from './utils';
 
 const getCompilerOptions = (tsconfigPath: string) => {
   const { config, error } = ts.readConfigFile(tsconfigPath, ts.sys.readFile);
@@ -27,18 +28,16 @@ const getProgramFiles = (
     ...(compilerOptions.typeRoots || []),
     compilerOptions.baseUrl,
   ].flatMap((typeRoot) => glob.sync(`${typeRoot}/**/*.d.ts`));
-  const specFiles = specPathGlobs.flatMap((specPathGlob) =>
-    glob.sync(specPathGlob),
-  );
+  const specFiles = specPathGlobs.flatMap((specPathGlob) => glob.sync(specPathGlob));
   return [...typeFiles, ...specFiles];
 };
 
 const isNodeExported = (node: ts.Node): boolean =>
   // eslint-disable-next-line no-bitwise
-  (ts.getCombinedModifierFlags(node as ts.Declaration) &
-    ts.ModifierFlags.Export) !==
-    0 ||
-  (!!node.parent && node.parent.kind === ts.SyntaxKind.SourceFile);
+  (ts.getCombinedModifierFlags(node as ts.Declaration)
+    & ts.ModifierFlags.Export)
+    !== 0
+  || (!!node.parent && node.parent.kind === ts.SyntaxKind.SourceFile);
 
 const getTspecSignatures = (p: ts.Program) => {
   const entryPoints = p
@@ -54,8 +53,8 @@ const getTspecSignatures = (p: ts.Program) => {
       }
 
       if (
-        !ts.isTypeAliasDeclaration(node) ||
-        !ts.isTypeReferenceNode(node.type)
+        !ts.isTypeAliasDeclaration(node)
+        || !ts.isTypeReferenceNode(node.type)
       ) {
         return;
       }
@@ -94,8 +93,8 @@ const getOpenapiSchemas = async (
   assertIsDefined(generator);
 
   const tspecSymbols = getTspecSignatures(program as ts.Program);
-  const { definitions: jsonSchemas } =
-    generator.getSchemaForSymbols(tspecSymbols);
+  const { definitions: jsonSchemas } = generator.getSchemaForSymbols(tspecSymbols);
+
   assertIsDefined(jsonSchemas);
 
   const openapiSchemas = await getSchemaMap(jsonSchemas);
@@ -106,22 +105,20 @@ const getOpenapiSchemas = async (
 export const generateTspec = async (
   params: Tspec.GenerateParams,
 ): Promise<OpenAPIV3.Document> => {
-  const { openapiSchemas: openapiSchemaMap, tspecSymbols } =
-    await getOpenapiSchemas(params.tsconfigPath, params.specPathGlobs);
+  const { openapiSchemas: openapiSchemaMap, tspecSymbols } = await getOpenapiSchemas(params.tsconfigPath, params.specPathGlobs);
 
   const openapi = await buildOpenApi(openapiSchemaMap, tspecSymbols);
 
   // params 정보 입력
-  openapi['opeanpi'] = (params.specVersion === 3 && '3.0.3') || '3.0.3';
+  openapi.openapi = (params.specVersion === 3 && '3.0.3') || '3.0.3';
   if (params.openapi?.securityDefinitions) {
-    if (!openapi['components']) {
-      openapi['components'] = {};
+    if (!openapi.components) {
+      openapi.components = {};
     }
-    openapi['components']!['securitySchemes'] =
-      params.openapi?.securityDefinitions;
+    openapi.components!.securitySchemes = params.openapi?.securityDefinitions;
   }
   if (params.openapi?.servers) {
-    openapi['servers'] = params.openapi?.servers;
+    openapi.servers = params.openapi?.servers;
   }
 
   if (params.outputPath) {
@@ -132,21 +129,17 @@ export const generateTspec = async (
 };
 
 const getSchemaMap = async (
-  def: TJS.Definition,
+  def: {[key:string]: TJS.DefinitionOrBoolean},
 ): Promise<Map<string, oapiSchema>> => {
   const schemaMap: Map<string, oapiSchema> = new Map();
 
-  // 여러 symbol을 찾으면 schema가 모두 definitions에 들어감
-  console.log(JSON.stringify(def.definitions)); 
-  if (def.definitions) {
-    for (const [key, val] of Object.entries(def.definitions)) {
-      if (!val) {
-        continue;
-      }
-      const convertedProperty = await c.convertDefinition(val);
-      if (convertedProperty) {
-        schemaMap.set(key.replace(/[^A-Za-z0-9_.-]/g, '_'), convertedProperty);
-      }
+  for (const [key, val] of Object.entries(def)) {
+    if (!val) {
+      continue;
+    }
+    const convertedProperty = await c.convertDefinition(val);
+    if (convertedProperty) {
+      schemaMap.set(key.replace(/[^A-Za-z0-9_.-]/g, '_'), convertedProperty);
     }
   }
 
@@ -157,14 +150,15 @@ const buildOpenApi = async (
   sMap: Map<string, oapiSchema>,
   routerNames: string[],
 ) => {
-  const routers = routerNames.map((name) => sMap.get(name)).filter(isConcrete);
-  const openapi = await ob.buildOpenApiDocument(routers);
-
-  for await (const routerName of routerNames) {
-    // Router schema는 제거
+  const routerMap = new Map<string, oapiSchema>();
+  routerNames.forEach((routerName) => {
+    const routerSchema = sMap.get(routerName);
+    if (routerSchema) routerMap.set(routerName, routerSchema);
     sMap.delete(routerName);
-  }
-  openapi['components'] = await ob.buildComponentsObject(sMap);
+  });
+
+  const openapi = await ob.buildOpenApiDocument(routerMap);
+  openapi.components = await ob.buildComponentsObject(sMap);
 
   return openapi;
 };

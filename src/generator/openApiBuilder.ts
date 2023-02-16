@@ -7,13 +7,13 @@ import {
   oapiSchema,
 } from './utils';
 
-const OPENAPI_VERSION = '3.0.0';
+const OPENAPI_VERSION = '3.0.3';
 
 const extractString = (schema: oapiSchema) => {
   if (!isStringSchemaObject(schema)) {
     return undefined;
   }
-  return schema['enum'] ? schema['enum'][0] : undefined;
+  return schema.enum ? schema.enum[0] : undefined;
 };
 
 export const buildComponentsObject = async (
@@ -41,9 +41,7 @@ const buildResponsesObject = async (
 };
 const buildMediaTypeObject = async (
   schema: oapiSchema,
-): Promise<oapi3.MediaTypeObject> => {
-  return { schema };
-};
+): Promise<oapi3.MediaTypeObject> => ({ schema });
 
 const buildResponseObject = async (
   schema: oapiSchema,
@@ -56,7 +54,7 @@ const buildResponseObject = async (
   const mediaTypeObject = await buildMediaTypeObject(schema);
 
   const responseBodyObject: oapi3.ResponseObject = { description, content: {} };
-  responseBodyObject['content']![contentType] = mediaTypeObject;
+  responseBodyObject.content![contentType] = mediaTypeObject;
   return responseBodyObject;
 };
 
@@ -67,7 +65,7 @@ const buildRequestBodyObject = async (
   const mediaTypeObject = await buildMediaTypeObject(schema);
 
   const requestBodyObject: oapi3.RequestBodyObject = { content: {} };
-  requestBodyObject['content'][contentType] = mediaTypeObject;
+  requestBodyObject.content[contentType] = mediaTypeObject;
   return requestBodyObject;
 };
 
@@ -86,7 +84,7 @@ const buildParameterObjects = async (
       schema: val,
     };
     if (parameterIn === 'path') {
-      param['required'] = true;
+      param.required = true;
     } // path는 required
     paramterObjects.push(param);
   }
@@ -94,9 +92,9 @@ const buildParameterObjects = async (
 };
 
 interface OperationObjectWithPathInfo {
-  operationObject: oapi3.OperationObject;
-  method: string;
-  url: string;
+  operationObject: oapi3.OperationObject,
+  method: string,
+  url: string,
 }
 
 const buildOperationObjectWithPathInfo = async (
@@ -107,8 +105,8 @@ const buildOperationObjectWithPathInfo = async (
   }
 
   const operationObject: oapi3.OperationObject = { responses: {} };
-  let method: string | undefined = undefined;
-  let url: string | undefined = undefined;
+  let method: string | undefined;
+  let url: string | undefined;
   let paramterObjects: oapi3.ParameterObject[] = [];
 
   for await (const [key, val] of Object.entries(schema.properties)) {
@@ -126,14 +124,14 @@ const buildOperationObjectWithPathInfo = async (
         paramterObjects = [...paramterObjects, ...params];
       }
     } else if (key === 'responses') {
-      operationObject['responses'] = await buildResponsesObject(val);
+      operationObject.responses = await buildResponsesObject(val);
     } else if (key === 'body') {
-      operationObject['requestBody'] = await buildRequestBodyObject(val);
+      operationObject.requestBody = await buildRequestBodyObject(val);
     }
   }
 
   if (paramterObjects.length > 0) {
-    operationObject['parameters'] = paramterObjects;
+    operationObject.parameters = paramterObjects;
   }
 
   const pathItemObject: oapi3.PathItemObject = {};
@@ -147,25 +145,25 @@ const buildOperationObjectWithPathInfo = async (
   return { operationObject, url, method };
 };
 
-export const buildPathsObject = async (routerSchemas: oapiSchema[]) => {
+export const buildPathsObject = async (routerMap: Map<string, oapiSchema>) => {
   const pathsObject: oapi3.PathsObject = {};
 
-  for await (const routerSchema of routerSchemas) {
+  for await (const [routerName, routerSchema] of routerMap) {
     if (!isObjectSchemaObject(routerSchema)) {
       continue;
     }
-    const routerInfo = routerSchema['properties'];
+    const routerInfo = routerSchema.properties;
+
     for await (const [signature, val] of Object.entries(routerInfo)) {
-      const { operationObject, url, method } =
-        await buildOperationObjectWithPathInfo(val);
+      const { operationObject, url, method } = await buildOperationObjectWithPathInfo(val);
 
       if (!pathsObject[url]) {
         pathsObject[url] = {};
-        operationObject['operationId'] = `${routerSchema}_${signature.replace(/\s/g, '_')}`
       }
-      
-      pathsObject[url]![method.toLowerCase() as oapi3.HttpMethods] =
-        operationObject;
+
+      operationObject.operationId = `${routerName.replace(/\s/g, '_')}`;
+
+      pathsObject[url]![method.toLowerCase() as oapi3.HttpMethods] = operationObject;
     }
   }
   return pathsObject;
@@ -183,17 +181,15 @@ export const buildBasicOpenApiDocument = (): oapi3.Document => {
 const buildInfoObject = (
   title = 'Tspec API',
   version = '0.0.1',
-): oapi3.InfoObject => {
-  return { title, version };
-};
+): oapi3.InfoObject => ({ title, version });
 
 export const buildOpenApiDocument = async (
-  routerSchemas: oapiSchema[],
+  routerMap: Map<string, oapiSchema>,
   basicOpenApiDocument?: oapi3.Document,
 ): Promise<oapi3.Document<{}>> => {
   const openApiDocument = basicOpenApiDocument ?? buildBasicOpenApiDocument();
-  const pathsObject = await buildPathsObject(routerSchemas);
+  const pathsObject = await buildPathsObject(routerMap);
 
-  openApiDocument['paths'] = pathsObject;
+  openApiDocument.paths = pathsObject;
   return openApiDocument;
 };

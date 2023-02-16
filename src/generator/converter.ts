@@ -28,7 +28,7 @@ const createItem = async (items: tjs.DefinitionOrBoolean[]) => {
   const filteredSchema = schema.filter(isConcrete);
   if (filteredSchema.length === 0) {
     return nullableProperty;
-  } else if (filteredSchema.length === 1) {
+  } if (filteredSchema.length === 1) {
     const onlySchema = filteredSchema[0];
     if (isReferenceObject(onlySchema) && nullable) {
       return {
@@ -39,7 +39,7 @@ const createItem = async (items: tjs.DefinitionOrBoolean[]) => {
       ...onlySchema,
       ...nullableProperty,
     };
-  } else if (filteredSchema.length > 1) {
+  } if (filteredSchema.length > 1) {
     return {
       anyOf: filteredSchema,
       ...nullableProperty,
@@ -62,7 +62,7 @@ const convertItems = async (
 };
 
 export const convertProperties = async (obj: {
-  [key: string]: tjs.DefinitionOrBoolean;
+  [key: string]: tjs.DefinitionOrBoolean,
 }) => {
   const convertedObj: { [key: string]: oapiSchema } = {};
   for await (const [key, val] of Object.entries(obj)) {
@@ -99,9 +99,9 @@ const convertSchemaArray = async (
       if (property === 'allOf') {
         // object의 proeprty 모아서 하나의 object로 만들기
         if (isObjectSchemaObject(convertedDef)) {
-          object['properties'] = {
-            ...object['properties'],
-            ...convertedDef['properties'],
+          object.properties = {
+            ...object.properties,
+            ...convertedDef.properties,
           };
           return undefined;
         }
@@ -130,7 +130,7 @@ const convertSchemaArray = async (
 
   if (!isReferenceObject(schema)) {
     if (nullable) {
-      schema['nullable'] = true;
+      schema.nullable = true;
     }
   }
 
@@ -142,7 +142,9 @@ export const convertSubschemaProperty = async (
 ): Promise<
   Pick<oapi3.BaseSchemaObject, 'allOf' | 'anyOf' | 'oneOf' | 'not'>
 > => {
-  const { allOf, oneOf, anyOf, not } = def;
+  const {
+    allOf, oneOf, anyOf, not,
+  } = def;
   let schema: oapi3.BaseSchemaObject = {};
 
   if (allOf) {
@@ -161,7 +163,7 @@ export const convertSubschemaProperty = async (
   }
 
   if (not) {
-    schema['not'] = await convertDefinition(not);
+    schema.not = await convertDefinition(not);
   }
 
   return schema;
@@ -193,18 +195,17 @@ export const extractCommonProperty = (
 
 const covertToBooleanSchemaObject = async (
   def: tjs.Definition,
-): Promise<oapi3.SchemaObject> => {
-  return {
-    type: 'boolean',
-  };
-};
+): Promise<oapi3.SchemaObject> => ({
+  type: 'boolean',
+});
 
 const covertToNumberSchemaObject = async (
   def: tjs.Definition,
   type: 'number' | 'integer' = 'number',
 ): Promise<oapi3.SchemaObject> => {
-  const { multipleOf, maximum, exclusiveMaximum, exclusiveMinimum, minimum } =
-    def;
+  const {
+    multipleOf, maximum, exclusiveMaximum, exclusiveMinimum, minimum,
+  } = def;
   return {
     type,
     multipleOf,
@@ -237,7 +238,9 @@ const covertToStringSchemaObject = async (
 const covertToArraySchemaObject = async (
   def: tjs.Definition,
 ): Promise<oapi3.ArraySchemaObject> => {
-  const { items, maxItems, minItems, uniqueItems } = def; //additionalItems, contains 제외
+  const {
+    items, maxItems, minItems, uniqueItems,
+  } = def; // additionalItems, contains 제외
 
   const convertedItems = items ? await convertItems(items) : undefined;
 
@@ -288,17 +291,16 @@ const covertToObjectSchemaObject = async (
 const convertSchemaObjectByType = async (type: string, def: tjs.Definition) => {
   if (type === 'number' || type === 'integer') {
     return covertToNumberSchemaObject(def, type);
-  } else if (type === 'string') {
+  } if (type === 'string') {
     return covertToStringSchemaObject(def);
-  } else if (type === 'object') {
+  } if (type === 'object') {
     return covertToObjectSchemaObject(def);
-  } else if (type === 'array') {
+  } if (type === 'array') {
     return covertToArraySchemaObject(def);
-  } else if (type === 'boolean') {
+  } if (type === 'boolean') {
     return covertToBooleanSchemaObject(def);
-  } else {
-    return { nullable: true };
   }
+  return { nullable: true };
 };
 
 const convertType = async (
@@ -332,11 +334,11 @@ const convertType = async (
 
   const referenceObject = def.$ref
     ? {
-        $ref: def.$ref.replace(
-          /(#\/definitions\/)(\w)/,
-          '#/components/schemas/$2',
-        ).replace(/[^A-Za-z0-9_.-]/g, '_'),
-      }
+      $ref: def.$ref.replace(/[^A-Za-z0-9_.-]/g, '_').replace(
+        /(__definitions_)(\w)/,
+        '#/components/schemas/$2',
+      ),
+    }
     : undefined;
   if (referenceObject) {
     refinedSchemas.push(referenceObject);
@@ -347,7 +349,7 @@ const convertType = async (
       ...commonSchema,
       ...nullableProperty,
     };
-  } else if (refinedSchemas.length === 1) {
+  } if (refinedSchemas.length === 1) {
     const onlySchema = refinedSchemas[0];
 
     if (isReferenceObject(onlySchema)) {
@@ -365,12 +367,11 @@ const convertType = async (
       ...onlySchema,
       ...nullableProperty,
     };
-  } else {
-    return {
-      anyOf: refinedSchemas,
-      ...nullableProperty,
-    };
   }
+  return {
+    anyOf: refinedSchemas,
+    ...nullableProperty,
+  };
 };
 
 export const convertDefinition = async (
