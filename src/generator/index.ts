@@ -7,6 +7,7 @@ import ts from 'typescript';
 import * as TJS from 'typescript-json-schema';
 
 import { Tspec } from 'types/tspec';
+import { DEBUG } from 'utils/debug';
 import { assertIsDefined, isDefined } from 'utils/types';
 
 type SchemaMapping = Record<string, OpenAPIV3.SchemaObject>;
@@ -182,17 +183,24 @@ const getOpenapiSchemas = async (tsconfigPath: string, specPathGlobs: string[]) 
   assertIsDefined(generator);
 
   const tspecSymbols = getTspecSignatures(program as ts.Program);
+  DEBUG(tspecSymbols);
   const { definitions: jsonSchemas } = generator.getSchemaForSymbols(tspecSymbols);
   assertIsDefined(jsonSchemas);
+  DEBUG(Object.keys(jsonSchemas));
 
   const openapiSchemas = await convertToOpenapiSchemas(jsonSchemas);
+  DEBUG(Object.keys(openapiSchemas));
 
   return { openapiSchemas, tspecSymbols };
 };
 
 type Schema = OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject;
 
-const accessProperty = (obj: Schema | undefined, key: string, schemas: SchemaMapping): Schema | undefined => {
+const accessProperty = (
+  obj: Schema | undefined,
+  key: string,
+  schemas: SchemaMapping,
+): Schema | undefined => {
   if (!obj) {
     return undefined;
   }
@@ -207,7 +215,11 @@ const accessProperty = (obj: Schema | undefined, key: string, schemas: SchemaMap
   return obj.properties && obj.properties[key];
 };
 
-const getPropertyByPath = (obj: Schema | undefined, path: string, schemas: SchemaMapping): Schema | undefined => {
+const getPropertyByPath = (
+  obj: Schema | undefined,
+  path: string,
+  schemas: SchemaMapping,
+): Schema | undefined => {
   const [first, ...rest] = path.split('.');
   const firstValue = accessProperty(obj, first, schemas);
   if (rest.length === 0) {
@@ -233,7 +245,12 @@ const getTextPropertyByPath = <O extends { required: boolean }>(
   return text as string;
 };
 
-const getTextListPropertyByPath = (obj: Schema, path: string, schemas: SchemaMapping, options?: { required: boolean }): string[] => {
+const getTextListPropertyByPath = (
+  obj: Schema,
+  path: string,
+  schemas: SchemaMapping,
+  options?: { required: boolean },
+): string[] => {
   const value = getPropertyByPath(obj, path, schemas);
   if (!options?.required && !value) {
     return [];
@@ -258,17 +275,26 @@ const getSchemaPropertiesByPath = <O extends { required: boolean }>(
   return value.properties;
 };
 
-const getOpenapiPaths = (openapiSchemas: SchemaMapping, tspecSymbols: string[]): OpenAPIV3.PathsObject => {
+const getOpenapiPaths = (
+  openapiSchemas: SchemaMapping,
+  tspecSymbols: string[],
+): OpenAPIV3.PathsObject => {
   const paths: OpenAPIV3.PathsObject = {};
   tspecSymbols.forEach((tspecSymbol) => {
     const { properties: ApiSpecs = {} } = openapiSchemas[tspecSymbol];
     Object.entries(ApiSpecs).forEach(([methodAndPath, value]) => {
+      DEBUG(methodAndPath);
       const url = getTextPropertyByPath(value, 'url', openapiSchemas, { required: true });
       const method = getTextPropertyByPath(value, 'method', openapiSchemas, { required: true })
         ?.toLowerCase() as OpenAPIV3.HttpMethods;
       const summary = getTextPropertyByPath(value, 'summary', openapiSchemas);
       const tags = getTextListPropertyByPath(value, 'tags', openapiSchemas);
-      const responses = getSchemaPropertiesByPath(value, 'responses', openapiSchemas, { required: true });
+      const responses = getSchemaPropertiesByPath(
+        value,
+        'responses',
+        openapiSchemas,
+        { required: true },
+      );
       const path = getSchemaPropertiesByPath(value, 'path', openapiSchemas);
       const query = getSchemaPropertiesByPath(value, 'query', openapiSchemas);
       const body = getSchemaPropertiesByPath(value, 'body', openapiSchemas);
