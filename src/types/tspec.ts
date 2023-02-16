@@ -16,7 +16,7 @@ export namespace Tspec {
   type QueryParamValue = string | number | boolean | string[] | number[] | boolean[];
   export type QueryParam = { [key: string]: QueryParamValue }
 
-  interface ApiSpecBase<
+  export interface ApiSpecBase<
     Res extends any = any,
     P extends PathParam = PathParam,
     Q extends QueryParam = QueryParam
@@ -82,6 +82,7 @@ export namespace Tspec {
       securityDefinitions?: OpenAPIV3.ComponentsObject['securitySchemes'],
       servers?: OpenAPIV3.ServerObject[],
     },
+    debug?: boolean,
   }
 
   export type OpenapiDocument = OpenAPIV3.Document;

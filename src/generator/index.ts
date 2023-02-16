@@ -1,16 +1,19 @@
 import fs from 'fs';
 
+import debug from 'debug';
 import { glob } from 'glob';
 import convert from 'json-schema-to-openapi-schema'; // TODO: 이게 정말 필요한건지 체크 필요.
 import { OpenAPIV3 } from 'openapi-types';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import ts from 'typescript';
 import * as TJS from 'typescript-json-schema';
 
 import { Tspec } from 'types/tspec';
-import { DEBUG } from 'utils/debug';
 import { assertIsDefined, isDefined } from 'utils/types';
 
 type SchemaMapping = Record<string, OpenAPIV3.SchemaObject>;
+
+export const DEBUG = debug('tspec');
 
 const isNodeExported = (node: ts.Node): boolean => (
   // eslint-disable-next-line no-bitwise
@@ -183,13 +186,12 @@ const getOpenapiSchemas = async (tsconfigPath: string, specPathGlobs: string[]) 
   assertIsDefined(generator);
 
   const tspecSymbols = getTspecSignatures(program as ts.Program);
-  DEBUG(tspecSymbols);
+  DEBUG({ tspecSymbols });
   const { definitions: jsonSchemas } = generator.getSchemaForSymbols(tspecSymbols);
   assertIsDefined(jsonSchemas);
-  DEBUG(Object.keys(jsonSchemas));
+  DEBUG({ schemaKeys: Object.keys(jsonSchemas) });
 
   const openapiSchemas = await convertToOpenapiSchemas(jsonSchemas);
-  DEBUG(Object.keys(openapiSchemas));
 
   return { openapiSchemas, tspecSymbols };
 };
@@ -283,7 +285,7 @@ const getOpenapiPaths = (
   tspecSymbols.forEach((tspecSymbol) => {
     const { properties: ApiSpecs = {} } = openapiSchemas[tspecSymbol];
     Object.entries(ApiSpecs).forEach(([methodAndPath, value]) => {
-      DEBUG(methodAndPath);
+      DEBUG({ methodAndPath });
       const url = getTextPropertyByPath(value, 'url', openapiSchemas, { required: true });
       const method = getTextPropertyByPath(value, 'method', openapiSchemas, { required: true })
         ?.toLowerCase() as OpenAPIV3.HttpMethods;
