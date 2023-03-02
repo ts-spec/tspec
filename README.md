@@ -8,9 +8,8 @@ import { Request, Response } from 'express';
 
 // 1. Define API Specifications by Handler
 export type PetApiSpec = Tspec.DefineApiSpec<{
-  baseUrl: '/pet',
   specs: {
-    '/{id}': {
+    '/pet/{id}': {
       get: { summary: 'Find pet by ID', handler: typeof getPetById },
     },
   },
