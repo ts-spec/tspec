@@ -1,14 +1,9 @@
 // eslint-disable-next-line import/no-unresolved
-import { RequestHandler } from 'express';
 import { OpenAPIV3 } from 'openapi-types';
 
 export namespace Tspec {
-  export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   type Url = `/${string}`;
-  type UrlWithMethod = `${Method} ${Url}`;
-
-  type ParseMethod<P extends UrlWithMethod> = P extends `${infer M} /${string}` ? M : never;
-  type ParseUrl<P extends UrlWithMethod> = P extends `${Method} /${infer U}` ? U : never;
+  export type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete' | 'options' | 'head';
 
   type PathParamValue = string | number;
   export type PathParam = { [key: string]: PathParamValue }
@@ -26,20 +21,42 @@ export namespace Tspec {
     tags?: string[],
     auth?: string,
     path?: P, query?: Q, body?: {},
-    responses: { [code: number]: Res }, error?: { [key: string]: {} },
+    responses?: { [code: number]: Res }, error?: { [key: string]: {} },
   }
 
-  export type ApiSpec<T extends ApiSpecBase> = T;
+  type ExpressHandler = (req: any, res: any, next: any, ...args: any[]) => any;
 
-  interface Controller<
-    Specs extends { [path: UrlWithMethod]: ApiSpecBase } = { [path: UrlWithMethod]: ApiSpecBase }
-  > extends Pick<ApiSpecBase, 'tags' | 'auth'> {
-    baseUrl?: string,
-    specs: Specs,
+  type ApiSpecInput = ApiSpecBase & {
+    handler: ExpressHandler,
+  };
+
+  type ReqOf<T extends ExpressHandler> = Parameters<T>[0];
+  type ResOf<T extends ExpressHandler> = Parameters<T>[1];
+  type PathOf<T extends ExpressHandler> = ReqOf<T>['params'];
+  type QueryOf<T extends ExpressHandler> = ReqOf<T>['query'];
+  type BodyOf<T extends ExpressHandler> = ReqOf<T>['body'];
+  type ResBodyOf<T extends ExpressHandler> = NonNullable<Parameters<ResOf<T>['json']>[0]>;
+
+  export type ApiSpec<T extends ApiSpecInput> = T & {
+    path: T['path'] extends {} ? T['path'] : PathOf<T['handler']>,
+    responses: T['responses'] extends { [code: number]: any }
+      ? T['responses']
+      : { 200: ResBodyOf<T['handler']> },
+    body: T['body'] extends {} ? T['body'] : BodyOf<T['handler']>,
+    query: T['query'] extends {} ? T['query'] : QueryOf<T['handler']>,
+    __handler: T['handler'],
   }
 
-  type WithBaseUrl <Base extends string | undefined, U extends string> = Base extends string
-    ? `${Base}/${U}`
+  type Path = { [method in HttpMethod]: ApiSpecInput };
+  type Paths = { [path: Url]: Path };
+
+  interface Controller<P extends Paths = Paths> extends Pick<ApiSpecBase, 'tags' | 'auth'> {
+    basePath?: string,
+    paths: P,
+  }
+
+  type WithBasePath <Base extends string | undefined, U extends string> = Base extends string
+    ? `${Base}${U}`
     : U;
 
   type ParsePathKeys<U extends string> = U extends `${string}/{${infer P}}${infer R}`
@@ -48,28 +65,26 @@ export namespace Tspec {
         : P
     : never;
 
-  export type RegisterApiSpec<T extends Controller<{
-    [P in Extract<keyof T['specs'], UrlWithMethod>]: Omit<T['specs'][P], 'path'> & {
-      path?: { [key in ParsePathKeys<WithBaseUrl<T['baseUrl'], ParseUrl<P>>>]: PathParamValue },
-      tags?: string[],
+  export type DefineApiSpec<T extends Controller<{
+    [P in Extract<keyof T['paths'], Url>]: {
+      [M in Extract<keyof T['paths'][P], HttpMethod>]: Omit<T['paths'][P][M], 'path'> & {
+        path?: { [key in ParsePathKeys<WithBasePath<T['basePath'], P>>]: PathParamValue },
+        tags?: string[],
+        handler: ExpressHandler,
+      }
     }
   }>> = {
-    [P in Extract<keyof T['specs'], UrlWithMethod>]: Omit<T['specs'][P], 'tags'> & {
-      method: ParseMethod<P>,
-      url: WithBaseUrl<T['baseUrl'], ParseUrl<P>>,
-      // concat tuple type T['tags'] and T['specs'][P]['tags']
+    [P in Extract<keyof T['paths'], Url>]: {
+      [M in Extract<keyof T['paths'][P], HttpMethod>]: Omit<ApiSpec<T['paths'][P][M]>, 'tags'> & {
+      method: M,
+      url: WithBasePath<T['basePath'], P>,
+      // concat tuple type T['tags'] and T['specs'][P][M]['tags']
       tags: [
         ...(T['tags'] extends string[] ? T['tags'] : []),
-        ...(T['specs'][P]['tags'] extends string[] ? T['specs'][P]['tags'] : [])
+        ...(T['paths'][P][M]['tags'] extends string[] ? T['paths'][P][M]['tags'] : [])
       ],
-    }
+    }}
   };
-
-  type ValueOf<T extends {}> = T[keyof T];
-
-  export type ExpressHandler<Spec extends ApiSpecBase> = RequestHandler<
-    Spec['path'], ValueOf<Spec['responses']>, Spec['body'], Spec['query']
-  >;
 
   export interface GenerateParams {
     specPathGlobs?: string[],

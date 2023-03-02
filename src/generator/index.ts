@@ -1,4 +1,5 @@
-import fs from 'fs';
+import fs from 'fs/promises';
+import { dirname } from 'path';
 
 import debug from 'debug';
 import { glob } from 'glob';
@@ -40,7 +41,7 @@ const getTspecSignatures = (p: ts.Program) => {
         return;
       }
 
-      if ((node.type?.typeName as any)?.right?.escapedText !== 'RegisterApiSpec') {
+      if ((node.type?.typeName as any)?.right?.escapedText !== 'DefineApiSpec') {
         return;
       }
       const name = node.name.escapedText as string;
@@ -198,23 +199,35 @@ const getOpenapiSchemas = async (tsconfigPath: string, specPathGlobs: string[]) 
 
 type Schema = OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject;
 
-const accessProperty = (
+const accessSchema = (
   obj: Schema | undefined,
-  key: string,
   schemas: SchemaMapping,
-): Schema | undefined => {
+): OpenAPIV3.SchemaObject | undefined => {
   if (!obj) {
     return undefined;
   }
   if ('$ref' in obj) {
     const [, schemaName] = obj.$ref.split('#/components/schemas/');
-    return accessProperty(schemas[schemaName], key, schemas);
+    return schemas[schemaName];
   }
-  const combinedSchema = obj.allOf || obj.oneOf || obj.anyOf;
+  return obj;
+};
+
+const accessProperty = (
+  obj: Schema | undefined,
+  key: string,
+  schemas: SchemaMapping,
+): Schema | undefined => {
+  const schema = accessSchema(obj, schemas);
+  if (!schema) {
+    return undefined;
+  }
+  const combinedSchema = schema.allOf || schema.oneOf || schema.anyOf;
   if (combinedSchema) {
     return combinedSchema.map((o) => accessProperty(o, key, schemas)).find((o) => o);
   }
-  return obj.properties && obj.properties[key];
+  const value = schema.properties?.[key];
+  return value && accessSchema(value, schemas);
 };
 
 const getPropertyByPath = (
@@ -268,11 +281,13 @@ const getSchemaPropertiesByPath = <O extends { required: boolean }>(
   obj: Schema, path: string, schemas: SchemaMapping, options?: O,
 ): O extends { required: true } ? Record<string, Schema> : Record<string, Schema> | undefined => {
   const value = getPropertyByPath(obj, path, schemas);
-  if (!options?.required && !value) {
-    return undefined as any;
-  }
   if (!value || '$ref' in value || value.type !== 'object' || !value.properties) {
-    throw new Error(`Invalid '${path}' in ApiSpec`);
+    if (options?.required === true) {
+      throw new Error(
+        `Invalid '${path}' in ${JSON.stringify(obj)}; value: ${JSON.stringify(value)}`,
+      );
+    }
+    return undefined as any;
   }
   return value.properties;
 };
@@ -281,59 +296,71 @@ const getOpenapiPaths = (
   openapiSchemas: SchemaMapping,
   tspecSymbols: string[],
 ): OpenAPIV3.PathsObject => {
-  const paths: OpenAPIV3.PathsObject = {};
-  tspecSymbols.forEach((tspecSymbol) => {
-    const { properties: ApiSpecs = {} } = openapiSchemas[tspecSymbol];
-    Object.entries(ApiSpecs).forEach(([methodAndPath, value]) => {
-      DEBUG({ methodAndPath });
-      const url = getTextPropertyByPath(value, 'url', openapiSchemas, { required: true });
-      const method = getTextPropertyByPath(value, 'method', openapiSchemas, { required: true })
-        ?.toLowerCase() as OpenAPIV3.HttpMethods;
-      const summary = getTextPropertyByPath(value, 'summary', openapiSchemas);
-      const tags = getTextListPropertyByPath(value, 'tags', openapiSchemas);
-      const responses = getSchemaPropertiesByPath(
-        value,
-        'responses',
-        openapiSchemas,
-        { required: true },
-      );
-      const path = getSchemaPropertiesByPath(value, 'path', openapiSchemas);
-      const query = getSchemaPropertiesByPath(value, 'query', openapiSchemas);
-      const body = getSchemaPropertiesByPath(value, 'body', openapiSchemas);
+  const openapiPaths: OpenAPIV3.PathsObject = {};
 
-      const operation = {
-        operationId: `${tspecSymbol}_${methodAndPath.replace(/\s/g, '_')}`,
-        tags,
-        summary,
-        parameters: resolveParameters(path, query),
-        requestBody: body && {
-          description: body.description,
-          required: true,
-          content: {
-            'application/json': {
-              schema: body,
-            },
-          },
-        },
-        responses: Object.fromEntries(
-          Object.entries(responses).map(([code, schema]) => {
-            const resSchema = {
-              description: (schema as any).description || '',
-              content: {
-                'application/json': {
-                  schema,
-                },
-              },
-            };
-            return [code, resSchema];
-          }),
-        ),
-      };
-      (paths[url] ||= {})[method] = operation as any;
+  const specs = tspecSymbols.flatMap((tspecSymbol) => {
+    const paths = openapiSchemas[tspecSymbol].properties || {};
+    return Object.keys(paths).flatMap((path) => {
+      const methods = accessSchema(paths[path], openapiSchemas)?.properties || {};
+      return Object.keys(methods).map((method) => {
+        const spec = accessSchema(methods[method], openapiSchemas);
+        assertIsDefined(spec);
+        return {
+          controllerName: tspecSymbol, path, method, spec,
+        };
+      });
     });
   });
 
-  return paths;
+  specs.forEach(({
+    controllerName, path, method, spec,
+  }) => {
+    DEBUG({ controllerName, path, method });
+    const url = getTextPropertyByPath(spec, 'url', openapiSchemas, { required: true });
+    const summary = getTextPropertyByPath(spec, 'summary', openapiSchemas);
+    const tags = getTextListPropertyByPath(spec, 'tags', openapiSchemas);
+    const responses = getSchemaPropertiesByPath(
+      spec,
+      'responses',
+      openapiSchemas,
+      { required: true },
+    );
+    const pathParams = getSchemaPropertiesByPath(spec, 'path', openapiSchemas);
+    const queryParams = getSchemaPropertiesByPath(spec, 'query', openapiSchemas);
+    const bodyParams = getSchemaPropertiesByPath(spec, 'body', openapiSchemas);
+
+    const operation = {
+      operationId: `${controllerName}_${method}_${path}`,
+      tags,
+      summary,
+      parameters: resolveParameters(pathParams, queryParams),
+      requestBody: bodyParams && {
+        description: bodyParams.description,
+        required: true,
+        content: {
+          'application/json': {
+            schema: bodyParams,
+          },
+        },
+      },
+      responses: Object.fromEntries(
+        Object.entries(responses).map(([code, schema]) => {
+          const resSchema = {
+            description: (schema as any).description || '',
+            content: {
+              'application/json': {
+                schema,
+              },
+            },
+          };
+          return [code, resSchema];
+        }),
+      ),
+    };
+    (openapiPaths[url] ||= {})[method as OpenAPIV3.HttpMethods] = operation as any;
+  });
+
+  return openapiPaths;
 };
 
 export const generateTspec = async (
@@ -366,7 +393,8 @@ export const generateTspec = async (
   };
 
   if (params.outputPath) {
-    fs.writeFileSync(params.outputPath, JSON.stringify(openapi, null, 2));
+    await fs.mkdir(dirname(params.outputPath), { recursive: true });
+    await fs.writeFile(params.outputPath, JSON.stringify(openapi, null, 2));
   }
 
   return openapi;

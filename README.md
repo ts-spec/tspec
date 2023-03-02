@@ -4,26 +4,37 @@ Generate OpenAPI Specification from TypeScript types
 ## How to use?
 ```ts
 import { Tspec, generateSpec } from 'tspec'
+import { Request, Response } from 'express';
 
-// 1. Define API Specifications
-export type PetApiSpec = Tspec.RegisterApiSpec<{
+// 1. Define API Specifications by Handler
+export type PetApiSpec = Tspec.DefineApiSpec<{
   baseUrl: '/pet',
   specs: {
-    'GET /{id}': {
-      summary: 'Find pet by ID',
-      path: {
-        /**
-         * pet id
-         * @examples [1234]
-         * */
-        id: string,
-      },
-      responses: { 200: Pet },
+    '/{id}': {
+      get: { summary: 'Find pet by ID', handler: typeof getPetById },
     },
   },
 }>;
 
-// 2. generate OpenAPI Spec
+const getPetById = async (req: Request<PetParams>, res: Response<Pet>) => {
+  const { id } = req.params;
+  res.json({ id, name: 'dog' });
+}
+
+interface PetParams {
+  /**
+   * pet id
+   * @examples [1234]
+   * */
+  id: string,
+}
+
+interface Pet {
+  id: string,
+  name: string,
+}
+
+// 2. Generate OpenAPI Spec Automatically
 const openAPISpec = await generateSpec();
 ```
 
