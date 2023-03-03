@@ -19,7 +19,7 @@ export namespace Tspec {
     summary?: string,
     description?: string,
     tags?: string[],
-    auth?: string,
+    security?: string,
     path?: P, query?: Q, body?: {},
     responses?: { [code: number]: Res }, error?: { [key: string]: {} },
   }
@@ -50,7 +50,7 @@ export namespace Tspec {
   type Path = { [method in HttpMethod]: ApiSpecInput };
   type Paths = { [path: Url]: Path };
 
-  interface Controller<P extends Paths = Paths> extends Pick<ApiSpecBase, 'tags' | 'auth'> {
+  interface Controller<P extends Paths = Paths> extends Pick<ApiSpecBase, 'tags' | 'security'> {
     basePath?: string,
     paths: P,
   }
@@ -70,20 +70,27 @@ export namespace Tspec {
       [M in Extract<keyof T['paths'][P], HttpMethod>]: Omit<T['paths'][P][M], 'path'> & {
         path?: { [key in ParsePathKeys<WithBasePath<T['basePath'], P>>]: PathParamValue },
         tags?: string[],
+        security?: string,
         handler: ExpressHandler,
       }
     }
   }>> = {
     [P in Extract<keyof T['paths'], Url>]: {
-      [M in Extract<keyof T['paths'][P], HttpMethod>]: Omit<ApiSpec<T['paths'][P][M]>, 'tags'> & {
-      method: M,
-      url: WithBasePath<T['basePath'], P>,
-      // concat tuple type T['tags'] and T['specs'][P][M]['tags']
-      tags: [
-        ...(T['tags'] extends string[] ? T['tags'] : []),
-        ...(T['paths'][P][M]['tags'] extends string[] ? T['paths'][P][M]['tags'] : [])
-      ],
-    }}
+      [M in Extract<keyof T['paths'][P], HttpMethod>]: Omit<
+        ApiSpec<T['paths'][P][M]>, 'tags' | 'security'
+      > & {
+        method: M,
+        url: WithBasePath<T['basePath'], P>,
+        security: T['paths'][P][M]['security'] extends string
+          ? T['paths'][P][M]['security']
+          : T['security'],
+        // concat tuple type T['tags'] and T['specs'][P][M]['tags']
+        tags: [
+          ...(T['tags'] extends string[] ? T['tags'] : []),
+          ...(T['paths'][P][M]['tags'] extends string[] ? T['paths'][P][M]['tags'] : [])
+        ],
+      }
+    }
   };
 
   export interface GenerateParams {

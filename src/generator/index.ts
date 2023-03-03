@@ -318,6 +318,7 @@ const getOpenapiPaths = (
     DEBUG({ controllerName, path, method });
     const url = getTextPropertyByPath(spec, 'url', openapiSchemas, { required: true });
     const summary = getTextPropertyByPath(spec, 'summary', openapiSchemas);
+    const security = getTextPropertyByPath(spec, 'security', openapiSchemas);
     const tags = getTextListPropertyByPath(spec, 'tags', openapiSchemas);
     const responses = getSchemaPropertiesByPath(
       spec,
@@ -333,6 +334,7 @@ const getOpenapiPaths = (
       operationId: `${controllerName}_${method}_${path}`,
       tags,
       summary,
+      security: security && [{ [security]: [] }],
       parameters: resolveParameters(pathParams, queryParams),
       requestBody: bodyParams && {
         description: bodyParams.description,
