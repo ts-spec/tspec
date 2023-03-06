@@ -277,9 +277,9 @@ const getTextListPropertyByPath = (
     .map((item) => getText(item)).filter((item): item is string => !!item);
 };
 
-const getSchemaPropertiesByPath = <O extends { required: boolean }>(
+const getObjectPropertyByPath = <O extends { required: boolean }>(
   obj: Schema, path: string, schemas: SchemaMapping, options?: O,
-): O extends { required: true } ? Record<string, Schema> : Record<string, Schema> | undefined => {
+) => {
   const value = getPropertyByPath(obj, path, schemas);
   if (!value || '$ref' in value || value.type !== 'object' || !value.properties) {
     if (options?.required === true) {
@@ -287,9 +287,9 @@ const getSchemaPropertiesByPath = <O extends { required: boolean }>(
         `Invalid '${path}' in ${JSON.stringify(obj)}; value: ${JSON.stringify(value)}`,
       );
     }
-    return undefined as any;
+    return undefined;
   }
-  return value.properties;
+  return { ...value, properties: value.properties };
 };
 
 const getOpenapiPaths = (
@@ -320,15 +320,15 @@ const getOpenapiPaths = (
     const summary = getTextPropertyByPath(spec, 'summary', openapiSchemas);
     const security = getTextPropertyByPath(spec, 'security', openapiSchemas);
     const tags = getTextListPropertyByPath(spec, 'tags', openapiSchemas);
-    const responses = getSchemaPropertiesByPath(
+    const responses = getObjectPropertyByPath(
       spec,
       'responses',
       openapiSchemas,
       { required: true },
-    );
-    const pathParams = getSchemaPropertiesByPath(spec, 'path', openapiSchemas);
-    const queryParams = getSchemaPropertiesByPath(spec, 'query', openapiSchemas);
-    const bodyParams = getSchemaPropertiesByPath(spec, 'body', openapiSchemas);
+    )!.properties;
+    const pathParams = getObjectPropertyByPath(spec, 'path', openapiSchemas)?.properties;
+    const queryParams = getObjectPropertyByPath(spec, 'query', openapiSchemas)?.properties;
+    const bodyParams = getObjectPropertyByPath(spec, 'body', openapiSchemas);
 
     const operation = {
       operationId: `${controllerName}_${method}_${path}`,

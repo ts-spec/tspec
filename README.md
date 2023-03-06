@@ -1,12 +1,20 @@
 # tspec
-Generate OpenAPI Specification from TypeScript types
+OpenAPI Specification Generator from TypeScript Types
+
+
+## Why tspec?
+- **Code First**: Rely on TypeScript type and JSDoc to generate OpenAPI Specification.
+- **Easy to learn**: No need to learn new OpenAPI Spec syntax. Just use TypeScript types.
+- **Easy to use**: Only few lines of code are needed to generate OpenAPI Specification.
+- **Flexible**: You can use any framework you want. (currently only support [Express](https://expressjs.com/))
+
 
 ## How to use?
+### 1. Define API Specification
 ```ts
-import { Tspec, generateSpec } from 'tspec'
-import { Request, Response } from 'express';
+import { Tspec } from 'tspec'
+import { getPetById } from './controller';
 
-// 1. Define API Specifications by Handler
 export type PetApiSpec = Tspec.DefineApiSpec<{
   specs: {
     '/pet/{id}': {
@@ -14,11 +22,12 @@ export type PetApiSpec = Tspec.DefineApiSpec<{
     },
   },
 }>;
+```
 
-const getPetById = async (req: Request<PetParams>, res: Response<Pet>) => {
-  const { id } = req.params;
-  res.json({ id, name: 'dog' });
-}
+**Express Code Example**
+```ts
+// controller.ts
+import { Request, Response } from 'express';
 
 interface PetParams {
   /**
@@ -33,18 +42,60 @@ interface Pet {
   name: string,
 }
 
-// 2. Generate OpenAPI Spec Automatically
-const openAPISpec = await generateSpec();
+const getPetById = async (req: Request<PetParams>, res: Response<Pet>) => {
+  const { id } = req.params;
+  res.json({ id, name: 'dog' });
+}
 ```
 
-## Philosophy
 
-> Type is all you need for generating Open API Specification
-> 
+### 2. Generate OpenAPI Spec
+Tspec automatically parses ApiSpec types and generates OpenAPI Specification 3.0.
 
-No need to tediously write OpenAPI Schema for each API.
-
-You just need to pass your types to `ApiSpec` to generate an OpenAPI Specification.
-
-Utilize `ApiSpec` types as a SSOT(Single Source of Truth) for type-hints, documentation and validation
-
+```ts
+const openAPISpec = await generateSpec();
+// {
+//   openapi: '3.0.0',
+//   info: { title: 'API', version: '1.0.0' },
+//   paths: {
+//     '/pet/{id}': {
+//       get: {
+//         summary: 'Find pet by ID',
+//         parameters: [
+//           {
+//             name: 'id',
+//             in: 'path',
+//             required: true,
+//             description: 'pet id',
+//             schema: {
+//               type: 'string',
+//               example: '1234'
+//             }
+//         ]
+//         responses: {
+//           '200': {
+//             description: 'OK',
+//             content: {
+//               'application/json': {
+//                 schema: {
+//                   type: 'object',
+//                   properties: {
+//                     id: {
+//                       type: 'string',
+//                       example: '1234'
+//                     },
+//                     name: {
+//                       type: 'string',
+//                       example: 'dog'
+//                     }
+//                   }
+//                 }
+//               }
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
+// }
+```
