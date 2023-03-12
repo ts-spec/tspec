@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 
 import { glob } from 'glob';
 import { OpenAPIV3 } from 'openapi-types';
@@ -11,26 +12,6 @@ import { assertIsDefined, isDefined } from '../utils/types';
 import * as c from './converter';
 import * as ob from './openApiBuilder';
 import { oapiSchema } from './utils';
-
-const getCompilerOptions = (tsconfigPath: string) => {
-  const { config, error } = ts.readConfigFile(tsconfigPath, ts.sys.readFile);
-  if (error) {
-    throw new Error(error.messageText as string);
-  }
-  return config.compilerOptions;
-};
-
-const getProgramFiles = (
-  compilerOptions: ts.CompilerOptions,
-  specPathGlobs: string[],
-) => {
-  const typeFiles = [
-    ...(compilerOptions.typeRoots || []),
-    compilerOptions.baseUrl,
-  ].flatMap((typeRoot) => glob.sync(`${typeRoot}/**/*.d.ts`));
-  const specFiles = specPathGlobs.flatMap((specPathGlob) => glob.sync(specPathGlob));
-  return [...typeFiles, ...specFiles];
-};
 
 const isNodeExported = (node: ts.Node): boolean =>
   // eslint-disable-next-line no-bitwise
@@ -75,20 +56,49 @@ const getTspecSignatures = (p: ts.Program) => {
   return names;
 };
 
+const getProgram = async (projectPath: string) => {
+  const config = ts.readJsonConfigFile(
+    path.resolve(projectPath, 'tsconfig.json'),
+    ts.sys.readFile,
+  );
+
+  const parsedConfigContents = ts.parseJsonSourceFileConfigFileContent(
+    config,
+    ts.sys,
+    path.resolve(projectPath),
+    {},
+    path.resolve(projectPath, 'tsconfig.json'),
+  );
+
+  const compilerHost = ts.createCompilerHost(parsedConfigContents.options);
+  if (!compilerHost) {
+    throw Error('Failed to create compiler host');
+  }
+  const program = ts.createProgram({
+    rootNames: parsedConfigContents.fileNames,
+    options: parsedConfigContents.options,
+    host: compilerHost,
+  });
+
+  if (!program) {
+    throw Error('Failed to create program');
+  }
+  return program;
+};
+
 const getOpenapiSchemas = async (
   tsconfigPath = 'tsconfig.json',
   specPathGlobs: string[],
 ) => {
-  const compilerOptions = getCompilerOptions(tsconfigPath);
-  const files = getProgramFiles(compilerOptions, specPathGlobs);
-
   const settings: TJS.PartialArgs = {
     required: true,
     noExtraProps: true,
     strictNullChecks: true,
     // rejectDateType: true,
   };
-  const program = TJS.getProgramFromFiles(files, compilerOptions);
+
+  const program = await getProgram(tsconfigPath);
+
   const generator = TJS.buildGenerator(program, settings);
   assertIsDefined(generator);
 
