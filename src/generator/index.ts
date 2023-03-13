@@ -267,11 +267,11 @@ const getTextListPropertyByPath = (
   options?: { required: boolean },
 ): string[] => {
   const value = getPropertyByPath(obj, path, schemas);
-  if (!options?.required && !value) {
-    return [];
-  }
   if (!value || '$ref' in value || value.type !== 'array' || !value.items) {
-    throw new Error(`Invalid '${path}' in ApiSpec`);
+    if (options?.required === true) {
+      throw new Error(`Invalid '${path}' in ApiSpec`);
+    }
+    return [];
   }
   return (value.items as Schema[])
     .map((item) => getText(item)).filter((item): item is string => !!item);
