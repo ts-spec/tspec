@@ -365,6 +365,27 @@ const getOpenapiPaths = (
   return openapiPaths;
 };
 
+const getOpenapiSchemasOnly = (openapiSchemas: SchemaMapping, tspecSymbols: string[]) => {
+  const tspecPathSchemas = tspecSymbols.flatMap((tspecSymbol) => {
+    const paths = openapiSchemas[tspecSymbol].properties || {};
+    DEBUG({ tspecSymbol, paths });
+    return Object.keys(paths).map((path) => {
+      const obj = paths[path];
+      if ('$ref' in obj) {
+        const [, schemaName] = obj.$ref.split('#/components/schemas/');
+        return schemaName;
+      }
+      return undefined;
+    });
+  });
+
+  return Object.fromEntries(
+    Object.entries(openapiSchemas).filter(
+      ([key]) => (!tspecSymbols.includes(key) && !tspecPathSchemas.includes(key)),
+    ),
+  );
+};
+
 export const generateTspec = async (
   params: Tspec.GenerateParams = {},
 ): Promise<OpenAPIV3.Document> => {
@@ -376,9 +397,7 @@ export const generateTspec = async (
   );
 
   const paths = getOpenapiPaths(openapiSchemas, tspecSymbols);
-  const schemas = Object.fromEntries(
-    Object.entries(openapiSchemas).filter(([key]) => (!tspecSymbols.includes(key))),
-  );
+  const schemas = getOpenapiSchemasOnly(openapiSchemas, tspecSymbols);
 
   const openapi: OpenAPIV3.Document = {
     info: {
