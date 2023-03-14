@@ -137,23 +137,26 @@ const convertTypeArrayAndNullable = (schema: any): any => { // TODO: fix types
   return schema;
 };
 
-const getCompilerOptions = (tsconfigPath: string) => {
+const getCompilerOptions = (tsconfigPath: string): ts.CompilerOptions => {
   const { config, error } = ts.readConfigFile(tsconfigPath, ts.sys.readFile);
   if (error) {
     throw new Error(error.messageText as string);
   }
-  const { baseUrl, rootDir, rootDirs } = config.compilerOptions as ts.CompilerOptions;
   return {
-    baseUrl,
-    rootDirs: rootDirs || [rootDir],
+    ...config.compilerOptions,
     noEmit: true,
-    strict: false,
   };
 };
 
-const getProgramFiles = (specPathGlobs: string[]) => (
-  specPathGlobs.flatMap((specPathGlob) => glob.sync(specPathGlob))
-);
+const getDefaultProgramFiles = (compilerOptions: ts.CompilerOptions) => {
+  const { rootDir, rootDirs } = compilerOptions;
+  return [rootDir, ...(rootDirs || [])].filter(isDefined).map((r) => `${r}/**/*.ts`);
+};
+
+const getProgramFiles = (compilerOptions: ts.CompilerOptions, specPathGlobs?: string[]) => {
+  const srcGlobs = specPathGlobs || getDefaultProgramFiles(compilerOptions);
+  return srcGlobs.flatMap((g) => glob.sync(g));
+};
 
 const escapeSchemaNames = (schemas: SchemaMapping) => {
   const escapedNameMapping = Object.fromEntries(Object.keys(schemas).map((schemaName) => (
@@ -177,9 +180,7 @@ const convertToOpenapiSchemas = async (
 
 const getOpenapiSchemas = async (tsconfigPath: string, specPathGlobs?: string[]) => {
   const compilerOptions = getCompilerOptions(tsconfigPath);
-  const files = specPathGlobs
-    ? getProgramFiles(specPathGlobs)
-    : getProgramFiles(compilerOptions.rootDirs.map((dir) => `${dir}/**/*.ts`));
+  const files = getProgramFiles(compilerOptions, specPathGlobs);
   const program = TJS.getProgramFromFiles(files, compilerOptions);
 
   const settings: TJS.PartialArgs = {
