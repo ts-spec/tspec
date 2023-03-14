@@ -142,15 +142,18 @@ const getCompilerOptions = (tsconfigPath: string) => {
   if (error) {
     throw new Error(error.messageText as string);
   }
-  return config.compilerOptions;
+  const { baseUrl, rootDir, rootDirs } = config.compilerOptions as ts.CompilerOptions;
+  return {
+    baseUrl,
+    rootDirs: rootDirs || [rootDir],
+    noEmit: true,
+    strict: false,
+  };
 };
 
-const getProgramFiles = (compilerOptions: ts.CompilerOptions, specPathGlobs: string[]) => {
-  const typeFiles = [...(compilerOptions.typeRoots || []), compilerOptions.baseUrl]
-    .flatMap((typeRoot) => glob.sync(`${typeRoot}/**/*.d.ts`));
-  const specFiles = specPathGlobs.flatMap((specPathGlob) => glob.sync(specPathGlob));
-  return [...typeFiles, ...specFiles];
-};
+const getProgramFiles = (specPathGlobs: string[]) => (
+  specPathGlobs.flatMap((specPathGlob) => glob.sync(specPathGlob))
+);
 
 const escapeSchemaNames = (schemas: SchemaMapping) => {
   const escapedNameMapping = Object.fromEntries(Object.keys(schemas).map((schemaName) => (
@@ -172,17 +175,20 @@ const convertToOpenapiSchemas = async (
   return escapeSchemaNames(openapiSchemas);
 };
 
-const getOpenapiSchemas = async (tsconfigPath: string, specPathGlobs: string[]) => {
+const getOpenapiSchemas = async (tsconfigPath: string, specPathGlobs?: string[]) => {
   const compilerOptions = getCompilerOptions(tsconfigPath);
-  const files = getProgramFiles(compilerOptions, specPathGlobs);
+  const files = specPathGlobs
+    ? getProgramFiles(specPathGlobs)
+    : getProgramFiles(compilerOptions.rootDirs.map((dir) => `${dir}/**/*.ts`));
+  const program = TJS.getProgramFromFiles(files, compilerOptions);
 
   const settings: TJS.PartialArgs = {
     required: true,
     noExtraProps: true,
     strictNullChecks: true,
+    ignoreErrors: true,
     // rejectDateType: true,
   };
-  const program = TJS.getProgramFromFiles(files, compilerOptions);
   const generator = TJS.buildGenerator(program, settings);
   assertIsDefined(generator);
 
@@ -393,7 +399,7 @@ export const generateTspec = async (
     openapiSchemas, tspecSymbols,
   } = await getOpenapiSchemas(
     params.tsconfigPath || 'tsconfig.json',
-    params.specPathGlobs || ['src/**/*.ts'],
+    params.specPathGlobs,
   );
 
   const paths = getOpenapiPaths(openapiSchemas, tspecSymbols);
