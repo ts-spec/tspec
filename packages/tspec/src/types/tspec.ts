@@ -105,6 +105,7 @@ export namespace Tspec {
       servers?: OpenAPIV3.ServerObject[],
     },
     debug?: boolean,
+    ignoreErrors?: boolean,
   }
 
   export type OpenapiDocument = OpenAPIV3.Document;

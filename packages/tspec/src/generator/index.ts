@@ -8,8 +8,8 @@ import { OpenAPIV3 } from 'openapi-types';
 import ts from 'typescript';
 import * as TJS from 'typescript-json-schema';
 
-import { Tspec } from 'types/tspec';
-import { assertIsDefined, isDefined } from 'utils/types';
+import { Tspec } from '../types/tspec';
+import { assertIsDefined, isDefined } from '../utils/types';
 
 import { getOpenapiPaths } from './openapiGenerator';
 import { convertToOpenapiSchemas } from './openapiShcmeaConverter';
@@ -30,22 +30,23 @@ const getTspecSignatures = (p: ts.Program) => {
 
   const names: string[] = [];
   entryPoints.forEach((srcFile) => {
-    ts.forEachChild(srcFile, (node) => {
+    srcFile.forEachChild((node) => {
       if (!isNodeExported(node)) {
         return;
       }
 
-      if (
-        !ts.isTypeAliasDeclaration(node)
-        || !ts.isTypeReferenceNode(node.type)
-      ) {
-        return;
-      }
+      // NOTE(hyeonseong): typescript 5.0 changed node kind of type alias declaration.
+      // if (
+      //   !ts.isTypeAliasDeclaration(node)
+      //   || !ts.isTypeReferenceNode(node.type)
+      // ) {
+      //   return;
+      // }
 
-      if ((node.type?.typeName as any)?.right?.escapedText !== 'DefineApiSpec') {
+      if ((node as any).type?.typeName?.right?.escapedText !== 'DefineApiSpec') {
         return;
       }
-      const name = node.name.escapedText as string;
+      const name = (node as any).name.escapedText as string;
       if (names.includes(name)) {
         throw new Error(`Duplicate name: ${name}`);
       }
@@ -69,12 +70,13 @@ const getCompilerOptions = (tsconfigPath: string): ts.CompilerOptions => {
 
 const getDefaultProgramFiles = (compilerOptions: ts.CompilerOptions) => {
   const { rootDir, rootDirs } = compilerOptions;
-  return [rootDir, ...(rootDirs || [])].filter(isDefined).map((r) => `${r}/**/*.ts`);
+  return [rootDir, ...(rootDirs || [])].filter(isDefined)
+    .flatMap((r) => [`${r}/*.ts`, `${r}/**/*.ts`]);
 };
 
 const getProgramFiles = (compilerOptions: ts.CompilerOptions, specPathGlobs?: string[]) => {
   const srcGlobs = specPathGlobs || getDefaultProgramFiles(compilerOptions);
-  return srcGlobs.flatMap((g) => glob.sync(g));
+  return [...new Set(srcGlobs.flatMap((g) => glob.sync(g)))];
 };
 
 /**
@@ -82,19 +84,27 @@ const getProgramFiles = (compilerOptions: ts.CompilerOptions, specPathGlobs?: st
  * 1. Partial of Record
  * export type BlockRegions = Partial<Record<'es' | 'en', { blockAt: string }>>;
  */
-const getOpenapiSchemas = async (tsconfigPath: string, specPathGlobs?: string[]) => {
+const getOpenapiSchemas = async (
+  tsconfigPath: string,
+  specPathGlobs?: string[],
+  ignoreErrors?: boolean,
+) => {
   const compilerOptions = getCompilerOptions(tsconfigPath);
+  DEBUG({ compilerOptions });
   const files = getProgramFiles(compilerOptions, specPathGlobs);
+  DEBUG({ files });
   const program = TJS.getProgramFromFiles(files, compilerOptions);
 
-  const settings: TJS.PartialArgs = {
+  const tjsSettings: TJS.PartialArgs = {
     required: true,
     noExtraProps: true,
     strictNullChecks: true,
-    ignoreErrors: true,
+    ignoreErrors: ignoreErrors || true,
+    esModuleInterop: compilerOptions.esModuleInterop,
     // rejectDateType: true,
   };
-  const generator = TJS.buildGenerator(program, settings);
+  DEBUG({ tjsSettings });
+  const generator = TJS.buildGenerator(program, tjsSettings);
   assertIsDefined(generator);
 
   const tspecSymbols = getTspecSignatures(program as ts.Program);
@@ -137,6 +147,7 @@ export const generateTspec = async (
   } = await getOpenapiSchemas(
     params.tsconfigPath || 'tsconfig.json',
     params.specPathGlobs,
+    params.ignoreErrors,
   );
 
   const paths = getOpenapiPaths(openapiSchemas, tspecSymbols);

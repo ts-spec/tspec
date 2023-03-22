@@ -2,7 +2,7 @@ import debug from 'debug';
 import { OpenAPIV3 } from 'openapi-types';
 import * as TJS from 'typescript-json-schema';
 
-import { assertIsDefined } from 'utils/types';
+import { assertIsDefined } from '../utils/types';
 
 import {
   accessSchema, getObjectPropertyByPath, getTextListPropertyByPath, getTextPropertyByPath,
