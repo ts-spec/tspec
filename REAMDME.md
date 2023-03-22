@@ -1,1 +1,0 @@
-packages/tspec/README.md
