@@ -61,6 +61,10 @@ app.post('/api/v1/dogs/:id', createDog);
 app.put('/api/v1/dogs/:id', updateDog);
 app.delete('/api/v1/dogs/:id', deleteDog);
 
+app.listen(3000, () => {
+  console.log('App listening on port 3000!');
+});
+
 export type DogApiSpec = Tspec.DefineApiSpec<{
   paths: {
     '/api/v1/dogs': {
