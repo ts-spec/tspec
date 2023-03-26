@@ -55,7 +55,7 @@ const defaultArgs: DefaultGenerateParams = {
   },
 };
 
-const runCli = async () => {
+export const runCli = async () => {
   const args = await yargs(hideBin(process.argv))
     .options({
       specPathGlobs: { type: 'array', default: defaultArgs.specPathGlobs },
@@ -88,7 +88,3 @@ const runCli = async () => {
 
   await generateTspec(generateTspecParams);
 };
-
-if (typeof window === 'undefined' && require.main === module) {
-  runCli();
-}
