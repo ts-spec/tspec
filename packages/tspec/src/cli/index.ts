@@ -68,13 +68,13 @@ const runCli = async () => {
     .argv;
 
   if (args.specVersion && !Object.values(SupportedSpecVersion).includes(args.specVersion)) {
-    throw new Error(`Tspec currently supports only OpenAPI Spec with version ${Object.values(SupportedSpecVersion).join(', ')}.`);
+    throw new Error(`Tspec currently supports only OpenAPI Spec with version ${Object.values(SupportedSpecVersion).join(', ')}.`); // eslint-disable-line max-len
   }
 
   const generateTspecParams: Tspec.GenerateParams = {
     specPathGlobs: args.specPathGlobs.length > 0
-    ? args.specPathGlobs.map((glob) => glob.toString())
-    : defaultArgs.specPathGlobs,
+      ? args.specPathGlobs.map((glob) => glob.toString())
+      : defaultArgs.specPathGlobs,
     tsconfigPath: args.tsconfigPath,
     outputPath: args.outputPath,
     specVersion: (args.specVersion ?? defaultArgs.specVersion) as SupportedSpecVersion,
