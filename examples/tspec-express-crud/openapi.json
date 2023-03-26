@@ -1,0 +1,475 @@
+{
+  "info": {
+    "title": "Tspec API",
+    "version": "0.0.1"
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/api/v1/dogs": {
+      "get": {
+        "operationId": "DogApiSpec_get_/api/v1/dogs",
+        "tags": [],
+        "summary": "Get all dogs",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "breed",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/DogBreed"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse_Dog___"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "DogApiSpec_post_/api/v1/dogs",
+        "tags": [],
+        "summary": "Create a dog",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "breed": {
+                    "$ref": "#/components/schemas/DogBreed"
+                  },
+                  "adopted_at": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    ],
+                    "nullable": true
+                  },
+                  "birth_date": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    ],
+                    "nullable": true
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "adopted_at",
+                  "birth_date",
+                  "breed",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse_Dog_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dogs/{id}": {
+      "get": {
+        "operationId": "DogApiSpec_get_/api/v1/dogs/{id}",
+        "tags": [],
+        "summary": "Get a dog",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse_Dog_null_"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "DogApiSpec_put_/api/v1/dogs/{id}",
+        "tags": [],
+        "summary": "Update a dog",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "breed": {
+                    "enum": [
+                      "german shepherd",
+                      "golden retriever",
+                      "labrador"
+                    ],
+                    "type": "string"
+                  },
+                  "adopted_at": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    ],
+                    "nullable": true
+                  },
+                  "birth_date": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    ],
+                    "nullable": true
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse_Dog_"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "DogApiSpec_delete_/api/v1/dogs/{id}",
+        "tags": [],
+        "summary": "Delete a dog",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse_Dog_"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Empty": {
+        "type": "object",
+        "additionalProperties": false
+      },
+      "APIResponse_Dog___": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Dog"
+            }
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "message"
+        ]
+      },
+      "Dog": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "breed": {
+            "$ref": "#/components/schemas/DogBreed"
+          },
+          "adopted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ],
+            "nullable": true
+          },
+          "birth_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "adopted_at",
+          "birth_date",
+          "breed",
+          "id",
+          "name"
+        ]
+      },
+      "DogBreed": {
+        "enum": [
+          "german shepherd",
+          "golden retriever",
+          "labrador"
+        ],
+        "type": "string"
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number"
+          },
+          "limit": {
+            "type": "number"
+          },
+          "breed": {
+            "$ref": "#/components/schemas/DogBreed"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "breed",
+          "limit",
+          "page"
+        ]
+      },
+      "RequestHandler_Empty_APIResponse_Dog____Empty_Pagination_Record_string_any__": {
+        "type": "object",
+        "additionalProperties": false
+      },
+      "DogDetails": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "breed": {
+            "$ref": "#/components/schemas/DogBreed"
+          },
+          "adopted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ],
+            "nullable": true
+          },
+          "birth_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ],
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "adopted_at",
+          "birth_date",
+          "breed",
+          "name"
+        ]
+      },
+      "APIResponse_Dog_": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Dog"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "message"
+        ]
+      },
+      "RequestHandler_Empty_APIResponse_Dog__DogDetails_Empty_Record_string_any__": {
+        "type": "object",
+        "additionalProperties": false
+      },
+      "BaseParams_number__1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id"
+        ]
+      },
+      "APIResponse_Dog_null_": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Dog"
+              }
+            ],
+            "nullable": true
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "message"
+        ]
+      },
+      "RequestHandler_BaseParams_number__APIResponse_Dog_null__Empty_Empty_Record_string_any__": {
+        "type": "object",
+        "additionalProperties": false
+      },
+      "Partial_DogDetails_": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "breed": {
+            "enum": [
+              "german shepherd",
+              "golden retriever",
+              "labrador"
+            ],
+            "type": "string"
+          },
+          "adopted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ],
+            "nullable": true
+          },
+          "birth_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ],
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RequestHandler_BaseParams_number__APIResponse_Dog__Partial_DogDetails__Empty_Record_string_any__": {
+        "type": "object",
+        "additionalProperties": false
+      },
+      "RequestHandler_BaseParams_number__APIResponse_Dog__Empty_Empty_Record_string_any__": {
+        "type": "object",
+        "additionalProperties": false
+      }
+    }
+  }
+}
