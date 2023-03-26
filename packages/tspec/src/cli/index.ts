@@ -28,7 +28,9 @@ type RequiredTsParams = Required<
 type OptionalTsParams = Partial<
   Pick<
     Tspec.GenerateParams,
-    'outputPath'
+    'outputPath' |
+    'debug' |
+    'ignoreErrors'
   >
 >;
 type DefaultGenerateParams =
@@ -53,6 +55,8 @@ const defaultArgs: DefaultGenerateParams = {
     securityDefinitions: undefined,
     servers: undefined,
   },
+  debug: undefined,
+  ignoreErrors: undefined,
 };
 
 export const runCli = async () => {
@@ -64,11 +68,14 @@ export const runCli = async () => {
       specVersion: { type: 'number' },
       openapiTitle: { type: 'string', default: defaultArgs.openapi.title },
       openapiVersion: { type: 'string', default: defaultArgs.openapi.version },
+      debug: { type: 'boolean', default: defaultArgs.debug },
+      ignoreErrors: { type: 'boolean', default: defaultArgs.ignoreErrors },
     })
     .argv;
 
   if (args.specVersion && !Object.values(SupportedSpecVersion).includes(args.specVersion)) {
-    throw new Error(`Tspec currently supports only OpenAPI Spec with version ${Object.values(SupportedSpecVersion).join(', ')}.`); // eslint-disable-line max-len
+    // eslint-disable-next-line max-len
+    throw new Error(`Tspec currently supports only OpenAPI Spec with version ${Object.values(SupportedSpecVersion).join(', ')}.`);
   }
 
   const generateTspecParams: Tspec.GenerateParams = {
@@ -84,6 +91,8 @@ export const runCli = async () => {
       securityDefinitions: defaultArgs.openapi.securityDefinitions,
       servers: defaultArgs.openapi.servers,
     },
+    debug: args.debug,
+    ignoreErrors: args.ignoreErrors,
   };
 
   await generateTspec(generateTspecParams);
