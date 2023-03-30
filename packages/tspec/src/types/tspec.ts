@@ -2,7 +2,7 @@
 import { OpenAPIV3 } from 'openapi-types';
 
 export namespace Tspec {
-  type Url = `/${string}`;
+  type PathUrl = `/${string}`;
   export type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete' | 'options' | 'head';
 
   type PathParamValue = string | number;
@@ -48,7 +48,7 @@ export namespace Tspec {
   }
 
   type Path = { [method in HttpMethod]: ApiSpecInput };
-  type Paths = { [path: Url]: Path };
+  type Paths = { [path: PathUrl]: Path };
 
   interface Controller<P extends Paths = Paths> extends Pick<ApiSpecBase, 'tags' | 'security'> {
     basePath?: string,
@@ -66,7 +66,7 @@ export namespace Tspec {
     : never;
 
   export type DefineApiSpec<T extends Controller<{
-    [P in Extract<keyof T['paths'], Url>]: {
+    [P in Extract<keyof T['paths'], PathUrl>]: {
       [M in Extract<keyof T['paths'][P], HttpMethod>]: Omit<T['paths'][P][M], 'path'> & {
         path?: { [key in ParsePathKeys<WithBasePath<T['basePath'], P>>]: PathParamValue },
         tags?: string[],
@@ -75,7 +75,7 @@ export namespace Tspec {
       }
     }
   }>> = {
-    [P in Extract<keyof T['paths'], Url>]: {
+    [P in Extract<keyof T['paths'], PathUrl>]: {
       [M in Extract<keyof T['paths'][P], HttpMethod>]: Omit<
         ApiSpec<T['paths'][P][M]>, 'tags' | 'security'
       > & {
@@ -110,6 +110,87 @@ export namespace Tspec {
 
   export type OpenapiDocument = OpenAPIV3.Document;
 
-  /** @TJS-type integer */
+  /**
+   * @TJS-type integer
+   * @examples [1]
+   * */
   export type Integer = number;
+
+  /**
+   * @TJS-type date
+   * @examples ["2023-03-30"]
+   */
+  export type Date = string;
+
+  /**
+   * @TJS-format date-time
+   * @examples ["2023-03-30T12:00:00Z"]
+   * */
+  export type DateTime = string;
+
+  /**
+   * @TJS-type password
+   * @examples ["password"]
+   */
+  export type Password = string;
+
+  /**
+   * @TJS-type byte
+   * @examples ["U3dhZ2dlciByb2Nrcw=="]
+   */
+  export type Byte = string;
+
+  /**
+   * @TJS-type binary
+   * @examples ["\x00\x00\x00\x02"]
+   */
+  export type Binary = string;
+
+  /**
+   * @TJS-format email
+   * @examples ["test@test.com"]
+   * */
+  export type Email = string;
+
+  /**
+   * @TJS-format uuid
+   * @examples ["00000000-0000-0000-0000-000000000000"]
+   * */
+  export type Uuid = string;
+
+  /**
+   * @TJS-format uri
+   * @examples ["http://localhost"]
+   * */
+  export type Url = string;
+
+  /**
+   * @TJS-format uri
+   * @examples ["https://picsum.photos/200/300"]
+   */
+  export type ImageUrl = string;
+
+  /**
+   * @TJS-format hostname
+   * @examples ["localhost"]
+   * */
+  export type Hostname = string;
+
+  /**
+   * @TJS-format ipv4
+   * @examples ["127.0.0.1"]
+   * */
+  export type Ipv4 = string;
+
+  /**
+   * @TJS-format ipv6
+   * @examples ["::1"]
+   * */
+  export type Ipv6 = string;
+
+  /**
+   * @TJS-format json-pointer
+   * @examples ["/"]
+   */
+  export type JsonPointer = string;
 }
