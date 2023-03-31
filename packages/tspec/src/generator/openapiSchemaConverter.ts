@@ -60,6 +60,17 @@ const convertToNullableSchema = (schema: any): any => {
   return schema;
 };
 
+const handleExamples = (schema: any): any => { // TODO: fix types
+  if (schema.examples) {
+    const { examples, ...rest } = schema;
+    return {
+      ...rest,
+      example: Array.isArray(examples) ? examples[0] : examples,
+    };
+  }
+  return schema;
+};
+
 const convertToOpenapiTypes = (schema: any): any => { // TODO: fix types
   if (Array.isArray(schema)) {
     return schema.map((s) => convertToOpenapiTypes(s));
@@ -69,7 +80,8 @@ const convertToOpenapiTypes = (schema: any): any => { // TODO: fix types
     const convertedSchema = Object.fromEntries(
       Object.entries(nullableSchema).map(([key, value]) => [key, convertToOpenapiTypes(value)]),
     );
-    return handleCombinedNullable(convertedSchema);
+    const handlers = [handleCombinedNullable, handleExamples];
+    return handlers.reduce((acc, handler) => handler(acc), convertedSchema);
   }
   return schema;
 };
