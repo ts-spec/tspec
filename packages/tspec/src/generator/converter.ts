@@ -1,13 +1,14 @@
+/* eslint-disable no-use-before-define */
 import { OpenAPIV3 as oapi3 } from 'openapi-types';
 import * as tjs from 'typescript-json-schema';
 
+import { Schema } from './types';
 import {
   isConcrete,
   isDefinitionBoolean,
   isNullableObject,
   isObjectSchemaObject,
   isReferenceObject,
-  oapiSchema,
 } from './utils';
 
 const createItem = async (items: tjs.DefinitionOrBoolean[]) => {
@@ -64,7 +65,7 @@ const convertItems = async (
 export const convertProperties = async (obj: {
   [key: string]: tjs.DefinitionOrBoolean,
 }) => {
-  const convertedObj: { [key: string]: oapiSchema } = {};
+  const convertedObj: { [key: string]: Schema } = {};
   for await (const [key, val] of Object.entries(obj)) {
     const convertedProperty = await convertDefinition(val);
     if (convertedProperty) {
@@ -78,10 +79,10 @@ const convertSchemaArray = async (
   defs: tjs.DefinitionOrBoolean[],
   property: 'anyOf' | 'oneOf' | 'allOf',
 ) => {
-  let schema: oapiSchema = {};
+  let schema: Schema = {};
   let nullable = false;
 
-  const object: oapiSchema = { type: 'object', properties: {} };
+  const object: Schema = { type: 'object', properties: {} };
 
   const filteredDefs = await Promise.all(
     defs.map(async (def) => {
@@ -136,7 +137,6 @@ const convertSchemaArray = async (
 
   return schema;
 };
-
 export const convertSubschemaProperty = async (
   def: tjs.Definition,
 ): Promise<
@@ -305,8 +305,8 @@ const convertSchemaObjectByType = async (type: string, def: tjs.Definition) => {
 
 const convertType = async (
   def: tjs.Definition,
-  commonSchema: oapiSchema,
-): Promise<oapiSchema> => {
+  commonSchema: Schema,
+): Promise<Schema> => {
   const types = def.type
     ? Array.isArray(def.type)
       ? def.type
@@ -376,10 +376,11 @@ const convertType = async (
 
 export const convertDefinition = async (
   def: tjs.DefinitionOrBoolean,
-): Promise<oapiSchema | undefined> => {
+): Promise<Schema | undefined> => {
   if (isDefinitionBoolean(def)) {
     return undefined;
   }
+
   const commonProperty = extractCommonProperty(def);
   const subschemaProperty = await convertSubschemaProperty(def);
 

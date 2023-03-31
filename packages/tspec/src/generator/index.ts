@@ -1,5 +1,5 @@
 import fs from 'fs/promises';
-import { dirname } from 'path';
+import path, { dirname } from 'path';
 
 import debug from 'debug';
 import { glob } from 'glob';
@@ -12,7 +12,7 @@ import { Tspec } from '../types/tspec';
 import { assertIsDefined, isDefined } from '../utils/types';
 
 import { getOpenapiPaths } from './openapiGenerator';
-import { convertToOpenapiSchemas } from './openapiShcmeaConverter';
+import { convertToOpenapiSchemas } from './openapiSchemaConverter';
 import { SchemaMapping } from './types';
 
 export const DEBUG = debug('tspec');
@@ -42,7 +42,6 @@ const getTspecSignatures = (p: ts.Program) => {
       // ) {
       //   return;
       // }
-
       if ((node as any).type?.typeName?.right?.escapedText !== 'DefineApiSpec') {
         return;
       }
@@ -79,6 +78,35 @@ const getProgramFiles = (compilerOptions: ts.CompilerOptions, specPathGlobs?: st
   return [...new Set(srcGlobs.flatMap((g) => glob.sync(g)))];
 };
 
+const getProgram = async (projectPath: string) => {
+  const config = ts.readJsonConfigFile(
+    path.resolve(projectPath, 'tsconfig.json'),
+    ts.sys.readFile,
+  );
+
+  const parsedConfigContents = ts.parseJsonSourceFileConfigFileContent(
+    config,
+    ts.sys,
+    path.resolve(projectPath),
+    {},
+    path.resolve(projectPath, 'tsconfig.json'),
+  );
+
+  const compilerHost = ts.createCompilerHost(parsedConfigContents.options);
+  if (!compilerHost) {
+    throw Error('Failed to create compiler host');
+  }
+  const program = ts.createProgram({
+    rootNames: parsedConfigContents.fileNames,
+    options: parsedConfigContents.options,
+    host: compilerHost,
+  });
+
+  if (!program) {
+    throw Error('Failed to create program');
+  }
+  return program;
+};
 /**
  * 제대로 동작하지 않는 케이스..?
  * 1. Partial of Record
@@ -93,7 +121,10 @@ const getOpenapiSchemas = async (
   DEBUG({ compilerOptions });
   const files = getProgramFiles(compilerOptions, specPathGlobs);
   DEBUG({ files });
-  const program = TJS.getProgramFromFiles(files, compilerOptions);
+  // const program = TJS.getProgramFromFiles(files, compilerOptions);
+  // ridi는 이렇게 해야 됨
+
+  const program = await getProgram(path.dirname(tsconfigPath));
 
   const tjsSettings: TJS.PartialArgs = {
     required: true,
@@ -121,9 +152,10 @@ const getOpenapiSchemas = async (
 const getOpenapiSchemasOnly = (openapiSchemas: SchemaMapping, tspecSymbols: string[]) => {
   const tspecPathSchemas = tspecSymbols.flatMap((tspecSymbol) => {
     const paths = openapiSchemas[tspecSymbol].properties || {};
+
     DEBUG({ tspecSymbol, paths });
-    return Object.keys(paths).map((path) => {
-      const obj = paths[path];
+    return Object.keys(paths).map((p) => {
+      const obj = paths[p];
       if ('$ref' in obj) {
         const [, schemaName] = obj.$ref.split('#/components/schemas/');
         return schemaName;

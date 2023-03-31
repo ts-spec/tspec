@@ -1,32 +1,20 @@
-import { OpenAPIV3 as oapi3 } from 'openapi-types';
+import {
+  BooleanSchemaObject, IntegerSchemaObject, NumberSchemaObject, ObjectSchemaObject, Schema, StringSchemaObject,
+} from 'generator/types';
+import { OpenAPIV3 } from 'openapi-types';
 
-export type oapiSchema = oapi3.SchemaObject | oapi3.ReferenceObject;
-
-export interface NumberSchemaObject extends oapi3.NonArraySchemaObject {
-  type: 'number',
-}
-
-export interface StringSchemaObject extends oapi3.NonArraySchemaObject {
-  type: 'string',
-}
-
-export interface IntegerSchemaObject extends oapi3.NonArraySchemaObject {
-  type: 'integer',
-}
-
-export interface BooleanSchemaObject extends oapi3.NonArraySchemaObject {
-  type: 'boolean',
-}
-
-export interface ObjectSchemaObject extends oapi3.NonArraySchemaObject {
-  type: 'object',
-  properties: {
-    [name: string]: oapi3.ReferenceObject | oapi3.SchemaObject,
-  },
-}
+export const isReferenceObject = (
+  schema: Schema,
+): schema is OpenAPIV3.ReferenceObject => {
+  // eslint-disable-next-line no-prototype-builtins
+  if (Object.prototype.hasOwnProperty('$ref')) {
+    return true;
+  }
+  return false;
+};
 
 export const isIntegerSchemaObject = (
-  schema: oapiSchema,
+  schema: Schema,
 ): schema is IntegerSchemaObject => {
   if (isReferenceObject(schema)) {
     return false;
@@ -38,7 +26,7 @@ export const isIntegerSchemaObject = (
 };
 
 export const isNumberSchemaObject = (
-  schema: oapiSchema,
+  schema: Schema,
 ): schema is NumberSchemaObject => {
   if (isReferenceObject(schema)) {
     return false;
@@ -50,7 +38,7 @@ export const isNumberSchemaObject = (
 };
 
 export const isBooleanSchemaObject = (
-  schema: oapiSchema,
+  schema: Schema,
 ): schema is BooleanSchemaObject => {
   if (isReferenceObject(schema)) {
     return false;
@@ -62,7 +50,7 @@ export const isBooleanSchemaObject = (
 };
 
 export const isStringSchemaObject = (
-  schema: oapiSchema,
+  schema: Schema,
 ): schema is StringSchemaObject => {
   if (isReferenceObject(schema)) {
     return false;
@@ -74,7 +62,7 @@ export const isStringSchemaObject = (
 };
 
 export const isObjectSchemaObject = (
-  schema: oapiSchema,
+  schema: Schema,
 ): schema is ObjectSchemaObject => {
   if (isReferenceObject(schema)) {
     return false;
@@ -86,8 +74,8 @@ export const isObjectSchemaObject = (
 };
 
 export const isArraySchemaObject = (
-  schema: oapi3.SchemaObject,
-): schema is oapi3.ArraySchemaObject => {
+  schema: OpenAPIV3.SchemaObject,
+): schema is OpenAPIV3.ArraySchemaObject => {
   if (isReferenceObject(schema)) {
     return false;
   }
@@ -97,16 +85,7 @@ export const isArraySchemaObject = (
   return false;
 };
 
-export const isReferenceObject = (
-  schema: oapiSchema,
-): schema is oapi3.ReferenceObject => {
-  if (Object.prototype.hasOwnProperty('$ref')) {
-    return true;
-  }
-  return false;
-};
-
-export const isNullableObject = (schema: oapiSchema) => {
+export const isNullableObject = (schema: Schema) => {
   if (isReferenceObject(schema)) {
     return false;
   }

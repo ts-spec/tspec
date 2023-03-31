@@ -1,7 +1,9 @@
-import convert from 'json-schema-to-openapi-schema'; // TODO: 이게 정말 필요한건지 체크 필요.
+// import convert from 'json-schema-to-openapi-schema'; // TODO: 이게 정말 필요한건지 체크 필요.
 import * as TJS from 'typescript-json-schema';
+import { isDefined } from 'utils/types';
 
-import { SchemaMapping } from './types';
+import { convertDefinition } from './converter';
+import { Schema, SchemaMapping } from './types';
 
 const isSchemaNullableOnly = (s: any) => (
   Object.keys(s).filter((key) => s[key] !== undefined).length === 1 && s.nullable
@@ -104,9 +106,15 @@ const escapeSchemaNames = (schemas: SchemaMapping) => {
 };
 
 export const convertToOpenapiSchemas = async (
-  jsonSchemas: TJS.Definition,
+  jsonSchemas:{[key:string]:TJS.DefinitionOrBoolean},
 ): Promise<SchemaMapping> => {
-  const convertedJsonSchemas = convertToOpenapiTypes(jsonSchemas);
-  const openapiSchemas = await convert(convertedJsonSchemas) as SchemaMapping;
-  return escapeSchemaNames(openapiSchemas);
+  const schemaMapping: Record<string, Schema> = {};
+
+  for (const [key, val] of Object.entries(jsonSchemas)) {
+    const convertedJsonSchemas = await convertDefinition(val);
+    if (!convertedJsonSchemas) continue;
+    schemaMapping[key] = convertedJsonSchemas;
+  }
+
+  return escapeSchemaNames(schemaMapping as SchemaMapping);
 };

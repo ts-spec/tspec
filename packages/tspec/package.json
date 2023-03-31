@@ -5,6 +5,7 @@
   "license": "MIT",
   "author": "Hyeonseong Jeon <hyeonss0417@gmail.com>",
   "devDependencies": {
+    "@types/debug": "^4.1.7",
     "@types/express": "^4.17.14",
     "@types/glob": "^8.0.1",
     "@types/node": "^18.7.18",
@@ -29,8 +30,8 @@
     "glob": "^8.1.0",
     "json-schema-to-openapi-schema": "^0.4.0",
     "openapi-types": "^12.0.2",
-    "typescript-json-schema": "^0.55.0",
-    "typescript": "~4.8.3"
+    "typescript": "~4.8.3",
+    "typescript-json-schema": "^0.55.0"
   },
   "repository": {
     "type": "git",

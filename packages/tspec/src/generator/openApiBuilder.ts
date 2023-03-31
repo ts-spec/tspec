@@ -1,15 +1,15 @@
 import { OpenAPIV3 as oapi3 } from 'openapi-types';
 
 import {
+  Schema,
   isObjectSchemaObject,
   isReferenceObject,
   isStringSchemaObject,
-  oapiSchema,
 } from './utils';
 
 const OPENAPI_VERSION = '3.0.3';
 
-const extractString = (schema: oapiSchema) => {
+const extractString = (schema: Schema) => {
   if (!isStringSchemaObject(schema)) {
     return undefined;
   }
@@ -17,7 +17,7 @@ const extractString = (schema: oapiSchema) => {
 };
 
 export const buildComponentsObject = async (
-  schemaMap: Map<string, oapiSchema>,
+  schemaMap: Map<string, Schema>,
 ): Promise<oapi3.ComponentsObject> => {
   const schemas: oapi3.ComponentsObject['schemas'] = {};
   for (const [key, val] of schemaMap) {
@@ -27,7 +27,7 @@ export const buildComponentsObject = async (
 };
 
 const buildResponsesObject = async (
-  schema: oapiSchema,
+  schema: Schema,
 ): Promise<oapi3.ResponsesObject> => {
   if (!isObjectSchemaObject(schema)) {
     throw Error('There is no response');
@@ -40,11 +40,11 @@ const buildResponsesObject = async (
   return responseObject;
 };
 const buildMediaTypeObject = async (
-  schema: oapiSchema,
+  schema: Schema,
 ): Promise<oapi3.MediaTypeObject> => ({ schema });
 
 const buildResponseObject = async (
-  schema: oapiSchema,
+  schema: Schema,
   description = '',
   contentType = 'application/json',
 ): Promise<oapi3.ResponseObject | oapi3.ReferenceObject> => {
@@ -59,7 +59,7 @@ const buildResponseObject = async (
 };
 
 const buildRequestBodyObject = async (
-  schema: oapiSchema,
+  schema: Schema,
   contentType = 'application/json',
 ): Promise<oapi3.RequestBodyObject> => {
   const mediaTypeObject = await buildMediaTypeObject(schema);
@@ -70,7 +70,7 @@ const buildRequestBodyObject = async (
 };
 
 const buildParameterObjects = async (
-  schema: oapiSchema,
+  schema: Schema,
   parameterIn: 'query' | 'path',
 ): Promise<oapi3.ParameterObject[] | undefined> => {
   if (!isObjectSchemaObject(schema)) {
@@ -98,7 +98,7 @@ interface OperationObjectWithPathInfo {
 }
 
 const buildOperationObjectWithPathInfo = async (
-  schema: oapiSchema,
+  schema: Schema,
 ): Promise<OperationObjectWithPathInfo> => {
   if (!isObjectSchemaObject(schema)) {
     throw Error('schema is not object schema object');
@@ -145,7 +145,7 @@ const buildOperationObjectWithPathInfo = async (
   return { operationObject, url, method };
 };
 
-export const buildPathsObject = async (routerMap: Map<string, oapiSchema>) => {
+export const buildPathsObject = async (routerMap: Map<string, Schema>) => {
   const pathsObject: oapi3.PathsObject = {};
 
   for await (const [routerName, routerSchema] of routerMap) {
@@ -184,7 +184,7 @@ const buildInfoObject = (
 ): oapi3.InfoObject => ({ title, version });
 
 export const buildOpenApiDocument = async (
-  routerMap: Map<string, oapiSchema>,
+  routerMap: Map<string, Schema>,
   basicOpenApiDocument?: oapi3.Document,
 ): Promise<oapi3.Document<{}>> => {
   const openApiDocument = basicOpenApiDocument ?? buildBasicOpenApiDocument();
