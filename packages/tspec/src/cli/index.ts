@@ -1,9 +1,13 @@
+#!/usr/bin/env node
+// eslint-disable-next-line import/no-extraneous-dependencies
 import yargs from 'yargs';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { hideBin } from 'yargs/helpers';
 
 import { Tspec } from 'types/tspec';
 
 import { generateTspec } from '../generator';
+import { initTspecApiServer } from '../server';
 
 type RequiredOpenApiParams = Pick<
   NonNullable<Tspec.GenerateParams['openapi']>,
@@ -47,7 +51,7 @@ enum SupportedSpecVersion {
 const defaultArgs: DefaultGenerateParams = {
   specPathGlobs: ['src/**/*.ts'],
   tsconfigPath: 'tsconfig.json',
-  outputPath: undefined,
+  outputPath: 'openapi.json',
   specVersion: SupportedSpecVersion.THREE,
   openapi: {
     title: 'Tspec API',
@@ -59,20 +63,38 @@ const defaultArgs: DefaultGenerateParams = {
   ignoreErrors: undefined,
 };
 
-export const runCli = async () => {
-  const args = await yargs(hideBin(process.argv))
-    .options({
-      specPathGlobs: { type: 'array', default: defaultArgs.specPathGlobs },
-      tsconfigPath: { type: 'string', default: defaultArgs.tsconfigPath },
-      outputPath: { type: 'string', default: defaultArgs.outputPath },
-      specVersion: { type: 'number' },
-      openapiTitle: { type: 'string', default: defaultArgs.openapi.title },
-      openapiVersion: { type: 'string', default: defaultArgs.openapi.version },
-      debug: { type: 'boolean', default: defaultArgs.debug },
-      ignoreErrors: { type: 'boolean', default: defaultArgs.ignoreErrors },
-    })
-    .argv;
+interface GeneratorOptions {
+  specPathGlobs: (string | number)[],
+  tsconfigPath: string,
+  outputPath?: string,
+  specVersion?: SupportedSpecVersion,
+  openapiTitle?: string,
+  openapiVersion?: string,
+  debug?: boolean,
+  ignoreErrors?: boolean,
+}
 
+interface RunServerOptions extends GeneratorOptions {
+  port?: number,
+}
+
+const generatorOptions = {
+  specPathGlobs: { type: 'array', default: defaultArgs.specPathGlobs },
+  tsconfigPath: { type: 'string', default: defaultArgs.tsconfigPath },
+  outputPath: { type: 'string', default: defaultArgs.outputPath },
+  specVersion: { type: 'number' },
+  openapiTitle: { type: 'string', default: defaultArgs.openapi.title },
+  openapiVersion: { type: 'string', default: defaultArgs.openapi.version },
+  debug: { type: 'boolean', default: defaultArgs.debug },
+  ignoreErrors: { type: 'boolean', default: defaultArgs.ignoreErrors },
+} as const;
+
+const runServerOptions = {
+  ...generatorOptions,
+  port: { type: 'number', default: 7000 },
+} as const;
+
+const validateGeneratorOptions = (args: GeneratorOptions) => {
   if (args.specVersion && !Object.values(SupportedSpecVersion).includes(args.specVersion)) {
     // eslint-disable-next-line max-len
     throw new Error(`Tspec currently supports only OpenAPI Spec with version ${Object.values(SupportedSpecVersion).join(', ')}.`);
@@ -95,5 +117,37 @@ export const runCli = async () => {
     ignoreErrors: args.ignoreErrors,
   };
 
+  return generateTspecParams;
+};
+
+const specGenerator = async (args: RunServerOptions) => {
+  const generateTspecParams = validateGeneratorOptions(args);
   await generateTspec(generateTspecParams);
 };
+
+const startTspecServer = async (args: RunServerOptions) => {
+  const generateTspecParams = validateGeneratorOptions(args);
+  initTspecApiServer(generateTspecParams);
+};
+
+export const runCli = async () => yargs(hideBin(process.argv))
+  .usage('Usage: $0 <command> [options]')
+  .command(
+    'generate',
+    'Generate OpenAPI Spec from Tspec',
+    generatorOptions,
+    (yargs) => specGenerator(yargs),
+  )
+  .command(
+    'server',
+    'Start Tspec server',
+    runServerOptions,
+    (yargs) => startTspecServer(yargs),
+  )
+  .help('help')
+  .alias('help', 'h')
+  .parse();
+
+if (require.main === module) {
+  runCli();
+}
