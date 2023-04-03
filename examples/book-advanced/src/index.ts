@@ -56,4 +56,4 @@ export type BookApiSpec = Tspec.DefineApiSpec<{
   }
 }>;
 
-initTspecApiServer();
+initTspecApiServer({ outputPath: 'src/openapi.json' });
