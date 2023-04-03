@@ -19,6 +19,6 @@
   "dependencies": {
     "express": "^4.18.2",
     "swagger-ui-express": "^4.6.2",
-    "tspec": "^0.1.60"
+    "tspec": "^0.1.76"
   }
 }

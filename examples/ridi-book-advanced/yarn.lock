@@ -767,15 +767,17 @@ ts-node@^10.9.1:
     v8-compile-cache-lib "^3.0.1"
     yn "3.1.1"
 
-tspec@^0.1.60:
-  version "0.1.60"
-  resolved "https://registry.yarnpkg.com/tspec/-/tspec-0.1.60.tgz#e1aaef60141ceb675d34670bf174122dda2fadb0"
-  integrity sha512-6t1LHVKjelmUabqnLCsXunKzphNmGI+sx/gzW20CQ0JRpTy772OKvJWe0H7BaLRbe2TZpFp940y+HgB7NH7dOg==
+tspec@^0.1.76:
+  version "0.1.76"
+  resolved "https://registry.yarnpkg.com/tspec/-/tspec-0.1.76.tgz#71612d4b8688396591a59f6a09ea19daeb38ae7e"
+  integrity sha512-jMPYj63VOZAC+CNvXJ8QBAaXWQixAkStyMe9Ti64EuwfLI8d7tPeTu8LvN4AqxN80PdgK4AeikLBNKYBangUuw==
   dependencies:
     debug "^4.3.4"
+    express "^4.18.2"
     glob "^8.1.0"
     json-schema-to-openapi-schema "^0.4.0"
     openapi-types "^12.0.2"
+    swagger-ui-express "^4.6.2"
     typescript "~4.8.3"
     typescript-json-schema "^0.55.0"
 

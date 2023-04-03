@@ -76,7 +76,7 @@
     "@types/qs" "*"
     "@types/range-parser" "*"
 
-"@types/express@^4.17.17":
+"@types/express@*", "@types/express@^4.17.17":
   version "4.17.17"
   resolved "https://registry.yarnpkg.com/@types/express/-/express-4.17.17.tgz#01d5437f6ef9cfa8668e616e13c2f2ac9a491ae4"
   integrity sha512-Q4FmmuLGBG58btUnfS1c1r/NQdlp3DMfGDGig8WhfpA2YRUtEkxAjkZb0yvplJGYdF1fsQ81iMDcH24sSCNC/Q==
@@ -123,6 +123,14 @@
   dependencies:
     "@types/mime" "*"
     "@types/node" "*"
+
+"@types/swagger-ui-express@^4.1.3":
+  version "4.1.3"
+  resolved "https://registry.yarnpkg.com/@types/swagger-ui-express/-/swagger-ui-express-4.1.3.tgz#7adbbbf5343b45869debef1e9ff39c9ba73e380f"
+  integrity sha512-jqCjGU/tGEaqIplPy3WyQg+Nrp6y80DCFnDEAvVKWkJyv0VivSSDCChkppHRHAablvInZe6pijDFMnavtN0vqA==
+  dependencies:
+    "@types/express" "*"
+    "@types/serve-static" "*"
 
 accepts@~1.3.8:
   version "1.3.8"
@@ -723,6 +731,18 @@ strip-ansi@^6.0.0, strip-ansi@^6.0.1:
   dependencies:
     ansi-regex "^5.0.1"
 
+swagger-ui-dist@>=4.11.0:
+  version "4.18.1"
+  resolved "https://registry.yarnpkg.com/swagger-ui-dist/-/swagger-ui-dist-4.18.1.tgz#da77cee1531af3f989b3da9dd8cddc5b9fa5715d"
+  integrity sha512-n7AT4wzKIPpHy/BGflJOepGMrbY/7Cd5yVd9ptVczaJGAKScbVJrZxFbAE2ZSZa8KmqdQ0+pOs3/5mWY5tSMZQ==
+
+swagger-ui-express@^4.6.2:
+  version "4.6.2"
+  resolved "https://registry.yarnpkg.com/swagger-ui-express/-/swagger-ui-express-4.6.2.tgz#61b2cb9fd7932cdccff99e0efdf700a5459e493c"
+  integrity sha512-MHIOaq9JrTTB3ygUJD+08PbjM5Tt/q7x80yz9VTFIatw8j5uIWKcr90S0h5NLMzFEDC6+eVprtoeA5MDZXCUKQ==
+  dependencies:
+    swagger-ui-dist ">=4.11.0"
+
 toidentifier@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/toidentifier/-/toidentifier-1.0.1.tgz#3be34321a88a820ed1bd80dfaa33e479fbb8dd35"
@@ -747,15 +767,17 @@ ts-node@^10.9.1:
     v8-compile-cache-lib "^3.0.1"
     yn "3.1.1"
 
-tspec@^0.1.60:
-  version "0.1.60"
-  resolved "https://registry.yarnpkg.com/tspec/-/tspec-0.1.60.tgz#e1aaef60141ceb675d34670bf174122dda2fadb0"
-  integrity sha512-6t1LHVKjelmUabqnLCsXunKzphNmGI+sx/gzW20CQ0JRpTy772OKvJWe0H7BaLRbe2TZpFp940y+HgB7NH7dOg==
+tspec@^0.1.76:
+  version "0.1.76"
+  resolved "https://registry.yarnpkg.com/tspec/-/tspec-0.1.76.tgz#71612d4b8688396591a59f6a09ea19daeb38ae7e"
+  integrity sha512-jMPYj63VOZAC+CNvXJ8QBAaXWQixAkStyMe9Ti64EuwfLI8d7tPeTu8LvN4AqxN80PdgK4AeikLBNKYBangUuw==
   dependencies:
     debug "^4.3.4"
+    express "^4.18.2"
     glob "^8.1.0"
     json-schema-to-openapi-schema "^0.4.0"
     openapi-types "^12.0.2"
+    swagger-ui-express "^4.6.2"
     typescript "~4.8.3"
     typescript-json-schema "^0.55.0"
 

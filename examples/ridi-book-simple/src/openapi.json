@@ -1,0 +1,66 @@
+{
+  "info": {
+    "title": "Tspec API",
+    "version": "0.0.1"
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/books/{id}": {
+      "get": {
+        "operationId": "BookApiSpec_get_/books/{id}",
+        "tags": [],
+        "summary": "단일 도서 조회",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Book": {
+        "description": "도서 정보",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "도서 ID",
+            "type": "number"
+          },
+          "title": {
+            "description": "도서 제목",
+            "type": "string"
+          },
+          "coverImage": {
+            "description": "커버 이미지 URL",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "coverImage",
+          "id",
+          "title"
+        ]
+      }
+    }
+  }
+}
