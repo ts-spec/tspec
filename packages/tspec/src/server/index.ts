@@ -11,7 +11,7 @@ interface InitTspecServerOptions extends Tspec.GenerateParams {
   proxyHost?: string,
 }
 
-export const initTspecApiServer = async (options?: InitTspecServerOptions) => {
+export const initTspecServer = async (options?: InitTspecServerOptions) => {
   const { port = 7000, proxyHost, ...generateOptions } = options || {};
   const app = express();
   const openapiSpec = await generateTspec(generateOptions);

@@ -7,7 +7,7 @@ import { hideBin } from 'yargs/helpers';
 import { Tspec } from 'types/tspec';
 
 import { generateTspec } from '../generator';
-import { initTspecApiServer } from '../server';
+import { initTspecServer } from '../server';
 
 type RequiredOpenApiParams = Pick<
   NonNullable<Tspec.GenerateParams['openapi']>,
@@ -127,7 +127,7 @@ const specGenerator = async (args: RunServerOptions) => {
 
 const startTspecServer = async (args: RunServerOptions) => {
   const generateTspecParams = validateGeneratorOptions(args);
-  initTspecApiServer(generateTspecParams);
+  initTspecServer(generateTspecParams);
 };
 
 export const runCli = async () => yargs(hideBin(process.argv))
