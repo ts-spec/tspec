@@ -11,26 +11,27 @@ import { SchemaMapping } from './types';
 
 export const DEBUG = debug('tspec');
 
-const getPathOrQueryParams = (properties: any, inType: 'query' | 'path') => {
+const getPathOrQueryParams = (obj: TJS.Definition, inType: 'query' | 'path') => {
+  const { properties, required } = obj;
   if (!properties) {
     return undefined;
   }
   return Object.entries(properties).map(([key, schema]) => {
     const {
-      description, required, examples, ...rest
+      description, examples, ...rest
     } = schema as TJS.Definition;
     return {
       description,
       name: key,
       in: inType,
-      required: inType === 'path' ? true : required ?? false,
+      required: inType === 'path' ? true : (required || []).includes(key),
       schema: rest,
       example: Array.isArray(examples) ? examples[0] : examples, // FIXME: tjs does not support example.
     };
   });
 };
 
-const resolveParameters = (path: any, query: any) => {
+const resolveParameters = (path: TJS.Definition | undefined, query: TJS.Definition | undefined) => {
   const pathParams = (path && getPathOrQueryParams(path, 'path')) || [];
   const queryParams = (query && getPathOrQueryParams(query, 'query')) || [];
   return [...pathParams, ...queryParams];
@@ -70,8 +71,8 @@ export const getOpenapiPaths = (
       openapiSchemas,
       { required: true },
     )!.properties;
-    const pathParams = getObjectPropertyByPath(spec, 'path', openapiSchemas)?.properties;
-    const queryParams = getObjectPropertyByPath(spec, 'query', openapiSchemas)?.properties;
+    const pathParams = getObjectPropertyByPath(spec, 'path', openapiSchemas);
+    const queryParams = getObjectPropertyByPath(spec, 'query', openapiSchemas);
     const bodyParams = getObjectPropertyByPath(spec, 'body', openapiSchemas);
 
     const operation = {
@@ -79,7 +80,7 @@ export const getOpenapiPaths = (
       tags,
       summary,
       security: security && [{ [security]: [] }],
-      parameters: resolveParameters(pathParams, queryParams),
+      parameters: resolveParameters(pathParams as any, queryParams as any),
       requestBody: bodyParams && {
         description: bodyParams.description,
         required: true,

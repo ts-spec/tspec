@@ -76,6 +76,7 @@ interface GeneratorOptions {
 
 interface RunServerOptions extends GeneratorOptions {
   port?: number,
+  proxyHost?: string,
 }
 
 const generatorOptions = {
@@ -92,6 +93,7 @@ const generatorOptions = {
 const runServerOptions = {
   ...generatorOptions,
   port: { type: 'number', default: 7000 },
+  proxyHost: { type: 'string' },
 } as const;
 
 const validateGeneratorOptions = (args: GeneratorOptions) => {
@@ -122,6 +124,7 @@ const validateGeneratorOptions = (args: GeneratorOptions) => {
 
 const specGenerator = async (args: RunServerOptions) => {
   const generateTspecParams = validateGeneratorOptions(args);
+  generateTspecParams.outputPath ||= 'openapi.json';
   await generateTspec(generateTspecParams);
 };
 
