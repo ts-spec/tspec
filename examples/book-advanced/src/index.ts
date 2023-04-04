@@ -1,4 +1,4 @@
-import { initTspecApiServer, Tspec } from "tspec";
+import { Tspec, initTspecServer } from "tspec";
 
 /** 도서 정보 */
 interface Book {
@@ -56,4 +56,4 @@ export type BookApiSpec = Tspec.DefineApiSpec<{
   }
 }>;
 
-initTspecApiServer({ outputPath: 'src/openapi.json' });
+initTspecServer({ outputPath: 'src/openapi.json' });
