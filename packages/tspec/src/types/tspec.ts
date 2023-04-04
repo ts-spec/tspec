@@ -72,7 +72,7 @@ export namespace Tspec {
     : never;
 
   export type DefineApiSpec<T extends Controller<{
-    [P in PathUrl]: {
+    [P in Extract<keyof T['paths'], PathUrl>]: {
       [M in HttpMethod]?: Omit<ApiSpecInput, 'path'> & {
         path?: { [key in ParsePathKeys<WithBasePath<T['basePath'], P>>]: PathParamValue },
         handler?: ExpressHandler,
