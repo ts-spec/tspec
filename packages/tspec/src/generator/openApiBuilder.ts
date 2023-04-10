@@ -1,7 +1,7 @@
 import { OpenAPIV3 as oapi3 } from 'openapi-types';
 
+import { Schema } from './types';
 import {
-  Schema,
   isObjectSchemaObject,
   isReferenceObject,
   isStringSchemaObject,

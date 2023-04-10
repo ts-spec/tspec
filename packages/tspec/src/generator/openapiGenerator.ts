@@ -8,7 +8,6 @@ import {
   accessSchema, getObjectPropertyByPath, getTextListPropertyByPath, getTextPropertyByPath,
 } from './schemaParser';
 import { SchemaMapping } from './types';
-import { isReferenceObject } from './utils';
 
 export const DEBUG = debug('tspec');
 

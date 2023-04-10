@@ -121,10 +121,12 @@ const getOpenapiSchemas = async (
   DEBUG({ compilerOptions });
   const files = getProgramFiles(compilerOptions, specPathGlobs);
   DEBUG({ files });
-  // const program = TJS.getProgramFromFiles(files, compilerOptions);
-  // ridi는 이렇게 해야 됨
+  const program = TJS.getProgramFromFiles(files, compilerOptions);
 
-  const program = await getProgram(path.dirname(tsconfigPath));
+  /*
+  * 이렇게 해야 실행되는 경우가 있음
+  * const program = await getProgram(path.dirname(tsconfigPath));
+  */
 
   const tjsSettings: TJS.PartialArgs = {
     required: true,
