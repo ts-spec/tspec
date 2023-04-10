@@ -42,6 +42,7 @@ const getTspecSignatures = (p: ts.Program) => {
       // ) {
       //   return;
       // }
+
       if ((node as any).type?.typeName?.right?.escapedText !== 'DefineApiSpec') {
         return;
       }

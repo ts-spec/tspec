@@ -186,7 +186,7 @@ export const extractCommonProperty = (
   return {
     title,
     enum: _enum,
-    example: examples,
+    example:  Array.isArray(examples) ? examples[0] : examples,
     description,
     format,
     default: _default,
