@@ -51,6 +51,7 @@ module.exports = {
       ignoreComments: true,
       ignoreUrls: true,
     }],
+    'no-shadow': 'off',
   },
   overrides: [
     {
