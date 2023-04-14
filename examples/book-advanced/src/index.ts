@@ -6,30 +6,14 @@ interface Book {
   id: Tspec.Integer;
   /** 도서 제목 */
   title: string;
-  /** 작가 정보 리스트 */
-  authors: Author[];
-  /** 커버 이미지 URL */
-  coverImage: Tspec.ImageUrlString;
+  /** 태그 리스트 */
+  tags: Tag[];
   /** 출판일 */
   publishedDate?: Tspec.DateString;
 }
 
-/** 작가 정보 */
-interface Author {
-  /**
-   * 작가명
-   * @examples "김수지"
-   */
-  name: string;
-  /** 작가 역할 */
-  role: AuthorRole;
-}
-
-/** 작가 역할 */
-enum AuthorRole {
-  WRITER = 'writer',
-  TRANSLATOR = 'translator',
-}
+/** 태그 정보 */
+type Tag = '로맨스' | '판타지' | '스릴러';
 
 export type BookApiSpec = Tspec.DefineApiSpec<{
   tags: ['도서'],

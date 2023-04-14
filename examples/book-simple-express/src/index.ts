@@ -1,53 +1,39 @@
-import express, { Request, Response } from 'express';
 import { Tspec, initTspecServer } from "tspec";
+import express, { Request, Response } from 'express';
 
+/** 도서 정보 */
 interface Book {
-  id: number;
-  title: string;
+  /** 도서 ID */
+  id: Tspec.Integer;
+  /** 도서 제목 */
+  title: string; 
+  /** 커버 이미지 URL */
+  cover: string;
 }
-
-type QueryParam = {
-  /** 검색어 */
-  q?: string;
-};
 
 const getBookById = (
-  req: Request<never, any, never, QueryParam>,
-  res: Response<Book[]>,
+  req: Request<{ id: string }>, res: Response<Book>,
 ) => {
-  res.json([{
-    id: 1,
-    title: req.query.q || '',
-  }]);
+  res.json({
+    id: +req.params.id,
+    title: '상수리 나무 아래',
+    cover: 'https://img.ridicdn.net/cover/4766000064',
+  });
 }
 
+const app = express();
+app.get('/books/:id', getBookById);
+app.listen(3000, () => {
+  console.log('App is running on http://localhost:3000')
+});
+
 export type BookApiSpec = Tspec.DefineApiSpec<{
-  security: 'JWT',
+  tags: ['도서'],
   paths: {
-    '/books': {
-      get: { summary: '도서 검색', handler: typeof getBookById },
+    '/books/{id}': {
+      get: { summary: '단일 도서 조회', handler: typeof getBookById },
     }
   }
 }>;
 
-const app = express();
-app.get('/books', getBookById);
-
-app.listen(3000, () => {
-  console.log('Express server started on http://localhost:3000')
-});
-
-initTspecServer({
-  port: 4000,
-  proxyHost: 'http://localhost:3000',
-  openapi: {
-    securityDefinitions: {
-      JWT: {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-      },
-    },
-  },
-  outputPath: 'src/openapi.json'
-});
+initTspecServer({ port: 4000, proxyHost: 'http://localhost:3000',outputPath: 'src/openapi.json'});

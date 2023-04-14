@@ -69,18 +69,12 @@
                     "description": "도서 제목",
                     "type": "string"
                   },
-                  "authors": {
-                    "description": "작가 정보 리스트",
+                  "tags": {
+                    "description": "태그 리스트",
                     "type": "array",
                     "items": {
-                      "$ref": "#/components/schemas/Author"
+                      "$ref": "#/components/schemas/Tag"
                     }
-                  },
-                  "coverImage": {
-                    "format": "uri",
-                    "description": "커버 이미지 URL",
-                    "type": "string",
-                    "example": "https://picsum.photos/200/300"
                   },
                   "publishedDate": {
                     "type": "date",
@@ -90,8 +84,7 @@
                 },
                 "additionalProperties": false,
                 "required": [
-                  "authors",
-                  "coverImage",
+                  "tags",
                   "title"
                 ]
               }
@@ -128,18 +121,12 @@
             "description": "도서 제목",
             "type": "string"
           },
-          "authors": {
-            "description": "작가 정보 리스트",
+          "tags": {
+            "description": "태그 리스트",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Author"
+              "$ref": "#/components/schemas/Tag"
             }
-          },
-          "coverImage": {
-            "format": "uri",
-            "description": "커버 이미지 URL",
-            "type": "string",
-            "example": "https://picsum.photos/200/300"
           },
           "publishedDate": {
             "type": "date",
@@ -149,37 +136,17 @@
         },
         "additionalProperties": false,
         "required": [
-          "authors",
-          "coverImage",
           "id",
+          "tags",
           "title"
         ]
       },
-      "Author": {
-        "description": "작가 정보",
-        "type": "object",
-        "properties": {
-          "name": {
-            "description": "작가명",
-            "type": "string",
-            "example": "김수지"
-          },
-          "role": {
-            "$ref": "#/components/schemas/AuthorRole",
-            "description": "작가 역할"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "name",
-          "role"
-        ]
-      },
-      "AuthorRole": {
-        "description": "작가 역할",
+      "Tag": {
+        "description": "태그 정보",
         "enum": [
-          "translator",
-          "writer"
+          "로맨스",
+          "스릴러",
+          "판타지"
         ],
         "type": "string"
       },
@@ -190,18 +157,12 @@
             "description": "도서 제목",
             "type": "string"
           },
-          "authors": {
-            "description": "작가 정보 리스트",
+          "tags": {
+            "description": "태그 리스트",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Author"
+              "$ref": "#/components/schemas/Tag"
             }
-          },
-          "coverImage": {
-            "format": "uri",
-            "description": "커버 이미지 URL",
-            "type": "string",
-            "example": "https://picsum.photos/200/300"
           },
           "publishedDate": {
             "type": "date",
@@ -211,8 +172,7 @@
         },
         "additionalProperties": false,
         "required": [
-          "authors",
-          "coverImage",
+          "tags",
           "title"
         ]
       }

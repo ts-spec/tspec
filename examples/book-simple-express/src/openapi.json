@@ -5,20 +5,24 @@
   },
   "openapi": "3.0.3",
   "paths": {
-    "/books": {
+    "/books/{id}": {
       "get": {
-        "operationId": "BookApiSpec_get_/books",
-        "tags": [],
-        "summary": "도서 검색",
-        "security": [
-          {
-            "JWT": []
-          }
+        "operationId": "BookApiSpec_get_/books/{id}",
+        "tags": [
+          "도서"
         ],
+        "summary": "단일 도서 조회",
         "parameters": [
           {
-            "description": "검색어",
-            "name": "q",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "test",
             "in": "query",
             "required": false,
             "schema": {
@@ -26,16 +30,41 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "body": {
+                    "type": "object",
+                    "properties": {
+                      "asdf": {
+                        "type": "number"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                      "asdf"
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "body"
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Book"
-                  }
+                  "$ref": "#/components/schemas/Book"
                 }
               }
             }
@@ -47,27 +76,30 @@
   "components": {
     "schemas": {
       "Book": {
+        "description": "도서 정보",
         "type": "object",
         "properties": {
           "id": {
-            "type": "number"
+            "type": "integer",
+            "description": "도서 ID",
+            "example": 1
           },
           "title": {
+            "description": "도서 제목",
             "type": "string"
+          },
+          "cover": {
+            "description": "커버 이미지 URL",
+            "type": "string",
+            "example": "https://img.ridicdn.net/cover/4766000064"
           }
         },
         "additionalProperties": false,
         "required": [
+          "cover",
           "id",
           "title"
         ]
-      }
-    },
-    "securitySchemes": {
-      "JWT": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
       }
     }
   }
