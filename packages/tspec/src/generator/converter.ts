@@ -4,29 +4,28 @@ import * as tjs from 'typescript-json-schema';
 
 import { Schema } from './types';
 import {
-  isConcrete,
   isDefinitionBoolean,
   isNullableObject,
   isObjectSchemaObject,
   isReferenceObject,
 } from './utils';
+import { isDefined } from 'utils/types';
 
-const createItem = async (items: tjs.DefinitionOrBoolean[]) => {
+const createItem = (items: tjs.DefinitionOrBoolean[]) => {
   let nullable = false;
-  const schema = await Promise.all(
-    items.map(async (item) => {
-      const convertedItem = await convertDefinition(item);
+  const schema = 
+  items.map((item) => {
+      const convertedItem = convertDefinition(item);
       if (convertedItem && isNullableObject(convertedItem)) {
         nullable = true;
         return undefined;
       }
       return convertedItem;
-    }),
-  );
+    });
 
   const nullableProperty = nullable ? { nullable } : {};
 
-  const filteredSchema = schema.filter(isConcrete);
+  const filteredSchema = schema.filter(isDefined);
   if (filteredSchema.length === 0) {
     return nullableProperty;
   } if (filteredSchema.length === 1) {
@@ -48,7 +47,7 @@ const createItem = async (items: tjs.DefinitionOrBoolean[]) => {
   }
 };
 
-const convertItems = async (
+const convertItems = (
   items: tjs.DefinitionOrBoolean | tjs.DefinitionOrBoolean[],
 ) => {
   if (!Array.isArray(items)) {
@@ -62,12 +61,12 @@ const convertItems = async (
   return createItem(items);
 };
 
-export const convertProperties = async (obj: {
+export const convertProperties = (obj: {
   [key: string]: tjs.DefinitionOrBoolean,
 }) => {
   const convertedObj: { [key: string]: Schema } = {};
-  for await (const [key, val] of Object.entries(obj)) {
-    const convertedProperty = await convertDefinition(val);
+  for (const [key, val] of Object.entries(obj)) {
+    const convertedProperty = convertDefinition(val);
     if (convertedProperty) {
       convertedObj[key] = convertedProperty;
     }
@@ -75,7 +74,7 @@ export const convertProperties = async (obj: {
   return convertedObj;
 };
 
-const convertSchemaArray = async (
+const convertSchemaArray = (
   defs: tjs.DefinitionOrBoolean[],
   property: 'anyOf' | 'oneOf' | 'allOf',
 ) => {
@@ -84,9 +83,9 @@ const convertSchemaArray = async (
 
   const object: Schema = { type: 'object', properties: {} };
 
-  const filteredDefs = await Promise.all(
-    defs.map(async (def) => {
-      const convertedDef = await convertDefinition(def);
+  const filteredDefs = 
+    defs.map( (def) => {
+      const convertedDef =  convertDefinition(def);
       // undefined 제외
       if (!convertedDef) {
         return undefined;
@@ -109,10 +108,9 @@ const convertSchemaArray = async (
       }
 
       return convertedDef;
-    }),
-  );
+    });
 
-  const convertedSchema = filteredDefs.filter(isConcrete);
+  const convertedSchema = filteredDefs.filter(isDefined);
   if (object.properties && Object.keys(object.properties).length > 0) {
     convertedSchema.push(object);
   }
@@ -137,33 +135,31 @@ const convertSchemaArray = async (
 
   return schema;
 };
-export const convertSubschemaProperty = async (
+export const convertCombinedProperty =  (
   def: tjs.Definition,
-): Promise<
-  Pick<oapi3.BaseSchemaObject, 'allOf' | 'anyOf' | 'oneOf' | 'not'>
-> => {
+): Pick<oapi3.BaseSchemaObject, 'allOf' | 'anyOf' | 'oneOf' | 'not'> => {
   const {
     allOf, oneOf, anyOf, not,
   } = def;
   let schema: oapi3.BaseSchemaObject = {};
 
   if (allOf) {
-    const convertedSchemaArray = await convertSchemaArray(allOf, 'allOf');
+    const convertedSchemaArray = convertSchemaArray(allOf, 'allOf');
     schema = { ...schema, ...convertedSchemaArray };
   }
 
   if (oneOf) {
-    const convertedSchemaArray = await convertSchemaArray(oneOf, 'oneOf');
+    const convertedSchemaArray = convertSchemaArray(oneOf, 'oneOf');
     schema = { ...schema, ...convertedSchemaArray };
   }
 
   if (anyOf) {
-    const convertedSchemaArray = await convertSchemaArray(anyOf, 'anyOf');
+    const convertedSchemaArray = convertSchemaArray(anyOf, 'anyOf');
     schema = { ...schema, ...convertedSchemaArray };
   }
 
   if (not) {
-    schema.not = await convertDefinition(not);
+    schema.not = convertDefinition(not);
   }
 
   return schema;
@@ -193,16 +189,14 @@ export const extractCommonProperty = (
   };
 };
 
-const covertToBooleanSchemaObject = async (
-  def: tjs.Definition,
-): Promise<oapi3.SchemaObject> => ({
+const covertToBooleanSchemaObject = (): oapi3.SchemaObject => ({
   type: 'boolean',
 });
 
-const covertToNumberSchemaObject = async (
+const covertToNumberSchemaObject =  (
   def: tjs.Definition,
   type: 'number' | 'integer' = 'number',
-): Promise<oapi3.SchemaObject> => {
+): oapi3.SchemaObject => {
   const {
     multipleOf, maximum, exclusiveMaximum, exclusiveMinimum, minimum,
   } = def;
@@ -216,9 +210,9 @@ const covertToNumberSchemaObject = async (
   };
 };
 
-const covertToStringSchemaObject = async (
+const covertToStringSchemaObject =  (
   def: tjs.Definition,
-): Promise<oapi3.SchemaObject> => {
+): oapi3.SchemaObject => {
   const { maxLength, minLength, pattern } = def;
 
   if (pattern) {
@@ -235,14 +229,14 @@ const covertToStringSchemaObject = async (
   };
 };
 
-const covertToArraySchemaObject = async (
+const covertToArraySchemaObject = (
   def: tjs.Definition,
-): Promise<oapi3.ArraySchemaObject> => {
+): oapi3.ArraySchemaObject => {
   const {
     items, maxItems, minItems, uniqueItems,
   } = def; // additionalItems, contains 제외
 
-  const convertedItems = items ? await convertItems(items) : undefined;
+  const convertedItems = items ? convertItems(items) : undefined;
 
   if (!convertedItems) {
     throw Error('array type need items');
@@ -257,9 +251,9 @@ const covertToArraySchemaObject = async (
   };
 };
 
-const covertToObjectSchemaObject = async (
+const covertToObjectSchemaObject =  (
   def: tjs.Definition,
-): Promise<oapi3.SchemaObject> => {
+): oapi3.SchemaObject => {
   const commonSchema = extractCommonProperty(def);
 
   const {
@@ -271,10 +265,10 @@ const covertToObjectSchemaObject = async (
   } = def;
 
   const convertedAdditionalProperties = additionalProperties
-    ? await convertDefinition(additionalProperties)
+    ? convertDefinition(additionalProperties)
     : undefined;
   const convertedProperties = properties
-    ? await convertProperties(properties)
+    ? convertProperties(properties)
     : undefined;
 
   return {
@@ -288,7 +282,7 @@ const covertToObjectSchemaObject = async (
   };
 };
 
-const convertSchemaObjectByType = async (type: string, def: tjs.Definition) => {
+const convertSchemaObjectByType =  (type: string, def: tjs.Definition) => {
   if (type === 'number' || type === 'integer') {
     return covertToNumberSchemaObject(def, type);
   } if (type === 'string') {
@@ -298,15 +292,15 @@ const convertSchemaObjectByType = async (type: string, def: tjs.Definition) => {
   } if (type === 'array') {
     return covertToArraySchemaObject(def);
   } if (type === 'boolean') {
-    return covertToBooleanSchemaObject(def);
+    return covertToBooleanSchemaObject();
   }
   return { nullable: true };
 };
 
-const convertType = async (
+const convertType =  (
   def: tjs.Definition,
   commonSchema: Schema,
-): Promise<Schema> => {
+): Schema => {
   const types = def.type
     ? Array.isArray(def.type)
       ? def.type
@@ -315,21 +309,20 @@ const convertType = async (
 
   let nullable = false;
 
-  const splitedSchemas = await Promise.all(
-    types.map(async (type) => {
+  const splitedSchemas = 
+    types.map((type) => {
       if (type === 'null') {
         nullable = true;
         return undefined;
       }
-      const ret = await convertSchemaObjectByType(type, def);
+      const ret = convertSchemaObjectByType(type, def);
       return ret;
-    }),
-  );
+    })
 
-  const nullableProperty = nullable ? { nullable } : {};
+    const nullableProperty = nullable ? { nullable } : {};
 
   const refinedSchemas = splitedSchemas
-    .filter(isConcrete)
+    .filter(isDefined)
     .map((schema) => ({ ...schema, ...commonSchema })); // 모든 property는 동시에 만족해야함
 
   const referenceObject = def.$ref
@@ -352,7 +345,7 @@ const convertType = async (
   } if (refinedSchemas.length === 1) {
     const onlySchema = refinedSchemas[0];
 
-    if (isReferenceObject(onlySchema)) {
+    if (onlySchema && isReferenceObject(onlySchema)) {
       const baseSchema = { ...commonSchema, ...nullableProperty };
       if (Object.keys(baseSchema).length > 0) {
         // reference object는 baseSchema랑 같이 사용할 수 없음
@@ -374,19 +367,19 @@ const convertType = async (
   };
 };
 
-export const convertDefinition = async (
+export const convertDefinition = (
   def: tjs.DefinitionOrBoolean,
-): Promise<Schema | undefined> => {
+): Schema | undefined=> {
   if (isDefinitionBoolean(def)) {
     return undefined;
   }
 
   const commonProperty = extractCommonProperty(def);
-  const subschemaProperty = await convertSubschemaProperty(def);
+  const combinedProperty = convertCombinedProperty(def);
 
   const commonSchema = {
     ...commonProperty,
-    ...subschemaProperty,
+    ...combinedProperty,
   };
 
   return convertType(def, commonSchema);

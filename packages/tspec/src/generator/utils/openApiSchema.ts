@@ -7,7 +7,7 @@ export const isReferenceObject = (
   schema: Schema,
 ): schema is OpenAPIV3.ReferenceObject => {
   // eslint-disable-next-line no-prototype-builtins
-  if (Object.prototype.hasOwnProperty('$ref')) {
+  if (Object(schema).hasOwnProperty('$ref')) {
     return true;
   }
   return false;
@@ -19,7 +19,7 @@ export const isIntegerSchemaObject = (
   if (isReferenceObject(schema)) {
     return false;
   }
-  if (schema.type === 'integer') {
+  if (schema.type && schema.type === 'integer') {
     return true;
   }
   return false;

@@ -71,7 +71,7 @@ export const getTextListPropertyByPath = (
   options?: { required: boolean },
 ): string[] => {
   const value = getPropertyByPath(obj, path, schemas);
-  if (!value || '$ref' in value || value.type !== 'array' || !value.items) {
+  if (!value || isReferenceObject(value) || value.type !== 'array' || !value.items) {
     if (options?.required === true) {
       throw new Error(`Invalid '${path}' in ApiSpec`);
     }
