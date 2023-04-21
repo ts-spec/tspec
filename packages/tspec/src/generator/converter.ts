@@ -2,6 +2,8 @@
 import { OpenAPIV3 as oapi3 } from 'openapi-types';
 import * as tjs from 'typescript-json-schema';
 
+import { isDefined } from '../utils/types';
+
 import { Schema } from './types';
 import {
   isDefinitionBoolean,
@@ -9,19 +11,17 @@ import {
   isObjectSchemaObject,
   isReferenceObject,
 } from './utils';
-import { isDefined } from 'utils/types';
 
 const createItem = (items: tjs.DefinitionOrBoolean[]) => {
   let nullable = false;
-  const schema = 
-  items.map((item) => {
-      const convertedItem = convertDefinition(item);
-      if (convertedItem && isNullableObject(convertedItem)) {
-        nullable = true;
-        return undefined;
-      }
-      return convertedItem;
-    });
+  const schema = items.map((item) => {
+    const convertedItem = convertDefinition(item);
+    if (convertedItem && isNullableObject(convertedItem)) {
+      nullable = true;
+      return undefined;
+    }
+    return convertedItem;
+  });
 
   const nullableProperty = nullable ? { nullable } : {};
 
@@ -83,32 +83,31 @@ const convertSchemaArray = (
 
   const object: Schema = { type: 'object', properties: {} };
 
-  const filteredDefs = 
-    defs.map( (def) => {
-      const convertedDef =  convertDefinition(def);
-      // undefined 제외
-      if (!convertedDef) {
+  const filteredDefs = defs.map((def) => {
+    const convertedDef = convertDefinition(def);
+    // undefined 제외
+    if (!convertedDef) {
+      return undefined;
+    }
+    // {nullable: true}인 경우 nullable = true하고 제외
+    if (isNullableObject(convertedDef)) {
+      nullable = true;
+      return undefined;
+    }
+
+    if (property === 'allOf') {
+      // object의 proeprty 모아서 하나의 object로 만들기
+      if (isObjectSchemaObject(convertedDef)) {
+        object.properties = {
+          ...object.properties,
+          ...convertedDef.properties,
+        };
         return undefined;
       }
-      // {nullable: true}인 경우 nullable = true하고 제외
-      if (isNullableObject(convertedDef)) {
-        nullable = true;
-        return undefined;
-      }
+    }
 
-      if (property === 'allOf') {
-        // object의 proeprty 모아서 하나의 object로 만들기
-        if (isObjectSchemaObject(convertedDef)) {
-          object.properties = {
-            ...object.properties,
-            ...convertedDef.properties,
-          };
-          return undefined;
-        }
-      }
-
-      return convertedDef;
-    });
+    return convertedDef;
+  });
 
   const convertedSchema = filteredDefs.filter(isDefined);
   if (object.properties && Object.keys(object.properties).length > 0) {
@@ -135,7 +134,7 @@ const convertSchemaArray = (
 
   return schema;
 };
-export const convertCombinedProperty =  (
+export const convertCombinedProperty = (
   def: tjs.Definition,
 ): Pick<oapi3.BaseSchemaObject, 'allOf' | 'anyOf' | 'oneOf' | 'not'> => {
   const {
@@ -182,7 +181,7 @@ export const extractCommonProperty = (
   return {
     title,
     enum: _enum,
-    example:  Array.isArray(examples) ? examples[0] : examples,
+    example: Array.isArray(examples) ? examples[0] : examples,
     description,
     format,
     default: _default,
@@ -193,7 +192,7 @@ const covertToBooleanSchemaObject = (): oapi3.SchemaObject => ({
   type: 'boolean',
 });
 
-const covertToNumberSchemaObject =  (
+const covertToNumberSchemaObject = (
   def: tjs.Definition,
   type: 'number' | 'integer' = 'number',
 ): oapi3.SchemaObject => {
@@ -210,7 +209,7 @@ const covertToNumberSchemaObject =  (
   };
 };
 
-const covertToStringSchemaObject =  (
+const covertToStringSchemaObject = (
   def: tjs.Definition,
 ): oapi3.SchemaObject => {
   const { maxLength, minLength, pattern } = def;
@@ -251,7 +250,7 @@ const covertToArraySchemaObject = (
   };
 };
 
-const covertToObjectSchemaObject =  (
+const covertToObjectSchemaObject = (
   def: tjs.Definition,
 ): oapi3.SchemaObject => {
   const commonSchema = extractCommonProperty(def);
@@ -282,7 +281,7 @@ const covertToObjectSchemaObject =  (
   };
 };
 
-const convertSchemaObjectByType =  (type: string, def: tjs.Definition) => {
+const convertSchemaObjectByType = (type: string, def: tjs.Definition) => {
   if (type === 'number' || type === 'integer') {
     return covertToNumberSchemaObject(def, type);
   } if (type === 'string') {
@@ -297,7 +296,7 @@ const convertSchemaObjectByType =  (type: string, def: tjs.Definition) => {
   return { nullable: true };
 };
 
-const convertType =  (
+const convertType = (
   def: tjs.Definition,
   commonSchema: Schema,
 ): Schema => {
@@ -309,17 +308,16 @@ const convertType =  (
 
   let nullable = false;
 
-  const splitedSchemas = 
-    types.map((type) => {
-      if (type === 'null') {
-        nullable = true;
-        return undefined;
-      }
-      const ret = convertSchemaObjectByType(type, def);
-      return ret;
-    })
+  const splitedSchemas = types.map((type) => {
+    if (type === 'null') {
+      nullable = true;
+      return undefined;
+    }
+    const ret = convertSchemaObjectByType(type, def);
+    return ret;
+  });
 
-    const nullableProperty = nullable ? { nullable } : {};
+  const nullableProperty = nullable ? { nullable } : {};
 
   const refinedSchemas = splitedSchemas
     .filter(isDefined)
@@ -369,7 +367,7 @@ const convertType =  (
 
 export const convertDefinition = (
   def: tjs.DefinitionOrBoolean,
-): Schema | undefined=> {
+): Schema | undefined => {
   if (isDefinitionBoolean(def)) {
     return undefined;
   }
