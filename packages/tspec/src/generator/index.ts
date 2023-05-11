@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import { dirname } from 'path';
 
 import debug from 'debug';
-import { glob } from 'glob';
+import glob from 'glob';
 import { OpenAPIV3 } from 'openapi-types';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import ts from 'typescript';
