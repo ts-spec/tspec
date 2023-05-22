@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 
 import { Tspec } from 'types/tspec';
+import { assertIsDefined } from 'utils/types';
 
 const TSPEC_CONFIG_FILE_NAME = 'tspec.config.json';
 
@@ -23,14 +24,73 @@ const parseTspecConfig = (config: string) => {
   }
 };
 
-const validateTspecConfig = (config: any) => {
-  try {
-    // TODO: validate whether config JSON is fit with GenerateParams or not.
-    return config as Tspec.GenerateParams;
-  } catch (err) {
-    throw new Error('validateTspecConfig: Unimplemented');
+type TspecConfigError = {
+  message: string,
+  property: string,
+}
+
+type TspecConfigValidationFunction = (
+  property: string,
+  value: any,
+  type?: 'string' | 'boolean',
+) => void;
+
+function validateTspecConfig(config: Record<string, any>): asserts config is Tspec.GenerateParams {
+  const errors: TspecConfigError[] = [];
+
+  const validatePrimitive: TspecConfigValidationFunction = (property, value, type) => {
+    assertIsDefined(type);
+    if (typeof value !== type) { // eslint-disable-line valid-typeof
+      errors.push({
+        message: `property is not a ${type}.`,
+        property,
+      });
+    }
+  };
+
+  const validateStringArray: TspecConfigValidationFunction = (property, value) => {
+    if (!Array.isArray(value)) {
+      errors.push({
+        message: 'property is not an array.',
+        property,
+      });
+    } else if (value.some((glob) => typeof glob !== 'string')) {
+      errors.push({
+        message: 'property contains more than one non-string value.',
+        property,
+      });
+    }
+  };
+
+  if (config.specPathGlobs) {
+    validateStringArray('specPathGlobs', config.specPathGlobs);
   }
-};
+  if (config.tsconfigPath) {
+    validatePrimitive('tsconfigPath', config.tsconfigPath, 'string');
+  }
+  if (config.outputPath) {
+    validatePrimitive('outputPath', config.outputPath, 'string');
+  }
+  if (config.openapiTitle) {
+    validatePrimitive('openapiTitle', config.openapiTitle, 'string');
+  }
+  if (config.openapiVersion) {
+    validatePrimitive('openapiVersion', config.openapiVersion, 'string');
+  }
+  if (config.debug) {
+    validatePrimitive('debug', config.debug, 'boolean');
+  }
+  if (config.ignoreErrors) {
+    validatePrimitive('ignoreErrors', config.ignoreErrors, 'boolean');
+  }
+
+  if (errors.length) {
+    const message = `Tspec configuration file is not valid.\n${
+      errors.map((error) => `${error.property}: ${error.message}`).join('\n')
+    }\n`;
+    throw new Error(message);
+  }
+}
 
 const getConfigPath = (inputPath?: string) => {
   const filePath = inputPath || TSPEC_CONFIG_FILE_NAME;
@@ -50,8 +110,8 @@ export const getTspecConfigFromConfigFile = async (
   const configPath = getConfigPath(inputPath);
   const fileResult = await readTspecConfig(configPath);
 
-  const unreliableConfig = parseTspecConfig(fileResult);
-  const config = validateTspecConfig(unreliableConfig);
+  const config = parseTspecConfig(fileResult);
+  validateTspecConfig(config);
 
   return config;
 };
