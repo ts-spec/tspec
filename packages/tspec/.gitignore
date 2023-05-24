@@ -10,3 +10,4 @@ yarn-error.log*
 
 # Node
 dist/
+tsconfig.tsbuildinfo

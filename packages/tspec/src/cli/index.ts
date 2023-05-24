@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { fileURLToPath } from 'node:url';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import yargs from 'yargs';
 // eslint-disable-next-line import/no-extraneous-dependencies
@@ -161,6 +162,9 @@ export const runCli = async () => yargs(hideBin(process.argv))
   .alias('help', 'h')
   .parse();
 
-if (require.main === module) {
-  runCli();
+if (import.meta.url.startsWith('file:')) {
+  const modulePath = fileURLToPath(import.meta.url);
+  if (process.argv[1] === modulePath) {
+    runCli();
+  }
 }
