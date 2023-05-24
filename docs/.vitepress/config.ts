@@ -22,10 +22,12 @@ export default defineConfig({
         ]
       },
       {
-        text: 'Advanced Guides',
+        text: 'Reference',
         items: [
+          { text: 'CLI', link: '/guide/cli' },
+          { text: 'tspec.config Options', link: '/guide/tspec-config' },
         ]
-      }
+      },
     ],
 
     socialLinks: [
