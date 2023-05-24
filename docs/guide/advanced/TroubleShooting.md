@@ -5,7 +5,7 @@ outline: deep
 # TroubleShooting
 
 ## Debug 
-Turn on the debug mode using `generateTspec()` parameters. 
+If you are having trouble, deubgging might help. Turn on the debug mode using `generateTspec()` parameters. 
 
 ```js{3}
 await generateTspec({
@@ -16,10 +16,10 @@ await generateTspec({
 
 
 ## Loading program
-If you get empty OpenAPI documents as a result, you might have failed to pass program to the function. Setting `generateTspec()` parameters can help.
+If you are getting empty OpenAPI documents, it is possible that you failed to pass the program to `generateTspec` method. Here are some settings that might help.
 
 **Basic setting**
-Pass the path to `tsconfig.json` via `tsconfigPath`
+Pass the path to the `tsconfig.json` file using `tsconfigPath` parmater.
 ```js{3}
 await generateTspec({
   ...
@@ -28,7 +28,7 @@ await generateTspec({
 ```
 
 **Loading programs with errors**
-Set `ignoreErrors` to `true` in order to use programs including errors.
+Set `ignoreErrors` to `true` in order to use programs that includes errors.
 ```js{3}
 await generateTspec({
   ...
@@ -37,7 +37,7 @@ await generateTspec({
 ```
 
 **Passing program paths**
-Directly pass program source file paths via `specPathGlobs`
+If the program fails to find the location of the source files, you can directly pass program source file paths using `specPathGlobs`
 ```js{3}
 await generateTspec({
   ...

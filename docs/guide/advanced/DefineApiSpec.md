@@ -2,7 +2,7 @@
 outline: deep
 ---
 # Defining Open API schemas
- Pass information needed to build Open API spec as a generic type of `Tspec.DefineApiSpec`.
+You can easily define API specifications by passing types. To build an Open API schema, simply pass the necessary information as a generic type parameter of `Tspec.DefineApiSpec`. The type passed should be a subset of the [OpenAPI Object](https://swagger.io/specification/v3/#openapi-object) defined in the [OpenAPI Specification](https://swagger.io/specification/v3/).
 
 **Example**
 ```js
@@ -19,7 +19,7 @@ export type apiSpec = Tspec.DefineApiSpec<{
     };
   };
   paths: {
-    '/authors': {
+    '/authors/{id}': {
       get: {
         summary: 'Author information';
         path: { id: number },
@@ -48,10 +48,13 @@ export type apiSpec = Tspec.DefineApiSpec<{
 
 
 ## Defining Express API 
-You can pass the type of `RequestHandler` directly using `typeof <RequestHandler>` to handler.
+If you are using the Express framework, you can pass the type of `RequestHandler` directly to the handler using `typeof <RequestHandler>`. Tspec will generate an [Operation Object](https://swagger.io/specification/v3/#operation-object) for the corresponding path.
 
 **Example**
-Following example is equivalent to the former example. 
+::: info
+Generated open API schema in the following example is equivalent to that of the former example.
+:::
+
 
 *RequestHandler implementation*
 ```js 
@@ -59,6 +62,7 @@ Following example is equivalent to the former example.
 interface Response {
   name: number; 
 }
+
 interface PathParameter {
   id: number;
 }
@@ -77,9 +81,11 @@ interface Home {
   title: string;
   items: number[];
 }
+
 interface Response {
   home: Home; 
 }
+
 interface Query {
   id: number;
 }
@@ -94,11 +100,11 @@ export const get: RequestHandler<never, Response, never, Query> = async (
 ```
 *Defining API Spec*
 
-```js
+```js{22,28}
 import { Tspec } from 'tspec';
 
-import * as author from './authorController'
-import * as home from './homeController'
+import * as author from 'authorController'
+import * as home from 'homeController'
 
 export type apiSpec = Tspec.DefineApiSpec<{
   tags: ['author', 'home'];
@@ -111,7 +117,7 @@ export type apiSpec = Tspec.DefineApiSpec<{
     };
   };
   paths: {
-    '/authors': {
+    '/authors/{id}': {
       get: {
         summary: 'Author information';
         description: 'name';
