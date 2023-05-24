@@ -102,6 +102,7 @@ const getOpenapiSchemas = async (
     ignoreErrors: ignoreErrors || true,
     esModuleInterop: compilerOptions.esModuleInterop,
     // rejectDateType: true,
+    validationKeywords: ['example'],
   };
   DEBUG({ tjsSettings });
   const generator = TJS.buildGenerator(program, tjsSettings);

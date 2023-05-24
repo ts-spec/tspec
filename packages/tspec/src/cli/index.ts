@@ -140,8 +140,8 @@ const specGenerator = async (args: RunServerOptions) => {
 };
 
 const startTspecServer = async (args: RunServerOptions) => {
-  const generateTspecParams = await validateGeneratorOptions(args);
-  initTspecServer(generateTspecParams);
+  const generateTspecParams = validateGeneratorOptions(args);
+  initTspecServer({ ...generateTspecParams, port: args.port, proxyHost: args.proxyHost });
 };
 
 export const runCli = async () => yargs(hideBin(process.argv))
