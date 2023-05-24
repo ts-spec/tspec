@@ -24,6 +24,8 @@ export default defineConfig({
       {
         text: 'Advanced Guides',
         items: [
+          { text: 'Defining Open API schemas', link: '/guide/advanced/DefineApiSpec' },
+          { text: 'Troubleshooting', link: '/guide/advanced/TroubleShooting' },
         ]
       }
     ],
