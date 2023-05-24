@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  base: '/tspec/', // Reference: https://vitepress.dev/guide/deploy#github-pages
   title: "Tspec",
   description: "Auto-generating OpenAPI Docuemnt with TypeScript Types",
   themeConfig: {
