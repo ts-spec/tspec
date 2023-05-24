@@ -1,5 +1,7 @@
 #!/usr/bin/env node
+import { realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+
 // eslint-disable-next-line import/no-extraneous-dependencies
 import yargs from 'yargs';
 // eslint-disable-next-line import/no-extraneous-dependencies
@@ -163,8 +165,8 @@ export const runCli = async () => yargs(hideBin(process.argv))
   .parse();
 
 if (import.meta.url.startsWith('file:')) {
-  const modulePath = fileURLToPath(import.meta.url);
-  if (process.argv[1] === modulePath) {
+  const modulePath = realpathSync(fileURLToPath(import.meta.url));
+  if (realpathSync(process.argv[1]) === modulePath) {
     runCli();
   }
 }
