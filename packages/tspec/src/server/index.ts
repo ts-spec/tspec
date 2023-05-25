@@ -32,3 +32,10 @@ export const initTspecServer = async (options?: InitTspecServerOptions) => {
     }
   });
 };
+
+export const TspecDocsMiddleware = async (
+  generateOptions?: Tspec.GenerateParams,
+): Promise<express.RequestHandler[]> => {
+  const openapiSpec = await generateTspec(generateOptions);
+  return [...swaggerUI.serve, swaggerUI.setup(openapiSpec)];
+};
