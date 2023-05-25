@@ -1,8 +1,8 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-import { Tspec } from 'types/tspec';
-import { assertIsDefined } from 'utils/types';
+import { Tspec } from '../../types/tspec';
+import { assertIsDefined } from '../../utils/types';
 
 const TSPEC_CONFIG_FILE_NAME = 'tspec.config.json';
 
@@ -101,7 +101,9 @@ export const isTspecFileConfigAvailable = async (
   inputPath?: string,
 ) => {
   const configPath = getConfigPath(inputPath);
-  return (await fs.stat(configPath)).isFile();
+  return fs.access(configPath)
+    .then(() => true)
+    .catch(() => false);
 };
 
 export const getTspecConfigFromConfigFile = async (

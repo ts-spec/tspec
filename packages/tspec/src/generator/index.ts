@@ -70,13 +70,21 @@ const getCompilerOptions = (tsconfigPath: string): ts.CompilerOptions => {
 
 const getDefaultProgramFiles = (compilerOptions: ts.CompilerOptions) => {
   const { rootDir, rootDirs } = compilerOptions;
-  return [rootDir, ...(rootDirs || [])].filter(isDefined)
+  const globs = [rootDir, ...(rootDirs || [])].filter(isDefined)
     .flatMap((r) => [`${r}/*.ts`, `${r}/**/*.ts`]);
+  if (globs.length === 0) {
+    return ['**/*.ts'];
+  }
+  return globs;
 };
 
 const getProgramFiles = (compilerOptions: ts.CompilerOptions, specPathGlobs?: string[]) => {
   const srcGlobs = specPathGlobs || getDefaultProgramFiles(compilerOptions);
-  return [...new Set(srcGlobs.flatMap((g) => glob.sync(g)))];
+  const programFils = [...new Set(srcGlobs.flatMap((g) => glob.sync(g, {
+    ignore: ['**/node_modules/**'],
+  })))];
+  DEBUG({ programFils });
+  return programFils;
 };
 
 /**

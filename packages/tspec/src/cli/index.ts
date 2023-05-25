@@ -54,7 +54,7 @@ enum SupportedSpecVersion {
 }
 
 const defaultArgs: DefaultGenerateParams = {
-  specPathGlobs: ['src/**/*.ts'],
+  specPathGlobs: ['**/*.ts'],
   tsconfigPath: 'tsconfig.json',
   outputPath: undefined,
   specVersion: SupportedSpecVersion.THREE,
