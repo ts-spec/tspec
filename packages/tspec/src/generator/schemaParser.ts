@@ -1,6 +1,7 @@
 import { OpenAPIV3 } from 'openapi-types';
 
 import { Schema, SchemaMapping } from './types';
+import { isReferenceObject } from './utils';
 
 export const accessSchema = (
   obj: Schema | undefined,
@@ -70,13 +71,20 @@ export const getTextListPropertyByPath = (
   options?: { required: boolean },
 ): string[] => {
   const value = getPropertyByPath(obj, path, schemas);
-  if (!value || '$ref' in value || value.type !== 'array' || !value.items) {
+  if (!value || isReferenceObject(value) || value.type !== 'array' || !value.items) {
     if (options?.required === true) {
       throw new Error(`Invalid '${path}' in ApiSpec`);
     }
     return [];
   }
-  return (value.items as Schema[])
+
+  const { items } = value;
+  if (isReferenceObject(items)) return [];
+
+  // item의 개수가 2개 이상이면 anyOf로 묶여있음
+  const itemVal = items.anyOf ?? items;
+
+  return (itemVal as Schema[])
     .map((item) => getText(item)).filter((item): item is string => !!item);
 };
 
