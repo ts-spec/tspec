@@ -1,4 +1,5 @@
 /* eslint-disable no-use-before-define */
+import debug from 'debug';
 import { OpenAPIV3 as oapi3 } from 'openapi-types';
 import * as tjs from 'typescript-json-schema';
 
@@ -11,6 +12,8 @@ import {
   isObjectSchemaObject,
   isReferenceObject,
 } from './utils';
+
+export const DEBUG = debug('tspec');
 
 const createItem = (items: tjs.DefinitionOrBoolean[]) => {
   let nullable = false;
@@ -97,7 +100,8 @@ const convertSchemaArray = (
 
     if (property === 'allOf') {
       // object의 proeprty 모아서 하나의 object로 만들기
-      if (isObjectSchemaObject(convertedDef)) {
+      if (isObjectSchemaObject(convertedDef) && Object.keys(convertedDef.properties).length > 0) {
+        DEBUG(convertedDef);
         object.properties = {
           ...object.properties,
           ...convertedDef.properties,
