@@ -5,10 +5,12 @@
   },
   "openapi": "3.0.3",
   "paths": {
-    "/books/{id}": {
+    "/books": {
       "get": {
-        "operationId": "BookApiSpec_get_/books/{id}",
-        "tags": [],
+        "operationId": "BookApiSpec_get_/books",
+        "tags": [
+          "도서"
+        ],
         "summary": "단일 도서 조회",
         "parameters": [
           {
@@ -46,20 +48,56 @@
             "type": "number"
           },
           "title": {
-            "description": "도서 제목",
+            "description": "도서명",
+            "example": "상수리 나무 아래",
             "type": "string"
           },
-          "coverImage": {
-            "description": "커버 이미지 URL",
-            "type": "string"
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Tag"
+            }
           }
         },
         "additionalProperties": false,
         "required": [
-          "coverImage",
           "id",
+          "tags",
           "title"
         ]
+      },
+      "Tag": {
+        "description": "태그 정보",
+        "enum": [
+          "로맨스",
+          "판타지"
+        ],
+        "type": "string"
+      },
+      "qs.ParsedQs": {
+        "type": "object",
+        "additionalProperties": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "$ref": "#/components/schemas/qs.ParsedQs"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/qs.ParsedQs"
+              }
+            },
+            {
+              "type": "string"
+            }
+          ]
+        }
       }
     }
   }

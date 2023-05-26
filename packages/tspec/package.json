@@ -1,12 +1,15 @@
 {
   "name": "tspec",
   "description": "Generate OpenAPI 3.0 spec from TypeScript code.",
-  "version": "0.1.86",
+  "version": "0.1.91",
   "main": "dist/index.js",
+  "type": "module",
   "typings": "dist/index.d.ts",
   "license": "MIT",
   "author": "Hyeonseong Jeon <hyeonss0417@gmail.com>",
   "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.0.2",
+    "@rollup/plugin-sucrase": "^5.0.1",
     "@types/debug": "^4.1.7",
     "@types/express": "^4.17.14",
     "@types/glob": "^8.0.1",
@@ -15,19 +18,23 @@
     "@types/yargs": "^17.0.24",
     "@typescript-eslint/eslint-plugin": "^5.50.0",
     "@typescript-eslint/parser": "^5.50.0",
+    "concurrently": "^8.0.1",
     "eslint": "^8.33.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
-    "eslint-plugin-import": "^2.27.5"
+    "eslint-plugin-import": "^2.27.5",
+    "rollup": "^3.21.6"
   },
   "peerDependencies": {
     "express": "^4.17.1"
   },
   "scripts": {
     "start": "ts-node src/index.ts",
-    "build": "yarn tsc",
-    "tsc": "tsc -b",
-    "watch": "tsc -b -w"
+    "build": "concurrently npm:build:*",
+    "build:types": "tsc --emitDeclarationOnly",
+    "build:rollup": "yarn rollup",
+    "rollup": "rollup --config rollup.config.ts --configPlugin 'sucrase={transforms: [\"typescript\"]}'",
+    "watch": "yarn rollup -w"
   },
   "dependencies": {
     "debug": "^4.3.4",
@@ -41,12 +48,24 @@
     "typescript-json-schema": "^0.55.0",
     "yargs": "^17.7.1"
   },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli/index.d.ts",
+      "require": "./dist/cli.cjs",
+      "default": "./dist/cli.js"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/ts-spec/tspec"
   },
   "bin": {
-    "tspec": "dist/cli/index.js"
+    "tspec": "dist/cli.js"
   },
   "engines": {
     "node": ">=12.0.0"

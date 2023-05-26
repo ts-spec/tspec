@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+import { realpathSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
 // eslint-disable-next-line import/no-extraneous-dependencies
 import yargs from 'yargs';
 // eslint-disable-next-line import/no-extraneous-dependencies
@@ -8,6 +11,8 @@ import { Tspec } from 'types/tspec';
 
 import { generateTspec } from '../generator';
 import { initTspecServer } from '../server';
+
+import { getTspecConfigFromConfigFile, isTspecFileConfigAvailable } from './config';
 
 type RequiredOpenApiParams = Pick<
   NonNullable<Tspec.GenerateParams['openapi']>,
@@ -49,7 +54,7 @@ enum SupportedSpecVersion {
 }
 
 const defaultArgs: DefaultGenerateParams = {
-  specPathGlobs: ['src/**/*.ts'],
+  specPathGlobs: ['**/*.ts'],
   tsconfigPath: 'tsconfig.json',
   outputPath: undefined,
   specVersion: SupportedSpecVersion.THREE,
@@ -96,13 +101,13 @@ const runServerOptions = {
   proxyHost: { type: 'string' },
 } as const;
 
-const validateGeneratorOptions = (args: GeneratorOptions) => {
+const validateGeneratorOptions = async (args: GeneratorOptions) => {
   if (args.specVersion && !Object.values(SupportedSpecVersion).includes(args.specVersion)) {
     // eslint-disable-next-line max-len
     throw new Error(`Tspec currently supports only OpenAPI Spec with version ${Object.values(SupportedSpecVersion).join(', ')}.`);
   }
 
-  const generateTspecParams: Tspec.GenerateParams = {
+  let generateTspecParams: Tspec.GenerateParams = {
     specPathGlobs: args.specPathGlobs.length > 0
       ? args.specPathGlobs.map((glob) => glob.toString())
       : defaultArgs.specPathGlobs,
@@ -119,18 +124,26 @@ const validateGeneratorOptions = (args: GeneratorOptions) => {
     ignoreErrors: args.ignoreErrors,
   };
 
+  if (await isTspecFileConfigAvailable()) {
+    const fileConfig = await getTspecConfigFromConfigFile();
+    generateTspecParams = {
+      ...fileConfig,
+      ...generateTspecParams,
+    };
+  }
+
   return generateTspecParams;
 };
 
 const specGenerator = async (args: RunServerOptions) => {
-  const generateTspecParams = validateGeneratorOptions(args);
+  const generateTspecParams = await validateGeneratorOptions(args);
   generateTspecParams.outputPath ||= 'openapi.json';
   await generateTspec(generateTspecParams);
 };
 
 const startTspecServer = async (args: RunServerOptions) => {
   const generateTspecParams = validateGeneratorOptions(args);
-  initTspecServer(generateTspecParams);
+  initTspecServer({ ...generateTspecParams, port: args.port, proxyHost: args.proxyHost });
 };
 
 export const runCli = async () => yargs(hideBin(process.argv))
@@ -151,6 +164,9 @@ export const runCli = async () => yargs(hideBin(process.argv))
   .alias('help', 'h')
   .parse();
 
-if (require.main === module) {
-  runCli();
+if (import.meta.url.startsWith('file:')) {
+  const modulePath = realpathSync(fileURLToPath(import.meta.url));
+  if (realpathSync(process.argv[1]) === modulePath) {
+    runCli();
+  }
 }

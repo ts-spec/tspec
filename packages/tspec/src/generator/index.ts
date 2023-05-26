@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import { dirname } from 'path';
 
 import debug from 'debug';
-import { glob } from 'glob';
+import glob from 'glob';
 import { OpenAPIV3 } from 'openapi-types';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import ts from 'typescript';
@@ -70,13 +70,21 @@ const getCompilerOptions = (tsconfigPath: string): ts.CompilerOptions => {
 
 const getDefaultProgramFiles = (compilerOptions: ts.CompilerOptions) => {
   const { rootDir, rootDirs } = compilerOptions;
-  return [rootDir, ...(rootDirs || [])].filter(isDefined)
+  const globs = [rootDir, ...(rootDirs || [])].filter(isDefined)
     .flatMap((r) => [`${r}/*.ts`, `${r}/**/*.ts`]);
+  if (globs.length === 0) {
+    return ['**/*.ts'];
+  }
+  return globs;
 };
 
 const getProgramFiles = (compilerOptions: ts.CompilerOptions, specPathGlobs?: string[]) => {
   const srcGlobs = specPathGlobs || getDefaultProgramFiles(compilerOptions);
-  return [...new Set(srcGlobs.flatMap((g) => glob.sync(g)))];
+  const programFils = [...new Set(srcGlobs.flatMap((g) => glob.sync(g, {
+    ignore: ['**/node_modules/**'],
+  })))];
+  DEBUG({ programFils });
+  return programFils;
 };
 
 /**
@@ -102,6 +110,7 @@ const getOpenapiSchemas = async (
     ignoreErrors: ignoreErrors || true,
     esModuleInterop: compilerOptions.esModuleInterop,
     // rejectDateType: true,
+    validationKeywords: ['example'],
   };
   DEBUG({ tjsSettings });
   const generator = TJS.buildGenerator(program, tjsSettings);
