@@ -25,8 +25,10 @@ export default defineConfig({
       {
         text: 'Reference',
         items: [
+          { text: 'Defining Open API schemas', link: '/guide/advanced/DefineApiSpec' },
           { text: 'CLI', link: '/guide/cli' },
           { text: 'tspec.config Options', link: '/guide/tspec-config' },
+          { text: 'Troubleshooting', link: '/guide/advanced/TroubleShooting' },
         ]
       },
     ],
