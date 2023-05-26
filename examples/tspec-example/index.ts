@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, Router } from "express";
 import { Tspec, TspecDocsMiddleware } from "tspec";
 
 /** 도서 정보 */
@@ -23,6 +23,7 @@ const getBookById = (req: Request<{ id: string }>, res: Response<Book>) => {
     tags: ['로맨스', '판타지'],
   })
 }
+const router = Router().get('/books/:id', getBookById);
 
 export type BookApiSpec = Tspec.DefineApiSpec<{
   tags: ['도서'],
@@ -35,8 +36,8 @@ export type BookApiSpec = Tspec.DefineApiSpec<{
 
 const initServer = async () => {
   const app = express();
+  app.use(router);
   app.use('/docs', await TspecDocsMiddleware());
-  app.get('/books/:id', getBookById);
   app.listen(3000, () => {
     console.log(`Example app listening at http://localhost:3000`);
   });
