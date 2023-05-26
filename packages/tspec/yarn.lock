@@ -9,11 +9,6 @@
   dependencies:
     regenerator-runtime "^0.13.11"
 
-"@cloudflare/json-schema-walker@^0.1.1":
-  version "0.1.1"
-  resolved "https://registry.npmjs.org/@cloudflare/json-schema-walker/-/json-schema-walker-0.1.1.tgz"
-  integrity sha512-P3n0hEgk1m6uKWgL4Yb1owzXVG4pM70G4kRnDQxZXiVvfCRtaqiHu+ZRiRPzmwGBiLTO1LWc2yR1M8oz0YkXww==
-
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
   resolved "https://registry.npmjs.org/@cspotcode/source-map-support/-/source-map-support-0.8.1.tgz"
@@ -1612,13 +1607,6 @@ js-yaml@^4.1.0:
   integrity sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==
   dependencies:
     argparse "^2.0.1"
-
-json-schema-to-openapi-schema@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.npmjs.org/json-schema-to-openapi-schema/-/json-schema-to-openapi-schema-0.4.0.tgz"
-  integrity sha512-/DY8s4l28M5ZIJBhmcUFWbZChJV5v7RCA7RMVxubyD1l5KwIceUq6+EUnqQ2q3wh/2D3Zn8bNSeAu1i2X+sMHQ==
-  dependencies:
-    "@cloudflare/json-schema-walker" "^0.1.1"
 
 json-schema-traverse@^0.4.1:
   version "0.4.1"
