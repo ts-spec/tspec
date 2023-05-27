@@ -4,7 +4,7 @@ outline: deep
 
 # Getting Started
 
-On this page, we will learn how to use tspec to generate OpenAPI Specification from TypeScript types and serve it with Swagger UI.
+On this page, we will learn how to use tspec to generate [OpenAPI Specification](https://swagger.io/specification/) from TypeScript types and serve it with [Swagger UI](https://swagger.io/tools/swagger-ui/).
 
 
 ## Installing
@@ -59,9 +59,9 @@ Let's define a simple `Book` type and `BookApiSpec`:
 ```ts[index.ts]
 import { Tspec } from "tspec";
 
-/** This is schema description */
+/** Schema description defined by JSDoc */
 interface Book {
-  /** This is field description */
+  /** Field description defined by JSDoc */
   id: number;
   title: string;
   description?: string;
@@ -132,11 +132,11 @@ paths:
 components:
   schemas:
     Book:
-      description: This is schema description
+      description: Schema description defined by JSDoc
       type: object
       properties:
         id:
-          description: This is field description
+          description: Field description defined by JSDoc
           type: number
         title:
           type: string
@@ -190,11 +190,11 @@ components:
   "components": {
     "schemas": {
       "Book": {
-        "description": "This is schema description",
+        "description": "Schema description defined by JSDoc",
         "type": "object",
         "properties": {
           "id": {
-            "description": "This is field description",
+            "description": "Field description defined by JSDoc",
             "type": "number"
           },
           "title": {
@@ -240,7 +240,7 @@ pnpm tspec server --port 3000
 ```
 :::
 
-Then, open http://localhost:3000/docs in your browser.
+Then, open `http://localhost:3000/docs` in your browser.
 
 You will see the Swagger UI page:
 
