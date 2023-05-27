@@ -14,12 +14,12 @@ export default defineConfig({
 
     sidebar: [
       {
-        text: 'Introduction',
+        text: 'Introduction', link: '/introduction'
+      },
+      {
+        text: 'Guides',
         items: [
-          { text: 'Why Tspec', link: '/guide/why-tspec' },
           { text: 'Getting Started', link: '/guide/getting-started' },
-          { text: 'Markdown Examples', link: '/markdown-examples' },
-          { text: 'Runtime API Examples', link: '/api-examples' }
         ]
       },
       {

@@ -2,7 +2,8 @@
 [![npm](https://badge.fury.io/js/tspec.svg)](https://badge.fury.io/js/tspec) [![downloads](https://img.shields.io/npm/dm/tspec.svg)](https://www.npmjs.com/package/tspec) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Type-driven OpenAPI Specification Generator for TypeScript
-> Auto-generating REST API document based on TypeScript types
+
+> Automatically parses your TypeScript types and generates up-to-date OpenAPI specification with beautiful Swagger UI.
 
 
 ## Why tspec?
