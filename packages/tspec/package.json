@@ -73,6 +73,7 @@
   "publishConfig": {
     "access": "public"
   },
+  "homepage": "https://ts-spec.github.io/tspec/",
   "keywords": [
     "typescript",
     "openapi",

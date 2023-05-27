@@ -1,101 +1,169 @@
-# tspec
-OpenAPI Specification Generator from TypeScript Types
+# Tspec
+[![npm](https://badge.fury.io/js/tspec.svg)](https://badge.fury.io/js/tspec) [![downloads](https://img.shields.io/npm/dm/tspec.svg)](https://www.npmjs.com/package/tspec) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+Type-driven OpenAPI Specification Generator for TypeScript
+> Auto-generating REST API document based on TypeScript types
 
 
 ## Why tspec?
 - **Code First**: Rely on TypeScript type and JSDoc to generate OpenAPI Specification.
 - **Easy to learn**: No need to learn new OpenAPI Spec syntax. Just use TypeScript types.
 - **Easy to use**: Only few lines of code are needed to generate OpenAPI Specification.
-- **Flexible**: You can use any framework you want. (currently only support [Express](https://expressjs.com/))
+- **Flexible**: You can use any framework you want. It doesn't impose any framework-specific constraints.
 
 
-## How to use?
-### 1. Define API Specification
+## Usage
+### Installation
+```bash
+yarn add tspec # or npm install tspec
+```
+
+### 1. Define ApiSpec
 ```ts
-import { Tspec } from 'tspec'
-import { getPetById } from './controller';
+import { Tspec } from "tspec";
 
-export type PetApiSpec = Tspec.DefineApiSpec<{
-  specs: {
-    '/pet/{id}': {
-      get: { summary: 'Find pet by ID', handler: typeof getPetById },
+/** Schema Description */
+interface Book {
+  /** Field description */
+  id: number;
+  title: string;
+  description?: string;
+}
+
+export type BookApiSpec = Tspec.DefineApiSpec<{
+  tags: ['Book'],
+  paths: {
+    '/books/{id}': {
+      get: {
+        summary: 'Get book by id',
+        path: { id: number },
+        responses: { 200: Book },
+      },
     },
-  },
+  }
 }>;
 ```
 
-**Express Code Example**
-```ts
-// controller.ts
-import { Request, Response } from 'express';
-
-interface PetParams {
-  /**
-   * pet id
-   * @examples [1234]
-   * */
-  id: string,
-}
-
-interface Pet {
-  id: string,
-  name: string,
-}
-
-const getPetById = async (req: Request<PetParams>, res: Response<Pet>) => {
-  const { id } = req.params;
-  res.json({ id, name: 'dog' });
-}
-```
-
-
 ### 2. Generate OpenAPI Spec
-Tspec automatically parses ApiSpec types and generates OpenAPI Specification 3.0.
-
-```ts
-const openAPISpec = await generateSpec();
-// {
-//   openapi: '3.0.0',
-//   info: { title: 'API', version: '1.0.0' },
-//   paths: {
-//     '/pet/{id}': {
-//       get: {
-//         summary: 'Find pet by ID',
-//         parameters: [
-//           {
-//             name: 'id',
-//             in: 'path',
-//             required: true,
-//             description: 'pet id',
-//             schema: {
-//               type: 'string',
-//               example: '1234'
-//             }
-//         ]
-//         responses: {
-//           '200': {
-//             description: 'OK',
-//             content: {
-//               'application/json': {
-//                 schema: {
-//                   type: 'object',
-//                   properties: {
-//                     id: {
-//                       type: 'string',
-//                       example: '1234'
-//                     },
-//                     name: {
-//                       type: 'string',
-//                       example: 'dog'
-//                     }
-//                   }
-//                 }
-//               }
-//             }
-//           }
-//         }
-//       }
-//     }
-//   }
-// }
+```bash
+yarn tspec generate --outputPath openapi.json
+# or npx tspec generate --outputPath openapi.json
 ```
+
+```json
+{
+  "info": {
+    "title": "Tspec API",
+    "version": "0.0.1"
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/books/{id}": {
+      "get": {
+        "operationId": "BookApiSpec_get_/books/{id}",
+        "tags": [
+          "Book"
+        ],
+        "summary": "Get book by id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Book"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Book": {
+        "description": "Book Schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Book ID",
+            "type": "number"
+          },
+          "title": {
+            "description": "Book title",
+            "type": "string"
+          },
+          "description": {
+            "description": "Book description",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title"
+        ]
+      }
+    }
+  }
+}
+```
+
+### 3. Serve Swagger UI
+```bash
+yarn tspec server
+# or npx tspec server
+```
+
+### 4. Express Integration
+```ts
+import { Tspec, TspecDocsMiddleware } from "tspec";
+import express, { Request, Response } from "express";
+
+const getBookById = (
+  req: Request<{ id: string }>, res: Response<Book>,
+) => {
+  res.json({
+    id: +req.params.id,
+    title: 'Book Title',
+    description: 'Book Description',
+  });
+}
+
+export type BookApiSpec = Tspec.DefineApiSpec<{
+  tags: ['Book'],
+  paths: {
+    '/books/{id}': {
+      get: {
+        summary: 'Get book by id',
+        handler: typeof getBookById
+      },
+    },
+  }
+}>;
+
+const initServer = async () => {
+  const app = express()
+  app.get('/books/:id', getBookById);
+  app.use('/docs', await TspecDocsMiddleware());
+  app.listen(3000);
+}
+initServer();
+```
+
+## Documentation
+https://ts-spec.github.io/tspec
+
