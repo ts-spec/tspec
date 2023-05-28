@@ -1,10 +1,11 @@
 # Tspec
-[![npm](https://badge.fury.io/js/tspec.svg)](https://badge.fury.io/js/tspec) [![downloads](https://img.shields.io/npm/dm/tspec.svg)](https://www.npmjs.com/package/tspec) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Type-driven OpenAPI Specification Generator for TypeScript
+Type-driven API Documentation library for TypeScript
 
 > Automatically parses your TypeScript types and generates up-to-date OpenAPI specification with beautiful Swagger UI.
 
+
+[![npm](https://badge.fury.io/js/tspec.svg)](https://badge.fury.io/js/tspec) [![downloads](https://img.shields.io/npm/dm/tspec.svg)](https://www.npmjs.com/package/tspec) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Why tspec?
 - **Code First**: Rely on TypeScript type and JSDoc to generate OpenAPI Specification.
@@ -12,27 +13,25 @@ Type-driven OpenAPI Specification Generator for TypeScript
 - **Easy to use**: Only few lines of code are needed to generate OpenAPI Specification.
 - **Flexible**: You can use any framework you want. It doesn't impose any framework-specific constraints.
 
-
-## Usage
-### Installation
+## Installation
 ```bash
-yarn add tspec # or npm install tspec
+yarn install tspec
 ```
 
-### 1. Define ApiSpec
+
+## Usage
 ```ts
 import { Tspec } from "tspec";
 
-/** Schema Description */
+/** Schema description defined by JSDoc */
 interface Book {
-  /** Field description */
+  /** Field description defined by JSDoc */
   id: number;
   title: string;
   description?: string;
 }
 
 export type BookApiSpec = Tspec.DefineApiSpec<{
-  tags: ['Book'],
   paths: {
     '/books/{id}': {
       get: {
@@ -45,91 +44,67 @@ export type BookApiSpec = Tspec.DefineApiSpec<{
 }>;
 ```
 
-### 2. Generate OpenAPI Spec
+Run the following command to generate OpenAPI Spec:
+
 ```bash
 yarn tspec generate --outputPath openapi.json
-# or npx tspec generate --outputPath openapi.json
+```
+(For readability, the generated OpenAPI Spec is formatted with yaml)
+
+```yaml
+openapi: 3.0.3
+info:
+  title: Tspec API
+  version: 0.0.1
+paths:
+  /books/{id}:
+    get:
+      operationId: BookApiSpec_get_/books/{id}
+      tags:
+        - Book
+      summary: Get book by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+components:
+  schemas:
+    Book:
+      description: Schema description defined by JSDoc
+      type: object
+      properties:
+        id:
+          description: Field description defined by JSDoc
+          type: number
+        title:
+          type: string
+        description:
+          type: string
+      required:
+        - id
+        - title
 ```
 
-```json
-{
-  "info": {
-    "title": "Tspec API",
-    "version": "0.0.1"
-  },
-  "openapi": "3.0.3",
-  "paths": {
-    "/books/{id}": {
-      "get": {
-        "operationId": "BookApiSpec_get_/books/{id}",
-        "tags": [
-          "Book"
-        ],
-        "summary": "Get book by id",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Book"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Book": {
-        "description": "Book Schema",
-        "type": "object",
-        "properties": {
-          "id": {
-            "description": "Book ID",
-            "type": "number"
-          },
-          "title": {
-            "description": "Book title",
-            "type": "string"
-          },
-          "description": {
-            "description": "Book description",
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "id",
-          "title"
-        ]
-      }
-    }
-  }
-}
-```
+If you want to serve Swagger UI, run the following command:
 
-### 3. Serve Swagger UI
 ```bash
 yarn tspec server
-# or npx tspec server
 ```
 
-### 4. Express Integration
+## Express Integration
+
+Tspec automatically parses your [Express](https://expressjs.com/) handler type to generate `path`, `query`, `body`, `responses` schemas.
+And you can use `TspecDocsMiddleware` to serve Swagger UI.
+
 ```ts
 import { Tspec, TspecDocsMiddleware } from "tspec";
 import express, { Request, Response } from "express";
