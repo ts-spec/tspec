@@ -246,6 +246,6 @@ You will see the Swagger UI page:
 
 ![Swagger UI API](/assets/images/getting-started-swagger-ui-1.png)
 
-And you can see schema definitions by scrolling down:
+And you can see schema definitions in the `Schemas` tab.
 
 ![Swagger UI Schema](/assets/images/getting-started-swagger-ui-2.png)

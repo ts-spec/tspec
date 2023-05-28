@@ -15,7 +15,7 @@ Type-driven API Documentation library for TypeScript
 
 ## Installation
 ```bash
-yarn install tspec
+npm install tspec
 ```
 
 
@@ -47,7 +47,7 @@ export type BookApiSpec = Tspec.DefineApiSpec<{
 Run the following command to generate OpenAPI Spec:
 
 ```bash
-yarn tspec generate --outputPath openapi.json
+npx tspec generate --outputPath openapi.json
 ```
 (For readability, the generated OpenAPI Spec is formatted with yaml)
 
@@ -97,12 +97,21 @@ components:
 If you want to serve Swagger UI, run the following command:
 
 ```bash
-yarn tspec server
+npx tspec server --port 3000
 ```
+
+Then, you can access Swagger UI at `http://localhost:3000`
+
+![getting-started-swagger-ui-1](https://github.com/ts-spec/tspec/assets/13609011/149817a2-fe74-451a-a429-66f4674510e3)
+
+And you can see schema definitions in the `Schemas` tab.
+
+![getting-started-swagger-ui-2](https://github.com/ts-spec/tspec/assets/13609011/b7cebc87-c930-43f6-85d7-92ae5734ad9d)
+
 
 ## Express Integration
 
-Tspec automatically parses your [Express](https://expressjs.com/) handler type to generate `path`, `query`, `body`, `responses` schemas.
+Tspec automatically parses your [Express](https://expressjs.com/) handler type to generate parameters(`path`, `query`, `body`) and responses schemas.
 And you can use `TspecDocsMiddleware` to serve Swagger UI.
 
 ```ts
