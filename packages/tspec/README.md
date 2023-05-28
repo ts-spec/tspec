@@ -1,6 +1,6 @@
 # Tspec
 
-Type-driven API Documentation library for TypeScript
+Type-driven API Documentation library for [TypeScript](https://www.typescriptlang.org/).
 
 > Automatically parses your TypeScript types and generates up-to-date OpenAPI specification with beautiful Swagger UI.
 

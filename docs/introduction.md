@@ -6,7 +6,7 @@ outline: deep
 
 ## Overview
 
-Tspec is a tool to generate OpenAPI Specification from TypeScript types.
+Tspec is a library to generate API document from [TypeScript](https://www.typescriptlang.org/) types.
 
 It automatically parses your TypeScript types and generates up-to-date OpenAPI specification with beautiful [Swagger UI](https://swagger.io/tools/swagger-ui/).
 
