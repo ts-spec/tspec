@@ -4,7 +4,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   base: '/tspec/', // Reference: https://vitepress.dev/guide/deploy#github-pages
   title: "Tspec",
-  description: "Auto-generating OpenAPI Docuemnt with TypeScript Types",
+  description: "Auto-generating OpenAPI Document with TypeScript Types",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
@@ -20,15 +20,19 @@ export default defineConfig({
         text: 'Guides',
         items: [
           { text: 'Getting Started', link: '/guide/getting-started' },
+          { text: 'Defining Schema', link: '/guide/defining-schema' },
+          { text: 'Defining API Spec', link: '/guide/defining-api-spec' },
+          { text: 'Defining API Spec (Express)', link: '/guide/express-integration' }, // with Request validation
+          { text: 'API Testing', link: '/guide/api-testing' },
+          { text: 'Authentication', link: '/guide/authentication' },
+          { text: 'Troubleshooting', link: '/guide/troubleshooting' },
         ]
       },
       {
         text: 'Reference',
         items: [
-          { text: 'Defining Open API schemas', link: '/guide/advanced/DefineApiSpec' },
           { text: 'CLI', link: '/guide/cli' },
           { text: 'tspec.config Options', link: '/guide/tspec-config' },
-          { text: 'Troubleshooting', link: '/guide/advanced/TroubleShooting' },
         ]
       },
     ],

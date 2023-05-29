@@ -8,7 +8,7 @@ outline: deep
 
 Tspec is a library to generate API document from [TypeScript](https://www.typescriptlang.org/) types.
 
-It automatically parses your TypeScript types and generates up-to-date OpenAPI specification with beautiful [Swagger UI](https://swagger.io/tools/swagger-ui/).
+It automatically parses your TypeScript types and generates up-to-date [OpenAPI Specification](https://swagger.io/specification/) with beautiful [Swagger UI](https://swagger.io/tools/swagger-ui/).
 
 
 ## Why tspec?
