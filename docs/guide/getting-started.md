@@ -56,7 +56,7 @@ pnpm add tspec
 Let's define a simple `Book` type and `BookApiSpec`:
 
 ::: code-group
-```ts[index.ts]
+```ts[index.ts]{4,11}
 import { Tspec } from "tspec";
 
 /** Schema description defined by JSDoc */
@@ -104,7 +104,7 @@ The generated OpenAPI Spec will look like this:
 (For readability, the generated OpenAPI Spec is formatted with yaml)
 
 ::: code-group
-```yaml[openapi.yaml]
+```yaml[openapi.yaml]{6,27}
 openapi: 3.0.3
 info:
   title: Tspec API

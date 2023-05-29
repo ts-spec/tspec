@@ -6,7 +6,7 @@ On this page, we will learn how to define schemas with JSDoc comments.
 
 You can describe the schema with JSDoc comments.
 
-```ts
+```ts{1,3,5}
 /** Book schema Info */
 interface Book {
   /** Book ID */
@@ -18,7 +18,7 @@ interface Book {
 
 The schemas in the generated OpenAPI Spec are described as follows:
 
-```yaml
+```yaml{4,9,12}
 components:
   schemas:
     Book:
@@ -40,7 +40,7 @@ components:
 
 If you want to add an example to the schema, you can use the `@example` tag.
 
-```ts
+```ts{4,9}
 interface Book {
   /**
    * Book ID
@@ -57,7 +57,7 @@ interface Book {
 
 The schemas in the generated OpenAPI Spec are described as follows:
 
-```yaml
+```yaml{9,13}
 components:
   schemas:
     Book:
@@ -80,12 +80,11 @@ components:
 
 If you want to specify the format of the schema, you can use the utility types provided by Tspec.
 
-```ts
+```ts{4,5,6}
 import { Tspec } from 'tspec';
 
 interface Book {
   id: Tspec.Integer;
-  title: string;
   coverImage: Tspec.ImageUriString;
   publishedAt: Tspec.DateTimeString;
 }
@@ -93,7 +92,7 @@ interface Book {
 
 The schemas in the generated OpenAPI Spec are described as follows:
 
-```yaml
+```yaml{7-8,10-12,14-16}
 components:
   schemas:
     Book:
@@ -102,8 +101,6 @@ components:
         id:
           type: integer
           example: 1
-        title:
-          type: string
         coverImage:
           format: uri
           type: string
@@ -117,7 +114,6 @@ components:
       - coverImage
       - id
       - publishedAt
-      - title
 ```
 
 The following utility types are provided by Tspec.
