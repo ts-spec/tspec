@@ -6,12 +6,7 @@ import swaggerUI from 'swagger-ui-express';
 import { generateTspec } from '../generator';
 import { Tspec } from '../types';
 
-interface InitTspecServerOptions extends Tspec.GenerateParams {
-  port?: number,
-  proxyHost?: string,
-}
-
-export const initTspecServer = async (options?: InitTspecServerOptions) => {
+export const initTspecServer = async (options?: Tspec.InitTspecServerOptions) => {
   const { port = 7000, proxyHost, ...generateOptions } = options || {};
   const app = express();
   const openapiSpec = await generateTspec(generateOptions);

@@ -112,6 +112,11 @@ export namespace Tspec {
     ignoreErrors?: boolean,
   }
 
+  export interface InitTspecServerOptions extends GenerateParams {
+    port?: number,
+    proxyHost?: string,
+  }
+
   export type OpenapiDocument = OpenAPIV3.Document;
 
   /**
