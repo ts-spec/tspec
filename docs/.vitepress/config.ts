@@ -20,6 +20,7 @@ export default defineConfig({
         text: 'Guides',
         items: [
           { text: 'Getting Started', link: '/guide/getting-started' },
+          { text: 'Generating Document', link: '/guide/generating-document' },
           { text: 'Describing Schema', link: '/guide/describing-schema' },
           { text: 'Defining API Spec', link: '/guide/defining-api-spec' },
           { text: 'CRUD API Example', link: '/guide/crud-api-example' },
