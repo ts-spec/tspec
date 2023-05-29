@@ -3,184 +3,119 @@ outline: deep
 ---
 
 # Express Integration
-If you are using the Express framework, you can pass the type of `RequestHandler` directly to the handler using `typeof <RequestHandler>`. Tspec will generate an [Operation Object](https://swagger.io/specification/v3/#operation-object) for the corresponding path.
 
-**Example**
-::: info
-Generated open API schema in the following example is equivalent to that of the former example.
-:::
+If you are using the [Express framework](https://expressjs.com/), you can integrate Tspec into your project easily.
+Tspec automatically parses your [Express](https://expressjs.com/) handler type to generate parameters and responses schemas and provides middleware to serve Swagger UI.
 
+## Setup Express Application
 
-*RequestHandler implementation*
+Before integrating Tspec, assume that you have the following Express controller:
 
 ::: code-group
-```ts[authorController.ts]
-interface Response {
-  name: number; 
-}
+```ts[controller.ts]
+import { Request, Response } from 'express';
 
-interface PathParameter {
-  id: number;
-}
+type PathParams = { id: string };
+type AuthorRes = { id: string, name: string };
 
-export const get: RequestHandler<PathParameter, Response> = async (
-  req,
-  res,
+export const getAuthor = async (
+  req: Request<PathParams>,
+  res: Response<AuthorRes>,
 ) => {
- ...
+  res.json({
+    id: req.params.id,
+    name: 'Author Name',
+  });
 };
-
 ```
 :::
 
+
+:::tip
+The controller type can be written in a more concise way using `Express.RequestHandler` type:
+
 ::: code-group
-```ts[homeController.ts]
-interface Home {
-  title: string;
-  items: number[];
-}
+```ts[controller.ts]{3,5}
+import { RequestHandler } from 'express';
 
-interface Response {
-  home: Home; 
-}
+type GetAuthor = RequestHandler<PathParams, AuthorRes>;
 
-interface Query {
-  id: number;
-}
-
-export const get: RequestHandler<never, Response, never, Query> = async (
-  req,
-  res,
-) => {
- ...
+export const getAuthor: GetAuthor = async (req, res) => {
+  res.json({
+    id: req.params.id,
+    name: 'Author Name',
+  });
 };
-
 ```
 :::
 
-*Defining API Spec*
+## Defining API Spec
+
+Now, let's define the API spec in using `Tspec.DefineApiSpec` type.
 
 ::: code-group
-```ts[apiSpec.ts]{13,19}
+```ts[index.ts]{10}
 import { Tspec } from 'tspec';
 
-import * as author from './authorController'
-import * as home from './homeController'
+import * as controller from './controller'
 
-export type apiSpec = Tspec.DefineApiSpec<{
+export type ApiSpec = Tspec.DefineApiSpec<{
   paths: {
     '/authors/{id}': {
       get: {
-        summary: 'Author information',
-        description: 'name',
-        tags: ['author'],
-        handler: typeof author.get,
+        summary: 'Get author by id',
+        handler: typeof controller.getAuthor,
       },
     },
-    '/home': {
-      get: {
-        tags: ['home'],
-        handler: typeof home.get,
-       },
-     },
   },
 }>;
 ```
 :::
 
-*Generated Open API Schema*
+You can pass the controllers type to the `handler` property of the spec to generate parameters(`path`, `query`, `body`) and responses schemas automatically.
+
+
+
+## Serving API Document
+
+Tspec provides `TspecDocsMiddleware` to serve Swagger UI.
+
+Let's add the middleware to your Express server:
 
 ::: code-group
-```yaml[openapi.yaml]
-info:
-  title: Tspec API
-  version: 0.0.1
-openapi: 3.0.3
-paths:
-  "/authors/{id}":
-    get:
-      operationId: apiSpec_get_/authors/{id}
-      tags:
-      - author
-      summary: Author information
-      parameters:
-      - name: id
-        in: query
-        required: true
-        schema:
-          type: number
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  home:
-                    "$ref": "#/components/schemas/Home"
-                additionalProperties: false
-                required:
-                - home
-  "/home":
-    get:
-      operationId: apiSpec_get_/home
-      tags:
-      - home
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: number
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  name:
-                    type: number
-                additionalProperties: false
-                required:
-                - name
-components:
-  schemas:
-    Home:
-      type: object
-      properties:
-        title:
-          type: string
-        items:
-          type: array
-          items:
-            type: number
-      additionalProperties: false
-      required:
-      - items
-      - title
-    Query:
-      type: object
-      properties:
-        id:
-          type: number
-      additionalProperties: false
-      required:
-      - id
-    RequestHandler_never__home_Home___never_Query_Record_string_any__:
-      type: object
-      additionalProperties: false
-    PathParameter:
-      type: object
-      properties:
-        id:
-          type: number
-      additionalProperties: false
-      required:
-      - id
-    RequestHandler_PathParameter__name_number___any_qs.ParsedQs_Record_string_any__:
-      type: object
-      additionalProperties: false
+```ts[index.ts]{2,20}
+import express from 'express';
+import { Tspec, TspecDocsMiddleware } from 'tspec';
+
+import * as controller from './controller'
+
+export type ApiSpec = Tspec.DefineApiSpec<{
+  paths: {
+    '/authors/{id}': {
+      get: {
+        summary: 'Get author by id',
+        handler: typeof controller.getAuthor,
+      },
+    },
+  },
+}>;
+
+const initServer = async () => {
+  const app = express()
+  app.get('/authors/:id', controller.getAuthor);
+  app.use('/docs', await TspecDocsMiddleware());
+  app.listen(3000);
+}
+initServer();
 ```
 :::
+
+<!-- ::: details Options
+
+You can pass the following options to `TspecDocsMiddleware`:
+
+::: -->
+
+Then, you can access Swagger UI at `http://localhost:3000/docs`
+
 
