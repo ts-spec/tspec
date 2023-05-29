@@ -1,35 +1,38 @@
 import express, { Request, Response, Router } from "express";
 import { Tspec, TspecDocsMiddleware } from "tspec";
 
-/** 도서 정보 */
+/** Book Schema */
 interface Book {
-  /** 도서 ID */
+  /** Book ID */
   id: number;
   /**
-   * 도서명
-   * @example 상수리 나무 아래
+   * Book Title
+   * @example Under the Oak Tree
    * */
   title: string;
   tags: Tag[];
 }
 
-/** 태그 정보 */
-type Tag = '로맨스' | '판타지';
+/** Tag Schema */
+type Tag = 'Romance' | 'Fantasy';
 
 const getBookById = (req: Request<{ id: string }>, res: Response<Book>) => {
   res.json({
     id: +req.params.id,
-    title: '상수리 나무 아래',
-    tags: ['로맨스', '판타지'],
+    title: 'Under the Oak Tree',
+    tags: ['Romance', 'Fantasy'],
   })
 }
 const router = Router().get('/books/:id', getBookById);
 
 export type BookApiSpec = Tspec.DefineApiSpec<{
-  tags: ['도서'],
+  tags: ['Book'],
   paths: {
     '/books/{id}': {
-      get: { summary: '단일 도서 조회', handler: typeof getBookById },
+      get: {
+        summary: 'Get book by id',
+        handler: typeof getBookById
+      },
     },
   }
 }>;
@@ -39,7 +42,7 @@ const initServer = async () => {
   app.use(router);
   app.use('/docs', await TspecDocsMiddleware());
   app.listen(3000, () => {
-    console.log(`Example app listening at http://localhost:3000`);
+    console.log(`Tspec docs is running on http://localhost:3000/docs`);
   });
 }
 initServer();
