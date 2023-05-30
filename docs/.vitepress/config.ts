@@ -5,11 +5,13 @@ export default defineConfig({
   base: '/tspec/', // Reference: https://vitepress.dev/guide/deploy#github-pages
   title: "Tspec",
   description: "Auto-generating OpenAPI Document with TypeScript Types",
+  lastUpdated: true,
+  cleanUrls: true,
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Guide', link: '/guide' }
+      { text: 'Guide', link: '/guide/getting-started' }
     ],
 
     sidebar: [
@@ -41,6 +43,10 @@ export default defineConfig({
 
     socialLinks: [
       { icon: 'github', link: 'https://github.com/ts-spec/tspec' }
-    ]
+    ],
+
+    search: {
+      provider: 'local',
+    },
   }
 })
