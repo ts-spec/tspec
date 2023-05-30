@@ -37,6 +37,42 @@ pnpx tspec generate [options]
 |`--debug [true / false]`|boolean|Print debug information for Tspec|`false`|
 |`--ignoreErrors [true / false]`|boolean|Whether ignore errors in Tspec or not|`false`|
 
+
+::: details Configuring generating options with configuration file
+
+You can also use configuration file for generating Tspec.
+
+To use it, configure Tspec with `tspec.config.json` file and locate it at the root of your project.
+
+The type of configuration file is defined `Tspec.GenerateParams` type.
+
+The following is an example of `tspec.config.json` file.
+
+::: code-group
+```json[tspec.config.json]
+{
+  "specPathGlobs": ["src/**/*.ts"],
+  "tsconfigPath": "./tsconfig.json",
+  "outputPath": "./generate/openapi.json",
+  "specVersion": 3,
+  "openapi": {
+    "title": "Tspec API",
+    "version": "0.0.1",
+    "servers": ["https://tspec.org", "http://localhost:3000"],
+    "securityDefinitions": {
+      "jwt": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+      },
+    },
+  },
+  "debug": false,
+  "ignoreErrors": true,
+}
+```
+:::
+
 ### **`server`**
 
 Start Tspec server for display OpenAPI schema with Swagger.
@@ -81,10 +117,20 @@ const options: Tspec.GenerateParams = {
   tsconfigPath: './tsconfig.json',
   outputPath: './generate/openapi.json',
   specVersion: 3,
-  openapiTitle: 'Tspec',
-  openapiVersion: '1.0.0',
+  openapi: {
+    title: 'Tspec API',
+    version: '0.0.1',
+    servers: ['https://tspec.org', 'http://localhost:3000'],
+    securityDefinitions: {
+      jwt: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+    },
+  },
   debug: false,
-  ignoreErrors: false,
+  ignoreErrors: true,
 };
 
 const openApiSpec = await generateTspec(options);
@@ -99,11 +145,22 @@ import { initTspecServer, Tspec } from 'tspec';
 const options: Tspec.InitTspecServerOptions = {
   specPathGlobs: ['src/**/*.ts'],
   tsconfigPath: './tsconfig.json',
+  outputPath: './generate/openapi.json',
   specVersion: 3,
-  openapiTitle: 'Tspec',
-  openapiVersion: '1.0.0',
+  openapi: {
+    title: 'Tspec API',
+    version: '0.0.1',
+    servers: ['https://tspec.org', 'http://localhost:3000'],
+    securityDefinitions: {
+      jwt: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+    },
+  },
   debug: false,
-  ignoreErrors: false,
+  ignoreErrors: true,
   port: 3000,
   proxyHost: 'https://tspec.org',
 };

@@ -27,14 +27,14 @@ export default defineConfig({
           { text: 'Express Integration', link: '/guide/express-integration' }, // with Request validation
           // { text: 'API Testing', link: '/guide/api-testing' },
           // { text: 'Authentication', link: '/guide/authentication' },
-          { text: 'Troubleshooting', link: '/guide/troubleshooting' },
         ]
       },
       {
         text: 'Reference',
         items: [
-          { text: 'CLI', link: '/guide/cli' },
-          { text: 'tspec.config Options', link: '/guide/tspec-config' },
+          { text: 'Troubleshooting', link: '/guide/troubleshooting' },
+          // { text: 'CLI', link: '/guide/cli' },
+          // { text: 'tspec.config Options', link: '/guide/tspec-config' },
         ]
       },
     ],
