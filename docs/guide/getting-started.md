@@ -145,7 +145,7 @@ If you want to specify a different spec path, you can use the `--specPathGlobs` 
 
 ## Serve OpenAPI Spec
 
-Now, let's serve the generated OpenAPI Spec with [Swagger UI](https://swagger.io/tools/swagger-ui/):
+Now, let's serve the OpenAPI Spec with [Swagger UI](https://swagger.io/tools/swagger-ui/):
 
 ::: code-group
 ```bash [yarn]

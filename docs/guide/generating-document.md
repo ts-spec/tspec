@@ -1,12 +1,12 @@
 # Generating Document
 
-On this page, we will learn how to generate and serve OpenAPI Document with `Tspec`.
+On this page, we will learn how to generate OpenAPI Spec and serve it with [Swagger UI](https://swagger.io/tools/swagger-ui/) using `Tspec`.
 
 ## CLI Usage
 
 ### **`generate`**
 
-Generate OpenAPI schema from TypeScript types.
+Generate OpenAPI Spec from TypeScript types.
 
 **Usage**
 
@@ -40,7 +40,7 @@ pnpx tspec generate [options]
 
 ### **`server`**
 
-Start Tspec server for display OpenAPI schema with Swagger.
+Start Tspec server for display OpenAPI Spec with Swagger UI.
 
 **Usage**
 
