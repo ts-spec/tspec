@@ -1,6 +1,6 @@
 # Generating Document
 
-
+On this page, we will learn how to generate and serve OpenAPI Document with `Tspec`.
 
 ## CLI Usage
 
@@ -8,7 +8,7 @@
 
 Generate OpenAPI schema from TypeScript types.
 
-#### Usage
+**Usage**
 
 ::: code-group
 ```bash [yarn]
@@ -24,7 +24,7 @@ pnpx tspec generate [options]
 ```
 :::
 
-#### Options
+::: details options
 
 |Option|Type|Description|Example|
 |-|-|-|-|
@@ -36,48 +36,13 @@ pnpx tspec generate [options]
 |`--openapiVersion [version]`|string|`version` property of OpenAPI schema|`1.0.0`|
 |`--debug [true / false]`|boolean|Print debug information for Tspec|`false`|
 |`--ignoreErrors [true / false]`|boolean|Whether ignore errors in Tspec or not|`false`|
-
-
-::: details Configuring generating options with configuration file
-
-You can also use configuration file for generating Tspec.
-
-To use it, configure Tspec with `tspec.config.json` file and locate it at the root of your project.
-
-The type of configuration file is defined `Tspec.GenerateParams` type.
-
-The following is an example of `tspec.config.json` file.
-
-::: code-group
-```json[tspec.config.json]
-{
-  "specPathGlobs": ["src/**/*.ts"],
-  "tsconfigPath": "./tsconfig.json",
-  "outputPath": "./generate/openapi.json",
-  "specVersion": 3,
-  "openapi": {
-    "title": "Tspec API",
-    "version": "0.0.1",
-    "servers": ["https://tspec.org", "http://localhost:3000"],
-    "securityDefinitions": {
-      "jwt": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT",
-      },
-    },
-  },
-  "debug": false,
-  "ignoreErrors": true,
-}
-```
 :::
 
 ### **`server`**
 
 Start Tspec server for display OpenAPI schema with Swagger.
 
-#### Usage
+**Usage**
 
 ::: code-group
 ```bash [yarn]
@@ -93,7 +58,7 @@ pnpx tspec server [options]
 ```
 :::
 
-#### Options
+::: details options
 
 **You can also use the CLI options for [`generate`](#generate) command.**
 
@@ -101,6 +66,32 @@ pnpx tspec server [options]
 |-|-|-|-|
 |`--port [port]`|number|Specify port number for Tspec server|`7080`|
 |`--proxyHost [host]`|string|Specify proxy host for Tspec server|`https://tspec.org`|
+
+:::
+
+### Configuration file
+
+You can also use configuration file for `generate` and `server` command.
+
+Create `tspec.config.json` in your project root directory.
+
+```json
+{
+  "specPathGlobs": ["src/**/*.ts"],
+  "tsconfigPath": "./tsconfig.json",
+  "outputPath": "./generate/openapi.json",
+  "specVersion": 3,
+  "openapi": {
+    "title": "Tspec API",
+    "version": "0.0.1",
+  },
+  "debug": false,
+  "ignoreErrors": true,
+}
+```
+
+The type of configuration file is `Tspec.GenerateParams`
+
 
 
 
@@ -120,14 +111,6 @@ const options: Tspec.GenerateParams = {
   openapi: {
     title: 'Tspec API',
     version: '0.0.1',
-    servers: ['https://tspec.org', 'http://localhost:3000'],
-    securityDefinitions: {
-      jwt: {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-      },
-    },
   },
   debug: false,
   ignoreErrors: true,
@@ -150,14 +133,6 @@ const options: Tspec.InitTspecServerOptions = {
   openapi: {
     title: 'Tspec API',
     version: '0.0.1',
-    servers: ['https://tspec.org', 'http://localhost:3000'],
-    securityDefinitions: {
-      jwt: {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-      },
-    },
   },
   debug: false,
   ignoreErrors: true,

@@ -31,6 +31,8 @@ export type AuthorApiSpec = Tspec.DefineApiSpec<{
 }>;
 ```
 
+:::details Generated OpenAPI Spec
+
 The paths and schemas in the generated OpenAPI Spec are described as follows:
 
 ```yaml{2}
@@ -61,6 +63,7 @@ components:
       - id
       - name
 ```
+:::
 
 
 ## Parameters
@@ -85,8 +88,10 @@ export type AuthorApiSpec = Tspec.DefineApiSpec<{
   }
 }>;
 ```
+:::
 
-```yaml[OpenAPI]{6-11}
+:::details Generated OpenAPI Spec
+```yaml{6-11}
 paths:
   "/authors/{id}":
     get:
@@ -105,7 +110,6 @@ paths:
               schema:
                 "$ref": "#/components/schemas/Author"
 ```
-
 :::
 
 
@@ -120,7 +124,6 @@ Possible path parameter types are as follows:
 You can define query parameters by using the `query` property of the operation type.
 
 ::: code-group
-
 ```ts[Tspec]{6-9}
 export type AuthorApiSpec = Tspec.DefineApiSpec<{
   paths: {
@@ -139,8 +142,10 @@ export type AuthorApiSpec = Tspec.DefineApiSpec<{
   }
 }>;
 ```
+:::
 
-```yaml[OpenAPI]{6-14}
+:::details Generated OpenAPI Spec
+```yaml{6-14}
 paths:
   "/authors":
     get:
@@ -164,7 +169,6 @@ paths:
                 items:
                   "$ref": "#/components/schemas/Author"
 ```
-
 :::
 
 Possible query parameter types are as follows:
@@ -181,7 +185,6 @@ Possible query parameter types are as follows:
 You can define request body by using the `body` property of the operation type.
 
 ::: code-group
-
 ```ts[Tspec]{6}
 export type AuthorApiSpec = Tspec.DefineApiSpec<{
   paths: {
@@ -197,8 +200,10 @@ export type AuthorApiSpec = Tspec.DefineApiSpec<{
   }
 }>;
 ```
-  
-```yaml[OpenAPI]{6-11}
+:::
+
+:::details Generated OpenAPI Spec  
+```yaml{6-11}
 paths:
   "/authors":
     post:
@@ -217,7 +222,6 @@ paths:
               schema:
                 "$ref": "#/components/schemas/Author"
 ```
-
 :::
 
 
@@ -228,7 +232,6 @@ Body parameter types can be any object type.
 You can define the base path by using the `basePath` property of the API spec type.
 
 ::: code-group
-
 ```ts[Tspec]{2,4,12}
 export type AuthorApiSpec = Tspec.DefineApiSpec<{
   basePath: '/authors',
@@ -253,8 +256,10 @@ export type AuthorApiSpec = Tspec.DefineApiSpec<{
   }
 }>;
 ```
+:::
 
-```yaml[OpenAPI]{2,14}
+:::details Generated OpenAPI Spec
+```yaml{2,14}
 paths:
   "/authors":
     get:
@@ -292,7 +297,6 @@ paths:
 You can define tags by using the `tags` property of the API spec type.
 
 ::: code-group
-
 ```ts[Tspec]{2}
 export type AuthorApiSpec = Tspec.DefineApiSpec<{
   tags: ['Author'],
@@ -308,8 +312,10 @@ export type AuthorApiSpec = Tspec.DefineApiSpec<{
   }
 }>;
 ```
+:::
 
-```yaml[OpenAPI]{5-6}
+:::details Generated OpenAPI Spec
+```yaml{5-6}
 paths:
   "/authors":
     get:
@@ -331,7 +337,6 @@ paths:
 If you want to define tags for each operation, you can use the `tags` property of the operation type.
 
 ::: code-group
-
 ```ts[Tspec]{6}
 export type AuthorApiSpec = Tspec.DefineApiSpec<{
   paths: {
@@ -347,8 +352,10 @@ export type AuthorApiSpec = Tspec.DefineApiSpec<{
   }
 }>;
 ```
+:::
 
-```yaml[OpenAPI]{5-6}
+:::details Generated OpenAPI Spec
+```yaml{5-6}
 paths:
   "/authors":
     get:

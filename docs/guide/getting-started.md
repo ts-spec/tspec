@@ -16,37 +16,27 @@ mkdir my-project
 cd my-project
 ```
 
-Then, initialize `package.json` and `tsconfig.json`:
+Then, initialize `tsconfig.json`:
+
+```bash
+tsc --init
+```
+
+Now, initialize `package.json` and install tspec:
 
 ::: code-group
 ```bash [yarn]
 yarn init -y
-tsc --init
-```
-
-```bash [npm]
-npm init -y
-tsc --init
-```
-
-```bash [pnpm]
-pnpm init -y
-tsc --init
-```
-:::
-
-Now, install tspec:
-
-::: code-group
-```bash [yarn]
 yarn add tspec
 ```
 
 ```bash [npm]
+npm init -y
 npm install tspec
 ```
 
 ```bash [pnpm]
+pnpm init -y
 pnpm add tspec
 ```
 :::
@@ -99,12 +89,10 @@ pnpm tspec generate --outputPath openapi.json
 ```
 :::
 
-The generated OpenAPI Spec will look like this:
-
+:::details Generated OpenAPI Spec
 (For readability, the generated OpenAPI Spec is formatted with yaml)
 
-::: code-group
-```yaml[openapi.yaml]{6,27}
+```yaml{6,27}
 openapi: 3.0.3
 info:
   title: Tspec API
@@ -145,73 +133,6 @@ components:
       required:
         - id
         - title
-```
-
-```json[openapi.json]
-{
-  "openapi": "3.0.3",
-  "info": {
-    "title": "Tspec API",
-    "version": "0.0.1"
-  },
-  "paths": {
-    "/books/{id}": {
-      "get": {
-        "operationId": "BookApiSpec_get_/books/{id}",
-        "tags": [
-          "Book"
-        ],
-        "summary": "Get book by id",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Book"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Book": {
-        "description": "Schema description defined by JSDoc",
-        "type": "object",
-        "properties": {
-          "id": {
-            "description": "Field description defined by JSDoc",
-            "type": "number"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "title"
-        ]
-      }
-    }
-  }
-}
 ```
 :::
 

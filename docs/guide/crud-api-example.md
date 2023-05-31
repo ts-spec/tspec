@@ -3,8 +3,7 @@
 Let's define a CRUD API spec for `Author`:
 
 ::: code-group
-
-```ts[Tspec]
+```ts[index.ts]
 import { Tspec } from 'tspec';
 
 interface Author {
@@ -58,8 +57,10 @@ export type AuthorApiSpec = Tspec.DefineApiSpec<{
   }
 }>;
 ```
+:::
 
-```yaml[OpenAPI]
+:::details Generated OpenAPI Spec
+```yaml
 paths:
   "/authors/":
     get:

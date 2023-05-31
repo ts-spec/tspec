@@ -1,6 +1,6 @@
 # Defining Schema
 
-On this page, we will learn how to define schemas with JSDoc comments.
+On this page, we will learn how to define schemas with [JSDoc](https://jsdoc.app/about-getting-started.html) comments.
 
 ## Description
 
@@ -16,8 +16,7 @@ interface Book {
 }
 ```
 
-The schemas in the generated OpenAPI Spec are described as follows:
-
+:::details Generated OpenAPI Spec
 ```yaml{4,9,12}
 components:
   schemas:
@@ -35,6 +34,7 @@ components:
         - id
         - title
 ```
+:::
 
 ## Example
 
@@ -55,7 +55,7 @@ interface Book {
 }
 ```
 
-The schemas in the generated OpenAPI Spec are described as follows:
+:::details Generated OpenAPI Spec
 
 ```yaml{9,13}
 components:
@@ -75,6 +75,7 @@ components:
         - id
         - title
 ```
+:::
 
 ## Format
 
@@ -90,8 +91,7 @@ interface Book {
 }
 ``` 
 
-The schemas in the generated OpenAPI Spec are described as follows:
-
+:::details Generated OpenAPI Spec
 ```yaml{7-8,10-12,14-16}
 components:
   schemas:
@@ -115,6 +115,7 @@ components:
       - id
       - publishedAt
 ```
+:::
 
 The following utility types are provided by Tspec.
 
