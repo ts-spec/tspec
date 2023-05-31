@@ -5,7 +5,7 @@ Type-driven API Documentation library for [TypeScript](https://www.typescriptlan
 > Automatically parses your TypeScript types and generates up-to-date OpenAPI specification with beautiful Swagger UI.
 
 
-[![npm](https://badge.fury.io/js/tspec.svg)](https://badge.fury.io/js/tspec) [![downloads](https://img.shields.io/npm/dm/tspec.svg)](https://www.npmjs.com/package/tspec) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Stars](https://img.shields.io/github/stars/ts-spec/tspec?style=social)](https://github.com/ts-spec/tspec/stargazers)
+[![npm](https://badge.fury.io/js/tspec.svg)](https://badge.fury.io/js/tspec) [![downloads](https://img.shields.io/npm/dm/tspec.svg)](https://www.npmjs.com/package/tspec) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Why tspec?
 - **Code First**: Rely on TypeScript type and JSDoc to generate OpenAPI Specification.
