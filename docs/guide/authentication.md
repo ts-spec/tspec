@@ -10,7 +10,7 @@ On this page, we will learn how to use authentication in Tspec.
 
 To use authentication in Tspec, you need to define `securityDefinitions` in the `Tspec.GenerateParams`.
 
-The `securityDefinitions` is same as the [securityDefinitions](https://swagger.io/docs/specification/authentication/) in the OpenAPI spec.
+The `securityDefinitions` is same as the [securitySchemes](https://swagger.io/docs/specification/authentication/) in the OpenAPI spec.
 
 ::: code-group
 ```ts[index.ts]{3}
