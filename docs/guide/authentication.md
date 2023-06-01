@@ -6,13 +6,6 @@ Swagger UI provides the `Authorize` button to authenticate the user.
 
 On this page, we will learn how to use authentication in Tspec.
 
-
-
-You can use the `security` property in the `Tspec.DefineApiSpec` to specify the security scheme for the API.
-
-
-Then, you can use the `security` property in the `Tspec.DefineApiSpec` to specify the security scheme for the API.
-
 ## Defining security scheme
 
 To use authentication in Tspec, you need to define `securityDefinitions` in the `Tspec.GenerateParams`.
