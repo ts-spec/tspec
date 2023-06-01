@@ -27,7 +27,7 @@ export default defineConfig({
           { text: 'Defining API Spec', link: '/guide/defining-api-spec' },
           { text: 'CRUD API Example', link: '/guide/crud-api-example' },
           { text: 'Express Integration', link: '/guide/express-integration' }, // with Request validation
-          // { text: 'API Testing', link: '/guide/api-testing' },
+          { text: 'API Testing', link: '/guide/api-testing' },
           // { text: 'Authentication', link: '/guide/authentication' },
         ]
       },
