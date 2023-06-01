@@ -1,6 +1,6 @@
 # API Testing
 
-Tspec provides a way to test your API using Swagger UI.
+Tspec provides a way to test your API using [Swagger UI](https://swagger.io/tools/swagger-ui/).
 
 ## Setup
 
