@@ -34,8 +34,7 @@ export const getAuthor = async (
 :::tip
 The controller type can be written in a more concise way using `Express.RequestHandler` type:
 
-::: code-group
-```ts[controller.ts]{3,5}
+```ts{3,5}
 import { RequestHandler } from 'express';
 
 type GetAuthor = RequestHandler<PathParams, AuthorRes>;
@@ -110,11 +109,11 @@ initServer();
 ```
 :::
 
-<!-- ::: details Options
+::: tip
+You can pass `Tspec.GenerateParams` options to the first parameter of `TspecDocsMiddleware`.
+:::
 
-You can pass the following options to `TspecDocsMiddleware`:
 
-::: -->
 
 Then, you can access Swagger UI at `http://localhost:3000/docs`
 
