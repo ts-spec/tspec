@@ -17,7 +17,7 @@
             "description": "검색어",
             "name": "q",
             "in": "query",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string"
             }

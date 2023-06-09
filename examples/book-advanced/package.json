@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "ts-node src/index.ts"
   },
   "keywords": [],
   "author": "Hyeonss",
@@ -15,6 +14,6 @@
     "typescript": "^4.8.3"
   },
   "dependencies": {
-    "tspec": "^0.1.84"
+    "tspec": "^0.1.97"
   }
 }

@@ -40,4 +40,4 @@ export type BookApiSpec = Tspec.DefineApiSpec<{
   }
 }>;
 
-initTspecServer({ outputPath: 'src/openapi.json' });
+initTspecServer({ outputPath: 'src/openapi.json', port: 3000 });
