@@ -180,6 +180,69 @@ Possible query parameter types are as follows:
 - `number[]`
 - `boolean[]`
 
+### Header and Cookie Parameters
+
+You can define header and cookie parameters by using the `header` and `cookie` properties of the operation type.
+
+::: code-group
+```ts[Tspec]{6-11}
+export type AuthorApiSpec = Tspec.DefineApiSpec<{
+  paths: {
+    '/authors': {
+      get: {
+        summary: 'List of authors',
+        header: { 
+          'x-api-key': string,
+        },
+        cookie: { 
+          'debug': 0 | 1,
+        },
+        responses: { 
+          200: Author[],
+        },
+      },
+    },
+  }
+}>;
+```
+:::
+
+:::details Generated OpenAPI Spec
+```yaml{7-18}
+paths:
+  "/authors":
+    get:
+      operationId: AuthorApiSpec_get_/authors
+      summary: List of authors
+      parameters:
+        - name: x-api-key
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: debug
+          in: cookie
+          schema:
+            enum:
+              - 0
+              - 1
+          required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/Author"
+```
+:::
+
+Possible header and cookie parameter types are as follows:
+- `string`
+- `number`
+
+
 ### Request Body
 
 You can define request body by using the `body` property of the operation type.
