@@ -20,6 +20,26 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "X-Request-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "debug",
+            "in": "cookie",
+            "required": true,
+            "schema": {
+              "enum": [
+                0,
+                1
+              ],
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -28,10 +48,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Book"
-                  }
+                  "$ref": "#/components/schemas/Book"
                 }
               }
             }
@@ -43,19 +60,17 @@
   "components": {
     "schemas": {
       "Book": {
-        "description": "Book Schema",
+        "description": "Schema description defined by JSDoc",
         "type": "object",
         "properties": {
           "id": {
-            "description": "Book ID",
+            "description": "Field description defined by JSDoc",
             "type": "number"
           },
           "title": {
-            "description": "Book title",
             "type": "string"
           },
           "description": {
-            "description": "Book description",
             "type": "string"
           }
         },

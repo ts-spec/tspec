@@ -9,11 +9,14 @@ interface Book {
 }
 
 export type BookApiSpec = Tspec.DefineApiSpec<{
+  tags: ['Book']
   paths: {
     '/books/{id}': {
       get: {
         summary: 'Get book by id',
         path: { id: number },
+        header: { 'X-Request-ID': string },
+        cookie: { debug: 0 | 1 },
         responses: { 200: Book },
       },
     },
