@@ -47,10 +47,10 @@ const getPropertyByPath = (
 };
 
 const getText = (obj: Schema | undefined): string | undefined => {
-  if (!obj || '$ref' in obj || obj.type !== 'string' || obj.enum?.length !== 1) {
+  if (!obj || '$ref' in obj || obj.type !== 'string' || !('const' in obj)) {
     return undefined;
   }
-  return obj.enum[0];
+  return obj.const as string;
 };
 
 export const getTextPropertyByPath = <O extends { required: boolean }>(

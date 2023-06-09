@@ -1,7 +1,7 @@
 {
   "name": "tspec",
   "description": "Generate OpenAPI 3.0 spec from TypeScript code.",
-  "version": "0.1.96",
+  "version": "0.1.97",
   "main": "dist/index.js",
   "type": "module",
   "typings": "dist/index.d.ts",

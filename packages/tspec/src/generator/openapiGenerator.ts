@@ -11,7 +11,7 @@ import { SchemaMapping } from './types';
 
 export const DEBUG = debug('tspec');
 
-const getPathOrQueryParams = (obj: TJS.Definition, inType: 'query' | 'path') => {
+const getParameters = (obj: TJS.Definition, inType: 'query' | 'path' | 'header' | 'cookie') => {
   const { properties, required } = obj;
   if (!properties) {
     return undefined;
@@ -31,10 +31,19 @@ const getPathOrQueryParams = (obj: TJS.Definition, inType: 'query' | 'path') => 
   });
 };
 
-const resolveParameters = (path: TJS.Definition | undefined, query: TJS.Definition | undefined) => {
-  const pathParams = (path && getPathOrQueryParams(path, 'path')) || [];
-  const queryParams = (query && getPathOrQueryParams(query, 'query')) || [];
-  return [...pathParams, ...queryParams];
+interface ResolveParametersParams {
+  path: TJS.Definition | undefined;
+  query: TJS.Definition | undefined;
+  header: TJS.Definition | undefined;
+  cookie: TJS.Definition | undefined;
+};
+
+const resolveParameters = ({ path, query, header, cookie }: ResolveParametersParams) => {
+  const pathParams = (path && getParameters(path, 'path')) || [];
+  const queryParams = (query && getParameters(query, 'query')) || [];
+  const headerParams = (header && getParameters(header, 'header')) || [];
+  const cookieParams = (cookie && getParameters(cookie, 'cookie')) || [];
+  return [...pathParams, ...queryParams, ...headerParams, ...cookieParams];
 };
 
 export const getOpenapiPaths = (
@@ -61,6 +70,7 @@ export const getOpenapiPaths = (
     controllerName, path, method, spec,
   }) => {
     DEBUG({ controllerName, path, method });
+    DEBUG({ spec: JSON.stringify(spec, null, 2) });
     const url = getTextPropertyByPath(spec, 'url', openapiSchemas, { required: true });
     const summary = getTextPropertyByPath(spec, 'summary', openapiSchemas);
     const security = getTextPropertyByPath(spec, 'security', openapiSchemas);
@@ -71,16 +81,25 @@ export const getOpenapiPaths = (
       openapiSchemas,
       { required: true },
     )!.properties;
-    const pathParams = getObjectPropertyByPath(spec, 'path', openapiSchemas);
-    const queryParams = getObjectPropertyByPath(spec, 'query', openapiSchemas);
-    const bodyParams = getObjectPropertyByPath(spec, 'body', openapiSchemas);
+
+    const pathParams = getObjectPropertyByPath(spec, 'path', openapiSchemas) as any;
+    const queryParams = getObjectPropertyByPath(spec, 'query', openapiSchemas) as any;
+    const headerParams = getObjectPropertyByPath(spec, 'header', openapiSchemas) as any;
+    const cookieParams = getObjectPropertyByPath(spec, 'cookie', openapiSchemas) as any;
+
+    const bodyParams = getObjectPropertyByPath(spec, 'body', openapiSchemas) as any;
 
     const operation = {
       operationId: `${controllerName}_${method}_${path}`,
       tags,
       summary,
       security: security && [{ [security]: [] }],
-      parameters: resolveParameters(pathParams as any, queryParams as any),
+      parameters: resolveParameters({
+        path: pathParams,
+        query: queryParams,
+        header: headerParams,
+        cookie: cookieParams,
+      }),
       requestBody: bodyParams && {
         description: bodyParams.description,
         required: true,

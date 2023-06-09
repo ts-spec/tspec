@@ -11,16 +11,24 @@ export namespace Tspec {
   type QueryParamValue = string | number | boolean | string[] | number[] | boolean[];
   export type QueryParam = { [key: string]: QueryParamValue }
 
+  type HeaderParamValue = string | number;
+  export type HeaderParam = { [name: string]: HeaderParamValue }
+
+  type CookieParamValue = string | number;
+  export type CookieParam = { [name: string]: CookieParamValue }
+
   export interface ApiSpecBase<
     Res extends any = any,
     P extends PathParam = PathParam,
-    Q extends QueryParam = QueryParam
+    Q extends QueryParam = QueryParam,
+    H extends HeaderParam = HeaderParam,
+    C extends CookieParam = CookieParam,
   > {
     summary?: string,
     description?: string,
     tags?: string[],
     security?: string,
-    path?: P, query?: Q, body?: {},
+    path?: P, query?: Q, body?: {}, header?: H, cookie?: C,
     responses?: { [code: number]: Res }, error?: { [key: string]: {} },
   }
 
