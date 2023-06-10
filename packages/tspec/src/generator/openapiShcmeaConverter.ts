@@ -69,6 +69,17 @@ const handleExamples = (schema: any): any => { // TODO: fix types
   return schema;
 };
 
+const handleConst = (schema: any): any => { // TODO: fix types
+  if (schema.const) {
+    const { const: c, ...rest } = schema;
+    return {
+      ...rest,
+      enum: [c],
+    };
+  }
+  return schema;
+};
+
 const convertToOpenapiTypes = (schema: any): any => { // TODO: fix types
   if (Array.isArray(schema)) {
     return schema.map((s) => convertToOpenapiTypes(s));
@@ -78,7 +89,7 @@ const convertToOpenapiTypes = (schema: any): any => { // TODO: fix types
     const convertedSchema = Object.fromEntries(
       Object.entries(nullableSchema).map(([key, value]) => [key, convertToOpenapiTypes(value)]),
     );
-    const handlers = [handleCombinedNullable, handleExamples];
+    const handlers = [handleCombinedNullable, handleExamples, handleConst];
     return handlers.reduce((acc, handler) => handler(acc), convertedSchema);
   }
   return schema;
