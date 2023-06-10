@@ -21,3 +21,12 @@ export function assertIsDefined<T>(
 export function checkNever(x: never) {
   throw new Error(`Unexpected object: ${JSON.stringify(x)}`);
 }
+
+export function isEmptyObject(obj: Object) {
+  if( Object.keys(obj).length === 0 ) return true; 
+  
+  for(const t of Object.values(obj)){
+    if(t!== undefined) return false; 
+  } 
+  return true; 
+}

@@ -3,7 +3,7 @@ import debug from 'debug';
 import { OpenAPIV3 as oapi3 } from 'openapi-types';
 import * as tjs from 'typescript-json-schema';
 
-import { isDefined } from '../utils/types';
+import { isDefined, isEmptyObject } from '../utils/types';
 
 import { Schema } from './types';
 import {
@@ -349,7 +349,7 @@ const convertType = (
 
     if (onlySchema && isReferenceObject(onlySchema)) {
       const baseSchema = { ...commonSchema, ...nullableProperty };
-      if (Object.keys(baseSchema).length > 0) {
+      if (!isEmptyObject(baseSchema)) {
         // reference object는 baseSchema랑 같이 사용할 수 없음
         return {
           allOf: [baseSchema, onlySchema],
