@@ -11,6 +11,14 @@ import { SchemaMapping } from './types';
 
 export const DEBUG = debug('tspec');
 
+type ParameterSchema = TJS.Definition & {
+  example?: any;
+  style?: any;
+  explode?: any;
+  allowReserved?: any;
+  allowEmptyValue?: any;
+}
+
 const getParameters = (obj: TJS.Definition, inType: 'query' | 'path' | 'header' | 'cookie') => {
   const { properties, required } = obj;
   if (!properties) {
@@ -18,15 +26,19 @@ const getParameters = (obj: TJS.Definition, inType: 'query' | 'path' | 'header' 
   }
   return Object.entries(properties).map(([key, schema]) => {
     const {
-      description, examples, ...rest
-    } = schema as TJS.Definition;
+      description, example, examples, style, explode, allowReserved, allowEmptyValue,...rest
+    } = schema as ParameterSchema;
     return {
       description,
       name: key,
       in: inType,
       required: inType === 'path' ? true : (required || []).includes(key),
       schema: rest,
-      example: Array.isArray(examples) ? examples[0] : examples, // FIXME: tjs does not support example.
+      example: example || (Array.isArray(examples) ? examples[0] : examples),
+      style,
+      explode: explode === '' || explode === true,
+      allowReserved: allowReserved === '' || allowReserved === true, 
+      allowEmptyValue: allowEmptyValue === '' || allowEmptyValue === true,
     };
   });
 };
