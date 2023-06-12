@@ -1,0 +1,187 @@
+{
+  "info": {
+    "title": "Tspec API",
+    "version": "0.0.1"
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/books/": {
+      "get": {
+        "operationId": "BookApiSpec_get_/",
+        "tags": [
+          "도서"
+        ],
+        "summary": "도서 검색",
+        "parameters": [
+          {
+            "description": "검색어",
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "explode": false,
+            "allowReserved": true,
+            "allowEmptyValue": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Book"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/books/{id}": {
+      "patch": {
+        "operationId": "BookApiSpec_patch_/{id}",
+        "tags": [
+          "도서"
+        ],
+        "summary": "도서 수정",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1,
+            "explode": false,
+            "allowReserved": false,
+            "allowEmptyValue": false
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "description": "도서 제목",
+                    "type": "string"
+                  },
+                  "tags": {
+                    "description": "태그 리스트",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Tag"
+                    }
+                  },
+                  "publishedDate": {
+                    "type": "date",
+                    "description": "출판일",
+                    "example": "2023-03-30"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "tags",
+                  "title"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Book": {
+        "description": "도서 정보",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "도서 ID",
+            "example": 1
+          },
+          "title": {
+            "description": "도서 제목",
+            "type": "string"
+          },
+          "tags": {
+            "description": "태그 리스트",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Tag"
+            }
+          },
+          "publishedDate": {
+            "type": "date",
+            "description": "출판일",
+            "example": "2023-03-30"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "tags",
+          "title"
+        ]
+      },
+      "Tag": {
+        "description": "태그 정보",
+        "enum": [
+          "로맨스",
+          "스릴러",
+          "판타지"
+        ],
+        "type": "string"
+      },
+      "Omit_Book__id__": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "description": "도서 제목",
+            "type": "string"
+          },
+          "tags": {
+            "description": "태그 리스트",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Tag"
+            }
+          },
+          "publishedDate": {
+            "type": "date",
+            "description": "출판일",
+            "example": "2023-03-30"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "tags",
+          "title"
+        ]
+      }
+    }
+  }
+}

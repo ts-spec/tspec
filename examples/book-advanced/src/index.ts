@@ -23,7 +23,11 @@ export type BookApiSpec = Tspec.DefineApiSpec<{
       get: {
         summary: '도서 검색',
         query: {
-          /** 검색어 */
+          /**
+           * 검색어
+           * @allowEmptyValue
+           * @allowReserved
+           * */
           q: string;
         },
         responses: { 200: Book[] },
