@@ -111,13 +111,16 @@ const getOpenapiSchemas = async (
     esModuleInterop: compilerOptions.esModuleInterop,
     // rejectDateType: true,
     validationKeywords: [
-      'example', 'default', 'format', 'required', 'nullable', 'deprecated',
-      /** NOTE: schema validation. see https://swagger.io/docs/specification/data-models/data-types/ */
+      /** NOTE: JSON schema keywords. see https://swagger.io/docs/specification/data-models/keywords/ */
+      'title', 'pattern',
       'minimum', 'maximum', 'exclusiveMinimum', 'exclusiveMaximum', 'multipleOf',
       'minLength', 'maxLength', 'pattern',
       'minItems', 'maxItems', 'uniqueItems',
-      'readOnly', 'writeOnly',
       'minProperties', 'maxProperties',
+      /** NOTE: These keywords are supported with minor differences */
+      /** 'type', */ 'format', 'description', 'default',
+      /** NOTE: Additional keywords */
+      'deprecated', 'discriminator', 'example', 'externalDocs', 'nullable', /** 'readOnly', 'writeOnly', */
       /** NOTE: parameter validation. see https://swagger.io/docs/specification/describing-parameters/ */
       'allowReserved', 'style', 'form', 'allowEmptyValue', 'explode', 
     ],
