@@ -19,6 +19,16 @@ type ParameterSchema = TJS.Definition & {
   allowEmptyValue?: any;
 }
 
+const parseBooleanAnnotation = (value: any) => {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (value === '' || value === 'true' || value === true) {
+    return true;
+  }
+  return false;
+};
+
 const getParameters = (obj: TJS.Definition, inType: 'query' | 'path' | 'header' | 'cookie') => {
   const { properties, required } = obj;
   if (!properties) {
@@ -36,9 +46,9 @@ const getParameters = (obj: TJS.Definition, inType: 'query' | 'path' | 'header' 
       schema: rest,
       example: example || (Array.isArray(examples) ? examples[0] : examples),
       style,
-      explode: explode === '' || explode === true,
-      allowReserved: allowReserved === '' || allowReserved === true, 
-      allowEmptyValue: allowEmptyValue === '' || allowEmptyValue === true,
+      explode: parseBooleanAnnotation(explode),
+      allowReserved: parseBooleanAnnotation(allowReserved), 
+      allowEmptyValue: parseBooleanAnnotation(allowEmptyValue),
     };
   });
 };
