@@ -805,10 +805,10 @@ ts-node@^10.9.1:
     v8-compile-cache-lib "^3.0.1"
     yn "3.1.1"
 
-tspec@^0.1.97:
-  version "0.1.97"
-  resolved "https://registry.yarnpkg.com/tspec/-/tspec-0.1.97.tgz#cbf9ff4a0bc093453670c6270737de0338b0455b"
-  integrity sha512-8pcx2w7JicmPrD3dK8sxH9K+bMUna2ArABSkFt7coB21khXV4H4v2XbGerLeUQUuTN+IPBRJzQYLxQcFSm/9Tg==
+tspec@^0.1.99:
+  version "0.1.99"
+  resolved "https://registry.yarnpkg.com/tspec/-/tspec-0.1.99.tgz#1472d4de2f608bcb01b83b23b0affd9a98c48635"
+  integrity sha512-5uUILq7SCmmCTq9/Dd0hBN6aQsE9Z9t/9kINZfcGReu5gDFGMXwUoaGsAkCRqlKOQr8ERE21ZPboeWgaUNUgCA==
   dependencies:
     debug "^4.3.4"
     express "^4.18.2"

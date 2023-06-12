@@ -110,7 +110,17 @@ const getOpenapiSchemas = async (
     ignoreErrors: ignoreErrors || true,
     esModuleInterop: compilerOptions.esModuleInterop,
     // rejectDateType: true,
-    validationKeywords: ['example'],
+    validationKeywords: [
+      'example', 'default', 'format', 'required', 'nullable', 'deprecated',
+      /** NOTE: schema validation. see https://swagger.io/docs/specification/data-models/data-types/ */
+      'minimum', 'maximum', 'exclusiveMinimum', 'exclusiveMaximum', 'multipleOf',
+      'minLength', 'maxLength', 'pattern',
+      'minItems', 'maxItems', 'uniqueItems',
+      'readOnly', 'writeOnly',
+      'minProperties', 'maxProperties',
+      /** NOTE: parameter validation. see https://swagger.io/docs/specification/describing-parameters/ */
+      'allowReserved', 'style', 'form', 'allowEmptyValue', 'explode', 
+    ],
   };
   DEBUG({ tjsSettings });
   const generator = TJS.buildGenerator(program, tjsSettings);
