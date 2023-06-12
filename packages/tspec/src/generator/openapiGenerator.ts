@@ -36,7 +36,7 @@ const getParameters = (obj: TJS.Definition, inType: 'query' | 'path' | 'header' 
   }
   return Object.entries(properties).map(([key, schema]) => {
     const {
-      description, example, examples, style, explode, allowReserved, allowEmptyValue,...rest
+      description, style, explode, allowReserved, allowEmptyValue,...rest
     } = schema as ParameterSchema;
     return {
       description,
@@ -44,7 +44,6 @@ const getParameters = (obj: TJS.Definition, inType: 'query' | 'path' | 'header' 
       in: inType,
       required: inType === 'path' ? true : (required || []).includes(key),
       schema: rest,
-      example: example || (Array.isArray(examples) ? examples[0] : examples),
       style,
       explode: parseBooleanAnnotation(explode),
       allowReserved: parseBooleanAnnotation(allowReserved), 
