@@ -9,18 +9,21 @@
       "get": {
         "operationId": "BookApiSpec_get_/",
         "tags": [
-          "도서"
+          "Book"
         ],
-        "summary": "도서 검색",
+        "summary": "Search Books",
+        "description": "Search books by keyword",
         "parameters": [
           {
-            "description": "검색어",
+            "description": "Search keyword",
             "name": "q",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "allowReserved": true,
+            "allowEmptyValue": true
           }
         ],
         "responses": {
@@ -44,9 +47,9 @@
       "patch": {
         "operationId": "BookApiSpec_patch_/{id}",
         "tags": [
-          "도서"
+          "Book"
         ],
-        "summary": "도서 수정",
+        "summary": "Update Book",
         "parameters": [
           {
             "name": "id",
@@ -66,11 +69,11 @@
                 "type": "object",
                 "properties": {
                   "title": {
-                    "description": "도서 제목",
+                    "description": "Book Title",
                     "type": "string"
                   },
                   "tags": {
-                    "description": "태그 리스트",
+                    "description": "Tag List",
                     "type": "array",
                     "items": {
                       "$ref": "#/components/schemas/Tag"
@@ -78,7 +81,7 @@
                   },
                   "publishedDate": {
                     "type": "date",
-                    "description": "출판일",
+                    "description": "Published Date",
                     "example": "2023-03-30"
                   }
                 },
@@ -109,20 +112,20 @@
   "components": {
     "schemas": {
       "Book": {
-        "description": "도서 정보",
+        "description": "Book Schema",
         "type": "object",
         "properties": {
           "id": {
             "type": "integer",
-            "description": "도서 ID",
+            "description": "Book ID",
             "example": 1
           },
           "title": {
-            "description": "도서 제목",
+            "description": "Book Title",
             "type": "string"
           },
           "tags": {
-            "description": "태그 리스트",
+            "description": "Tag List",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Tag"
@@ -130,7 +133,7 @@
           },
           "publishedDate": {
             "type": "date",
-            "description": "출판일",
+            "description": "Published Date",
             "example": "2023-03-30"
           }
         },
@@ -142,11 +145,11 @@
         ]
       },
       "Tag": {
-        "description": "태그 정보",
+        "description": "Tag Schema",
         "enum": [
-          "로맨스",
-          "스릴러",
-          "판타지"
+          "Adventure",
+          "Fantasy",
+          "Romance"
         ],
         "type": "string"
       },
@@ -154,11 +157,11 @@
         "type": "object",
         "properties": {
           "title": {
-            "description": "도서 제목",
+            "description": "Book Title",
             "type": "string"
           },
           "tags": {
-            "description": "태그 리스트",
+            "description": "Tag List",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Tag"
@@ -166,7 +169,7 @@
           },
           "publishedDate": {
             "type": "date",
-            "description": "출판일",
+            "description": "Published Date",
             "example": "2023-03-30"
           }
         },

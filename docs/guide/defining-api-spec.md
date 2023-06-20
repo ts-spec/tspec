@@ -79,6 +79,7 @@ export type AuthorApiSpec = Tspec.DefineApiSpec<{
     '/authors/{id}': {
       get: {
         summary: 'Get author by id',
+        description: 'Returns a single author',
         path: { id: number },
         responses: { 
           200: Author,
@@ -97,6 +98,7 @@ paths:
     get:
       operationId: AuthorApiSpec_get_/authors/{id}
       summary: Get author by id
+      description: Returns a single author
       parameters:
         - name: id
           in: path

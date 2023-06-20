@@ -1,30 +1,31 @@
 import { Tspec, initTspecServer } from "tspec";
 
-/** 도서 정보 */
+/** Book Schema */
 interface Book {
-  /** 도서 ID */
+  /** Book ID */
   id: Tspec.Integer;
-  /** 도서 제목 */
+  /** Book Title */
   title: string;
-  /** 태그 리스트 */
+  /** Tag List */
   tags: Tag[];
-  /** 출판일 */
+  /** Published Date */
   publishedDate?: Tspec.DateString;
 }
 
-/** 태그 정보 */
-type Tag = '로맨스' | '판타지' | '스릴러';
+/** Tag Schema */
+type Tag = 'Romance' | 'Fantasy' | 'Adventure';
 
 export type BookApiSpec = Tspec.DefineApiSpec<{
-  tags: ['도서'],
+  tags: ['Book'],
   basePath: '/books',
   paths: {
     '/':  {
       get: {
-        summary: '도서 검색',
+        summary: 'Search Books',
+        description: 'Search books by keyword',
         query: {
           /**
-           * 검색어
+           * Search keyword
            * @allowEmptyValue
            * @allowReserved
            * */
@@ -35,7 +36,7 @@ export type BookApiSpec = Tspec.DefineApiSpec<{
     },
     '/{id}': {
       patch: {
-        summary: '도서 수정',
+        summary: 'Update Book',
         path: { id: Tspec.Integer },
         body: Omit<Book, 'id'>,
         responses: { 200: Book },
