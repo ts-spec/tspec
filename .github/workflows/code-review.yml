@@ -9,7 +9,7 @@ on:
       - reopened
       - synchronize
 jobs:
-  test:
+  code-review:
     runs-on: ubuntu-latest
     steps:
       - uses: anc95/ChatGPT-CodeReview@main
