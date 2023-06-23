@@ -1,7 +1,10 @@
 import { OpenAPIV3 } from 'openapi-types';
 
 import { Schema, SchemaMapping } from './types';
-import { isReferenceObject } from './utils';
+import { isReferenceObject, isArraySchemaObject } from './utils';
+import debug from 'debug';
+
+export const DEBUG = debug('tspec');
 
 export const accessSchema = (
   obj: Schema | undefined,
@@ -83,8 +86,9 @@ export const getTextListPropertyByPath = (
 
   // item의 개수가 2개 이상이면 anyOf로 묶여있음
   const itemVal = items.anyOf ?? items;
-
-  return (itemVal as Schema[])
+  const itemValArray = Array.isArray(itemVal)?itemVal: [itemVal];
+  
+  return (itemValArray as Schema[])
     .map((item) => getText(item)).filter((item): item is string => !!item);
 };
 

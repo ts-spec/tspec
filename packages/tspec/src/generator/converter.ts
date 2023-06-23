@@ -212,8 +212,8 @@ const covertToNumberSchemaObject = (
 const covertToStringSchemaObject = (
   def: tjs.Definition,
 ): oapi3.SchemaObject => {
-  const { maxLength, minLength, pattern } = def;
-
+  const { maxLength, minLength, pattern, const: _const } = def;
+  DEBUG(_const);
   if (pattern) {
     const isValidRegExp = RegExp.prototype.test(pattern);
     if (!isValidRegExp) {
@@ -223,6 +223,8 @@ const covertToStringSchemaObject = (
 
   return {
     type: 'string',
+    // const is not supported by openAPI schema, so convert to enum
+    ..._const && {enum: [_const]},
     maxLength,
     minLength,
   };
@@ -321,7 +323,7 @@ const convertType = (
 
   const refinedSchemas = splitedSchemas
     .filter(isDefined)
-    .map((schema) => ({ ...schema, ...commonSchema })); // 모든 property는 동시에 만족해야함
+    .map((schema) => ({ ...commonSchema, ...schema, })); // 모든 property는 동시에 만족해야함
 
   const referenceObject = def.$ref
     ? {
