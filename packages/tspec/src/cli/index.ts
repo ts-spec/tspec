@@ -127,8 +127,8 @@ const validateGeneratorOptions = async (args: GeneratorOptions) => {
   if (await isTspecFileConfigAvailable()) {
     const fileConfig = await getTspecConfigFromConfigFile();
     generateTspecParams = {
-      ...fileConfig,
       ...generateTspecParams,
+      ...fileConfig,
     };
   }
 
@@ -142,7 +142,7 @@ const specGenerator = async (args: RunServerOptions) => {
 };
 
 const startTspecServer = async (args: RunServerOptions) => {
-  const generateTspecParams = validateGeneratorOptions(args);
+  const generateTspecParams = await validateGeneratorOptions(args);
   initTspecServer({ ...generateTspecParams, port: args.port, proxyHost: args.proxyHost });
 };
 
