@@ -12,7 +12,7 @@ import { Tspec } from '../types/tspec';
 import { assertIsDefined, isDefined } from '../utils/types';
 
 import { getOpenapiPaths } from './openapiGenerator';
-import { convertToOpenapiSchemas } from './openapiShcmeaConverter';
+import { convertToOpenapiSchemas } from './openapiSchemaConverter';
 import { SchemaMapping } from './types';
 
 export const DEBUG = debug('tspec');
