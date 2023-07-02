@@ -23,13 +23,14 @@
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-plugin-import": "^2.27.5",
-    "rollup": "^3.21.6"
+    "rollup": "^3.21.6",
+    "tsx": "^3.12.7"
   },
   "peerDependencies": {
     "express": "^4.17.1"
   },
   "scripts": {
-    "start": "ts-node src/index.ts",
+    "start": "tsx src/index.ts",
     "build": "concurrently npm:build:*",
     "build:types": "tsc --emitDeclarationOnly",
     "build:rollup": "yarn rollup",
