@@ -134,7 +134,7 @@ export namespace Tspec {
   export type Integer = number;
 
   /**
-   * @TJS-type date
+   * @TJS-format date
    * @examples ["2023-03-30"]
    */
   export type DateString = string;
@@ -146,19 +146,19 @@ export namespace Tspec {
   export type DateTimeString = string;
 
   /**
-   * @TJS-type password
+   * @TJS-format password
    * @examples ["password"]
    */
   export type PasswordString = string;
 
   /**
-   * @TJS-type byte
+   * @TJS-format byte
    * @examples ["U3dhZ2dlciByb2Nrcw=="]
    */
   export type ByteString = string;
 
   /**
-   * @TJS-type binary
+   * @TJS-format binary
    * @examples ["\x00\x00\x00\x02"]
    */
   export type BinaryString = string;
