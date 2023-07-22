@@ -80,8 +80,9 @@
                     }
                   },
                   "publishedDate": {
-                    "type": "date",
+                    "format": "date",
                     "description": "Published Date",
+                    "type": "string",
                     "example": "2023-03-30"
                   }
                 },
@@ -96,7 +97,7 @@
         },
         "responses": {
           "200": {
-            "description": "",
+            "description": "Book Schema",
             "content": {
               "application/json": {
                 "schema": {
@@ -132,8 +133,9 @@
             }
           },
           "publishedDate": {
-            "type": "date",
+            "format": "date",
             "description": "Published Date",
+            "type": "string",
             "example": "2023-03-30"
           }
         },
@@ -168,8 +170,9 @@
             }
           },
           "publishedDate": {
-            "type": "date",
+            "format": "date",
             "description": "Published Date",
+            "type": "string",
             "example": "2023-03-30"
           }
         },
