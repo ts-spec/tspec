@@ -29,6 +29,7 @@ export default defineConfig({
           { text: 'Express Integration', link: '/guide/express-integration' }, // with Request validation
           { text: 'API Testing', link: '/guide/api-testing' },
           { text: 'Authentication', link: '/guide/authentication' },
+          { text: 'File Upload/Download', link: '/guide/file-upload-download' },
         ]
       },
       {

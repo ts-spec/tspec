@@ -33,7 +33,7 @@ export const accessProperty = (
   return value && accessSchema(value, schemas);
 };
 
-const getPropertyByPath = (
+export const getPropertyByPath = (
   obj: Schema | undefined,
   path: string,
   schemas: SchemaMapping,

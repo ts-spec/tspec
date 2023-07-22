@@ -5,7 +5,7 @@ import * as TJS from 'typescript-json-schema';
 import { assertIsDefined } from '../utils/types';
 
 import {
-  accessSchema, getObjectPropertyByPath, getTextListPropertyByPath, getTextPropertyByPath,
+  accessSchema, getObjectPropertyByPath, getPropertyByPath, getTextListPropertyByPath, getTextPropertyByPath,
 } from './schemaParser';
 import { SchemaMapping } from './types';
 
@@ -102,7 +102,7 @@ export const getOpenapiPaths = (
       'responses',
       openapiSchemas,
       { required: true },
-    )!.properties;
+    )!;
 
     const pathParams = getObjectPropertyByPath(spec, 'path', openapiSchemas) as any;
     const queryParams = getObjectPropertyByPath(spec, 'query', openapiSchemas) as any;
@@ -127,18 +127,20 @@ export const getOpenapiPaths = (
         description: bodyParams.description,
         required: true,
         content: {
-          'application/json': {
+          [bodyParams.mediaType || 'application/json']: {
             schema: bodyParams,
           },
         },
       },
       responses: Object.fromEntries(
-        Object.entries(responses).map(([code, schema]) => {
+        Object.keys(responses.properties).map((code) => {
+          const schema = getPropertyByPath(responses, code, openapiSchemas);
+          const { description = '', mediaType } = schema as any;
           const resSchema = {
-            description: (schema as any).description || '',
+            description,
             content: {
-              'application/json': {
-                schema,
+              [mediaType || 'application/json']: {
+                schema: responses.properties[code],
               },
             },
           };

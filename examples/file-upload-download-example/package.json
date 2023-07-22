@@ -1,0 +1,10 @@
+{
+  "name": "file-upload-download-example",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Hyeonss",
+  "license": "MIT",
+  "dependencies": {
+    "tspec": "^0.1.104"
+  }
+}
