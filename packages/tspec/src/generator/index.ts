@@ -122,7 +122,9 @@ const getOpenapiSchemas = async (
       /** NOTE: Additional keywords */
       'deprecated', 'discriminator', 'example', 'externalDocs', 'nullable', /** 'readOnly', 'writeOnly', */
       /** NOTE: parameter validation. see https://swagger.io/docs/specification/describing-parameters/ */
-      'allowReserved', 'style', 'form', 'allowEmptyValue', 'explode', 
+      'allowReserved', 'style', 'form', 'allowEmptyValue', 'explode',
+      /** NOTE: media type. see https://swagger.io/docs/specification/media-types/ */
+      'mediaType',
     ],
   };
   DEBUG({ tjsSettings });
