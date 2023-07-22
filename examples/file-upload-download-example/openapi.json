@@ -1,0 +1,107 @@
+{
+  "info": {
+    "title": "Tspec API",
+    "version": "0.0.1"
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/files/upload": {
+      "post": {
+        "operationId": "FileApiSpec_post_/upload",
+        "tags": [
+          "File"
+        ],
+        "summary": "Upload File",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "mediaType": "multipart/form-data",
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "format": "binary",
+                    "type": "string",
+                    "example": "[\"\\x00\\x00\\x00\\x02\"]"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "fileName": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "fileName"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files/download/{fileName}": {
+      "get": {
+        "operationId": "FileApiSpec_get_/download/{fileName}",
+        "tags": [
+          "File"
+        ],
+        "summary": "Download File",
+        "parameters": [
+          {
+            "name": "fileName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "binary": {
+                      "format": "binary",
+                      "type": "string",
+                      "example": "[\"\\x00\\x00\\x00\\x02\"]"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "binary"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {}
+  }
+}
