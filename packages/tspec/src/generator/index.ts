@@ -157,9 +157,15 @@ const getOpenapiSchemasOnly = (openapiSchemas: SchemaMapping, tspecSymbols: stri
   });
 
   return Object.fromEntries(
-    Object.entries(openapiSchemas).filter(
-      ([key]) => (!tspecSymbols.includes(key) && !tspecPathSchemas.includes(key)),
-    ),
+    Object.entries(openapiSchemas)
+      .filter(
+        ([key]) =>
+          !tspecSymbols.includes(key) && !tspecPathSchemas.includes(key)
+      )
+      .map(([key, value]: [key: string, value: OpenAPIV3.SchemaObject & {mediaType?: string} ]) => {
+        const { mediaType = "", ...body } = value || {};
+        return [key, body];
+      })
   );
 };
 
