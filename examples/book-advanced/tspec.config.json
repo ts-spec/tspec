@@ -1,0 +1,12 @@
+{
+  "specPathGlobs": ["src/**/*.ts"],
+  "tsconfigPath": "./tsconfig.json",
+  "outputPath": "src/openapi.json",
+  "specVersion": 3,
+  "openapi": {
+    "title": "Book Example",
+    "version": "1.0.0"
+  },
+  "debug": false,
+  "ignoreErrors": true
+}
