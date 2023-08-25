@@ -67,6 +67,11 @@ const resolveParameters = ({ path, query, header, cookie }: ResolveParametersPar
   return [...pathParams, ...queryParams, ...headerParams, ...cookieParams];
 };
 
+const convertEmptyObjectToUndefined = (obj: SchemaMapping) => {
+  if (Object.keys(obj).length == 0) return undefined
+  return obj
+}
+
 export const getOpenapiPaths = (
   openapiSchemas: SchemaMapping,
   tspecSymbols: string[],
@@ -108,8 +113,8 @@ export const getOpenapiPaths = (
     const queryParams = getObjectPropertyByPath(spec, 'query', openapiSchemas) as any;
     const headerParams = getObjectPropertyByPath(spec, 'header', openapiSchemas) as any;
     const cookieParams = getObjectPropertyByPath(spec, 'cookie', openapiSchemas) as any;
-    const bodyParams = getObjectPropertyByPath(spec, 'body', openapiSchemas) as any;
-
+    const {mediaType = '', ...bodyParams} = getObjectPropertyByPath(spec, 'body', openapiSchemas) as any || {};
+    
     const operation = {
       operationId: `${controllerName}_${method}_${path}`,
       tags,
@@ -122,13 +127,13 @@ export const getOpenapiPaths = (
         header: headerParams,
         cookie: cookieParams,
       }),
-      requestBody: bodyParams && {
+      requestBody: convertEmptyObjectToUndefined(bodyParams) && {
         description: bodyParams.description,
         required: true,
         content: {
-          [bodyParams?.mediaType || 'application/json']: {
-            schema: bodyParams,
-          },
+          [mediaType || 'application/json']: {
+            schema: bodyParams
+          }
         },
       },
       responses: Object.fromEntries(
