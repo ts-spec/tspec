@@ -1,10 +1,8 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-import { Tspec } from '../../types/tspec';
-import { assertIsDefined } from '../../utils/types';
-
-const TSPEC_CONFIG_FILE_NAME = 'tspec.config.json';
+import { Tspec } from '../types/tspec';
+import { assertIsDefined } from '../utils/types';
 
 const readTspecConfig = (path: string) => {
   try {
@@ -35,7 +33,7 @@ type TspecConfigValidationFunction = (
   type?: 'string' | 'boolean',
 ) => void;
 
-function validateTspecConfig(config: Record<string, any>): asserts config is Tspec.GenerateParams {
+function validateTspecConfig(config: Tspec.GenerateParams): asserts config is Tspec.GenerateParams {
   const errors: TspecConfigError[] = [];
 
   const validatePrimitive: TspecConfigValidationFunction = (property, value, type) => {
@@ -71,11 +69,11 @@ function validateTspecConfig(config: Record<string, any>): asserts config is Tsp
   if (config.outputPath) {
     validatePrimitive('outputPath', config.outputPath, 'string');
   }
-  if (config.openapiTitle) {
-    validatePrimitive('openapiTitle', config.openapiTitle, 'string');
+  if (config.openapi?.title) {
+    validatePrimitive('openapiTitle', config.openapi.title, 'string');
   }
-  if (config.openapiVersion) {
-    validatePrimitive('openapiVersion', config.openapiVersion, 'string');
+  if (config.openapi?.version) {
+    validatePrimitive('openapiVersion', config.openapi.version, 'string');
   }
   if (config.debug) {
     validatePrimitive('debug', config.debug, 'boolean');
@@ -92,14 +90,12 @@ function validateTspecConfig(config: Record<string, any>): asserts config is Tsp
   }
 }
 
-const getConfigPath = (inputPath?: string) => {
-  const filePath = inputPath || TSPEC_CONFIG_FILE_NAME;
+const getConfigPath = (inputPath: string) => {
+  const filePath = inputPath;
   return path.join(process.cwd(), filePath);
 };
 
-export const isTspecFileConfigAvailable = async (
-  inputPath?: string,
-) => {
+export const isTspecFileConfigAvailable = async (inputPath: string) => {
   const configPath = getConfigPath(inputPath);
   return fs.access(configPath)
     .then(() => true)
@@ -107,7 +103,7 @@ export const isTspecFileConfigAvailable = async (
 };
 
 export const getTspecConfigFromConfigFile = async (
-  inputPath?: string,
+  inputPath: string,
 ): Promise<Tspec.GenerateParams> => {
   const configPath = getConfigPath(inputPath);
   const fileResult = await readTspecConfig(configPath);

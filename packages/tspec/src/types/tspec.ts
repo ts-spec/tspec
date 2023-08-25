@@ -108,6 +108,7 @@ export namespace Tspec {
   export interface GenerateParams {
     specPathGlobs?: string[],
     tsconfigPath?: string,
+    configPath?: string,
     outputPath?: string,
     specVersion?: 3,
     openapi?: {
