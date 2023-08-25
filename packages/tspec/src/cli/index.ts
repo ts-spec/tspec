@@ -9,68 +9,17 @@ import { hideBin } from 'yargs/helpers';
 
 import { Tspec } from 'types/tspec';
 
-import { generateTspec } from '../generator';
+import { defaultGenerateParams as defaultArgs, generateTspec } from '../generator';
 import { initTspecServer } from '../server';
-
-import { getTspecConfigFromConfigFile, isTspecFileConfigAvailable } from './config';
-
-type RequiredOpenApiParams = Pick<
-  NonNullable<Tspec.GenerateParams['openapi']>,
-  'title' |
-  'version'
->;
-type OptionalOpenApiParams = Partial<
-  Pick<
-    NonNullable<Tspec.GenerateParams['openapi']>,
-    'securityDefinitions' |
-    'servers'
-  >
->;
-type RequiredTsParams = Required<
-  Pick<
-    Tspec.GenerateParams,
-    'specPathGlobs' |
-    'tsconfigPath' |
-    'specVersion'
-  >
->;
-type OptionalTsParams = Partial<
-  Pick<
-    Tspec.GenerateParams,
-    'outputPath' |
-    'debug' |
-    'ignoreErrors'
-  >
->;
-type DefaultGenerateParams =
-  RequiredTsParams &
-  OptionalTsParams &
-  {
-    openapi: RequiredOpenApiParams & OptionalOpenApiParams,
-  };
 
 enum SupportedSpecVersion {
   THREE = 3,
 }
 
-const defaultArgs: DefaultGenerateParams = {
-  specPathGlobs: ['**/*.ts'],
-  tsconfigPath: 'tsconfig.json',
-  outputPath: undefined,
-  specVersion: SupportedSpecVersion.THREE,
-  openapi: {
-    title: 'Tspec API',
-    version: '0.0.1',
-    securityDefinitions: undefined,
-    servers: undefined,
-  },
-  debug: undefined,
-  ignoreErrors: undefined,
-};
-
 interface GeneratorOptions {
   specPathGlobs: (string | number)[],
   tsconfigPath: string,
+  configPath?: string,
   outputPath?: string,
   specVersion?: SupportedSpecVersion,
   openapiTitle?: string,
@@ -87,6 +36,7 @@ interface RunServerOptions extends GeneratorOptions {
 const generatorOptions = {
   specPathGlobs: { type: 'array', default: defaultArgs.specPathGlobs },
   tsconfigPath: { type: 'string', default: defaultArgs.tsconfigPath },
+  configPath: { type: 'string', default: defaultArgs.configPath },
   outputPath: { type: 'string', default: defaultArgs.outputPath },
   specVersion: { type: 'number' },
   openapiTitle: { type: 'string', default: defaultArgs.openapi.title },
@@ -101,38 +51,27 @@ const runServerOptions = {
   proxyHost: { type: 'string' },
 } as const;
 
-const validateGeneratorOptions = async (args: GeneratorOptions) => {
+const validateGeneratorOptions = (args: GeneratorOptions): Tspec.GenerateParams => {
   if (args.specVersion && !Object.values(SupportedSpecVersion).includes(args.specVersion)) {
     // eslint-disable-next-line max-len
     throw new Error(`Tspec currently supports only OpenAPI Spec with version ${Object.values(SupportedSpecVersion).join(', ')}.`);
   }
 
-  let generateTspecParams: Tspec.GenerateParams = {
-    specPathGlobs: args.specPathGlobs.length > 0
+  return {
+    specPathGlobs: args.specPathGlobs !== defaultArgs.specPathGlobs
       ? args.specPathGlobs.map((glob) => glob.toString())
-      : defaultArgs.specPathGlobs,
-    tsconfigPath: args.tsconfigPath,
-    outputPath: args.outputPath,
-    specVersion: (args.specVersion ?? defaultArgs.specVersion) as SupportedSpecVersion,
+      : undefined,
+    tsconfigPath: args.tsconfigPath !== defaultArgs.tsconfigPath ? args.tsconfigPath : undefined,
+    configPath: args.configPath !== defaultArgs.configPath ? args.configPath : undefined,
+    outputPath: args.outputPath !== defaultArgs.outputPath ? args.outputPath : undefined,
+    specVersion: args.specVersion !== defaultArgs.specVersion ? args.specVersion : undefined,
     openapi: {
-      title: args.openapiTitle,
-      version: args.openapiVersion,
-      securityDefinitions: defaultArgs.openapi.securityDefinitions,
-      servers: defaultArgs.openapi.servers,
+      title: args.openapiTitle !== defaultArgs.openapi.title ? args.openapiTitle : undefined,
+      version: args.openapiVersion !== defaultArgs.openapi.version ? args.openapiVersion : undefined,
     },
-    debug: args.debug,
-    ignoreErrors: args.ignoreErrors,
+    debug: args.debug !== defaultArgs.debug ? args.debug : undefined,
+    ignoreErrors: args.ignoreErrors !== defaultArgs.ignoreErrors ? args.ignoreErrors : undefined,
   };
-
-  if (await isTspecFileConfigAvailable()) {
-    const fileConfig = await getTspecConfigFromConfigFile();
-    generateTspecParams = {
-      ...generateTspecParams,
-      ...fileConfig,
-    };
-  }
-
-  return generateTspecParams;
 };
 
 const specGenerator = async (args: RunServerOptions) => {

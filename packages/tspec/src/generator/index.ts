@@ -14,6 +14,8 @@ import { assertIsDefined, isDefined } from '../utils/types';
 import { getOpenapiPaths } from './openapiGenerator';
 import { convertToOpenapiSchemas } from './openapiSchemaConverter';
 import { SchemaMapping } from './types';
+import { getTspecConfigFromConfigFile, isTspecFileConfigAvailable } from './config';
+import { mergeDeep } from '../utils/merge';
 
 export const DEBUG = debug('tspec');
 
@@ -172,9 +174,40 @@ const getOpenapiSchemasOnly = (openapiSchemas: SchemaMapping, tspecSymbols: stri
   );
 };
 
+export const defaultGenerateParams = {
+  specPathGlobs: ['**/*.ts'],
+  tsconfigPath: 'tsconfig.json',
+  configPath: 'tspec.config.json',
+  outputPath: undefined,
+  specVersion: 3,
+  openapi: {
+    title: 'Tspec API',
+    version: '0.0.1',
+    securityDefinitions: undefined,
+    servers: undefined,
+  },
+  debug: false,
+  ignoreErrors: true,
+} satisfies Tspec.GenerateParams;
+
+const getGenerateTspecParams = async (
+  overrideParams: Tspec.GenerateParams = {},
+): Promise<Tspec.GenerateParams> => {
+  const configPath = overrideParams.configPath || defaultGenerateParams.configPath;
+
+  if (await isTspecFileConfigAvailable(configPath)) {
+    const fileConfig = await getTspecConfigFromConfigFile(configPath);
+    return mergeDeep(mergeDeep(defaultGenerateParams, fileConfig), overrideParams);
+  }
+
+  return mergeDeep(defaultGenerateParams, overrideParams);
+};
+
 export const generateTspec = async (
-  params: Tspec.GenerateParams = {},
+  generateParams: Tspec.GenerateParams = {},
 ): Promise<OpenAPIV3.Document> => {
+  const params = await getGenerateTspecParams(generateParams);
+
   const {
     openapiSchemas, tspecSymbols,
   } = await getOpenapiSchemas(
