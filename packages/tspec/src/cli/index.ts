@@ -33,11 +33,11 @@ interface RunServerOptions extends GeneratorOptions {
   proxyHost?: string,
 }
 
-const generatorOptions = {
+const baseOptions = {
   specPathGlobs: { type: 'array', default: defaultArgs.specPathGlobs },
   tsconfigPath: { type: 'string', default: defaultArgs.tsconfigPath },
   configPath: { type: 'string', default: defaultArgs.configPath },
-  outputPath: { type: 'string', default: defaultArgs.outputPath },
+  outputPath: { type: 'string' },
   specVersion: { type: 'number' },
   openapiTitle: { type: 'string', default: defaultArgs.openapi.title },
   openapiVersion: { type: 'string', default: defaultArgs.openapi.version },
@@ -45,8 +45,13 @@ const generatorOptions = {
   ignoreErrors: { type: 'boolean', default: defaultArgs.ignoreErrors },
 } as const;
 
+const generatorOptions = {
+  ...baseOptions,
+  outputPath: { type: 'string', default: 'openapi.json' },
+} as const;
+
 const runServerOptions = {
-  ...generatorOptions,
+  ...baseOptions,
   port: { type: 'number', default: 7000 },
   proxyHost: { type: 'string' },
 } as const;
@@ -63,7 +68,7 @@ const validateGeneratorOptions = (args: GeneratorOptions): Tspec.GenerateParams 
       : undefined,
     tsconfigPath: args.tsconfigPath !== defaultArgs.tsconfigPath ? args.tsconfigPath : undefined,
     configPath: args.configPath !== defaultArgs.configPath ? args.configPath : undefined,
-    outputPath: args.outputPath !== defaultArgs.outputPath ? args.outputPath : undefined,
+    outputPath: args.outputPath,
     specVersion: args.specVersion !== defaultArgs.specVersion ? args.specVersion : undefined,
     openapi: {
       title: args.openapiTitle !== defaultArgs.openapi.title ? args.openapiTitle : undefined,
@@ -76,7 +81,6 @@ const validateGeneratorOptions = (args: GeneratorOptions): Tspec.GenerateParams 
 
 const specGenerator = async (args: RunServerOptions) => {
   const generateTspecParams = await validateGeneratorOptions(args);
-  generateTspecParams.outputPath ||= 'openapi.json';
   await generateTspec(generateTspecParams);
 };
 

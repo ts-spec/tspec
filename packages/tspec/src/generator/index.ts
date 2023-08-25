@@ -178,13 +178,10 @@ export const defaultGenerateParams = {
   specPathGlobs: ['**/*.ts'],
   tsconfigPath: 'tsconfig.json',
   configPath: 'tspec.config.json',
-  outputPath: undefined,
   specVersion: 3,
   openapi: {
     title: 'Tspec API',
     version: '0.0.1',
-    securityDefinitions: undefined,
-    servers: undefined,
   },
   debug: false,
   ignoreErrors: true,
@@ -202,6 +199,11 @@ const getGenerateTspecParams = async (
 
   return mergeDeep(defaultGenerateParams, overrideParams);
 };
+
+export const createJsonFile = async (filePath: string, json: any) => {
+  await fs.mkdir(dirname(filePath), { recursive: true });
+  await fs.writeFile(filePath, JSON.stringify(json, null, 2));
+}
 
 export const generateTspec = async (
   generateParams: Tspec.GenerateParams = {},
@@ -234,8 +236,7 @@ export const generateTspec = async (
   };
 
   if (params.outputPath) {
-    await fs.mkdir(dirname(params.outputPath), { recursive: true });
-    await fs.writeFile(params.outputPath, JSON.stringify(openapi, null, 2));
+    await createJsonFile(params.outputPath, openapi);
   }
 
   return openapi;
