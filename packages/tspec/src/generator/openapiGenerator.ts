@@ -67,6 +67,11 @@ const resolveParameters = ({ path, query, header, cookie }: ResolveParametersPar
   return [...pathParams, ...queryParams, ...headerParams, ...cookieParams];
 };
 
+const omitPathSchemaFields = (schema: OpenAPIV3.SchemaObject & { mediaType?: string }) => {
+  const { mediaType, ...rest } = schema;
+  return rest;
+}
+
 export const getOpenapiPaths = (
   openapiSchemas: SchemaMapping,
   tspecSymbols: string[],
@@ -127,7 +132,7 @@ export const getOpenapiPaths = (
         required: true,
         content: {
           [bodyParams?.mediaType || 'application/json']: {
-            schema: bodyParams,
+            schema: omitPathSchemaFields(bodyParams),
           },
         },
       },
