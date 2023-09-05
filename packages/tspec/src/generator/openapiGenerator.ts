@@ -133,7 +133,7 @@ export const getOpenapiPaths = (
         content: {
           [bodyParams?.mediaType || 'application/json']: {
             schema: omitPathSchemaFields(bodyParams),
-          }
+          },
         },
       },
       responses: Object.fromEntries(
