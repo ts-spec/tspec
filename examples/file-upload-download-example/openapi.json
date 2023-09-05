@@ -18,7 +18,6 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "mediaType": "multipart/form-data",
                 "type": "object",
                 "properties": {
                   "file": {
@@ -81,18 +80,10 @@
             "content": {
               "application/octet-stream": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "binary": {
-                      "format": "binary",
-                      "type": "string",
-                      "example": "[\"\\x00\\x00\\x00\\x02\"]"
-                    }
-                  },
-                  "additionalProperties": false,
-                  "required": [
-                    "binary"
-                  ]
+                  "format": "binary",
+                  "mediaType": "application/octet-stream",
+                  "type": "string",
+                  "example": "[\"\\x00\\x00\\x00\\x02\"]"
                 }
               }
             }
