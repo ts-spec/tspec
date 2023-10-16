@@ -27,7 +27,7 @@ export const isIntegerSchemaObject = (
  if (isReferenceObject(schema)) {
    return false;
  }
- if (schema.type && schema.type === 'integer') {
+ if (schema.type === 'integer') {
    return true;
  }
  return false;
@@ -104,10 +104,9 @@ export const isNullableObject = (schema: Schema) => {
 };
 
 export function isEmptyObject(obj: Object) {
-  if( Object.keys(obj).length === 0 ) return true; 
+  if (Object.keys(obj).length === 0) {
+    return true;
+  }
 
-  for(const t of Object.values(obj)){
-    if(t!== undefined) return false; 
-  } 
-  return true; 
+  return Object.values(obj).every((v) => v === undefined);
 }

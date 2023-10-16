@@ -140,6 +140,6 @@ export const convertToOpenapiSchemas = async (
   jsonSchemas: TJS.Definition,
 ): Promise<SchemaMapping> => {
   const convertedJsonSchemas = convertToOpenapiTypes(jsonSchemas);
-  const openapiSchemas = await convertDefinition(convertedJsonSchemas) as SchemaMapping;
+  const openapiSchemas = convertDefinition(convertedJsonSchemas) as SchemaMapping;
   return escapeSchemaNames(openapiSchemas);
 };
