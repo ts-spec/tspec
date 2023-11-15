@@ -21,6 +21,7 @@ export type BookApiSpec = Tspec.DefineApiSpec<{
   paths: {
     '/':  {
       get: {
+        operationId: 'searchBooks',
         summary: 'Search Books',
         description: 'Search books by keyword',
         query: {
@@ -36,6 +37,7 @@ export type BookApiSpec = Tspec.DefineApiSpec<{
     },
     '/{id}': {
       patch: {
+        operationId: 'updateBook',
         summary: 'Update Book',
         path: { id: Tspec.Integer },
         body: Omit<Book, 'id'>,

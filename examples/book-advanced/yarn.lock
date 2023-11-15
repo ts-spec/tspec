@@ -805,10 +805,10 @@ ts-node@^10.9.1:
     v8-compile-cache-lib "^3.0.1"
     yn "3.1.1"
 
-tspec@^0.1.107:
-  version "0.1.107"
-  resolved "https://registry.yarnpkg.com/tspec/-/tspec-0.1.107.tgz#107b1a385164731f25b504a7d6787385fd668caf"
-  integrity sha512-sSz7OG6zGKODcdhcouFCxujB9FRS0wZKfA2FQWALyGUxb4mVv8c6SXu5oAux2bW+Qf1v+Zseq0X3FFVGDdk+7Q==
+tspec@^0.1.110:
+  version "0.1.110"
+  resolved "https://registry.yarnpkg.com/tspec/-/tspec-0.1.110.tgz#a383f7314bbb84ac2dc6de6f13f00f3d35c6df1d"
+  integrity sha512-lbmwMLGzyrLd8ZjX48W/1ulhQFD7sDicfbHUWwLZS14vmPVEF2cMYY6xOoszeWvxDQMl4pcXf/BU/10zaCb4eQ==
   dependencies:
     debug "^4.3.4"
     express "^4.18.2"
@@ -817,8 +817,8 @@ tspec@^0.1.107:
     json-schema-to-openapi-schema "^0.4.0"
     openapi-types "^12.0.2"
     swagger-ui-express "^4.6.2"
-    typescript "~4.9.5"
-    typescript-json-schema "^0.57.0"
+    typescript "~5.1.0"
+    typescript-json-schema "^0.62.0"
     yargs "^17.7.1"
 
 type-is@~1.6.18:
@@ -829,10 +829,10 @@ type-is@~1.6.18:
     media-typer "0.3.0"
     mime-types "~2.1.24"
 
-typescript-json-schema@^0.57.0:
-  version "0.57.0"
-  resolved "https://registry.yarnpkg.com/typescript-json-schema/-/typescript-json-schema-0.57.0.tgz#e87e16355ecf942762a7cea224e4f5bf6f65d1c9"
-  integrity sha512-xirQK0s95K3OL7Knve0OOxQHErByCxUsgXr5oCHa9J0jWgiA+9/tidHWPu1UMjRv7MoX5ViP6QmOrWCi+dvRew==
+typescript-json-schema@^0.62.0:
+  version "0.62.0"
+  resolved "https://registry.yarnpkg.com/typescript-json-schema/-/typescript-json-schema-0.62.0.tgz#774b06b0c9d86d7f3580ea9136363a6eafae1470"
+  integrity sha512-qRO6pCgyjKJ230QYdOxDRpdQrBeeino4v5p2rYmSD72Jf4rD3O+cJcROv46sQukm46CLWoeusqvBgKpynEv25g==
   dependencies:
     "@types/json-schema" "^7.0.9"
     "@types/node" "^16.9.2"
@@ -840,13 +840,18 @@ typescript-json-schema@^0.57.0:
     path-equal "^1.2.5"
     safe-stable-stringify "^2.2.0"
     ts-node "^10.9.1"
-    typescript "~4.9.5"
+    typescript "~5.1.0"
     yargs "^17.1.1"
 
-typescript@^4.8.3, typescript@~4.9.5:
+typescript@^4.8.3:
   version "4.9.5"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.9.5.tgz#095979f9bcc0d09da324d58d03ce8f8374cbe65a"
   integrity sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==
+
+typescript@~5.1.0:
+  version "5.1.6"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.1.6.tgz#02f8ac202b6dad2c0dd5e0913745b47a37998274"
+  integrity sha512-zaWCozRZ6DLEWAWFrVDz1H6FVXzUSfTy5FUMWsQlU8Ym5JP9eO4xkTIROFCQvhQf61z6O/G6ugw3SgAnvvm+HA==
 
 unpipe@1.0.0, unpipe@~1.0.0:
   version "1.0.0"
