@@ -438,3 +438,44 @@ paths:
                   "$ref": "#/components/schemas/Author"
 ```
 :::
+
+## OperationId
+
+You can define operationId by using the `operationId` property of the operation type.
+
+::: code-group
+```ts[Tspec]{5}
+export type AuthorApiSpec = Tspec.DefineApiSpec<{
+  paths: {
+    '/authors': {
+      get: {
+        operationId: 'listAuthors',
+        summary: 'List of authors',
+        responses: {
+          200: Author[],
+        },
+      },
+    },
+  }
+}>;
+```
+:::
+
+:::details Generated OpenAPI Spec
+```yaml{4}
+paths:
+  "/authors":
+    get:
+      operationId: listAuthors
+      summary: List of authors
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/Author"
+```
+:::
+

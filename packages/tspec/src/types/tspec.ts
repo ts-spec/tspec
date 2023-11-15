@@ -24,6 +24,7 @@ export namespace Tspec {
     H extends HeaderParam = HeaderParam,
     C extends CookieParam = CookieParam,
   > {
+    operationId?: string,
     summary?: string,
     description?: string,
     tags?: string[],

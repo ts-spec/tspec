@@ -98,6 +98,7 @@ export const getOpenapiPaths = (
     DEBUG({ controllerName, path, method });
     DEBUG({ spec: JSON.stringify(spec, null, 2) });
     const url = getTextPropertyByPath(spec, 'url', openapiSchemas, { required: true });
+    const operationId = getTextPropertyByPath(spec, 'operationId', openapiSchemas);
     const summary = getTextPropertyByPath(spec, 'summary', openapiSchemas);
     const description = getTextPropertyByPath(spec, 'description', openapiSchemas);
     const security = getTextPropertyByPath(spec, 'security', openapiSchemas);
@@ -116,7 +117,7 @@ export const getOpenapiPaths = (
     const bodyParams = getObjectPropertyByPath(spec, 'body', openapiSchemas) as any;
 
     const operation = {
-      operationId: `${controllerName}_${method}_${path}`,
+      operationId: operationId || `${controllerName}_${method}_${path}`,
       tags,
       summary,
       description,
