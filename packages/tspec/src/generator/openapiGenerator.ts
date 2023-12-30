@@ -107,8 +107,7 @@ export const getOpenapiPaths = (
       spec,
       'responses',
       openapiSchemas,
-      { required: true },
-    )!;
+    ) || { properties: {} };
 
     const pathParams = getObjectPropertyByPath(spec, 'path', openapiSchemas) as any;
     const queryParams = getObjectPropertyByPath(spec, 'query', openapiSchemas) as any;
@@ -141,11 +140,12 @@ export const getOpenapiPaths = (
         Object.keys(responses.properties).map((code) => {
           const schema = getPropertyByPath(responses, code, openapiSchemas);
           const { description = '', mediaType } = schema as any;
+          const contentSchema = responses.properties[code];
           const resSchema = {
             description,
             content: {
               [mediaType || 'application/json']: {
-                schema: responses.properties[code],
+                schema: contentSchema,
               },
             },
           };
