@@ -14,6 +14,6 @@
     "typescript": "^4.8.3"
   },
   "dependencies": {
-    "tspec": "^0.1.110"
+    "tspec": "^0.1.111"
   }
 }
