@@ -141,9 +141,11 @@ export const getOpenapiPaths = (
           const schema = getPropertyByPath(responses, code, openapiSchemas);
           const { description = '', mediaType } = schema as any;
           const contentSchema = responses.properties[code];
+          const isNoContent = 'type' in contentSchema && contentSchema.type === 'string'
+            && 'const' in contentSchema && contentSchema.const === '';
           const resSchema = {
             description,
-            content: {
+            content: isNoContent ? undefined : {
               [mediaType || 'application/json']: {
                 schema: contentSchema,
               },
