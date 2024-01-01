@@ -130,6 +130,11 @@ export namespace Tspec {
   export type OpenapiDocument = OpenAPIV3.Document;
 
   /**
+   * Empty Response Body
+   */
+  export type NoContent = "";
+
+  /**
    * @TJS-type integer
    * @examples [1]
    * */

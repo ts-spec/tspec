@@ -107,6 +107,29 @@
             }
           }
         }
+      },
+      "delete": {
+        "operationId": "deleteBook",
+        "tags": [
+          "Book"
+        ],
+        "summary": "Delete Book",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Empty Response Body"
+          }
+        }
       }
     }
   },

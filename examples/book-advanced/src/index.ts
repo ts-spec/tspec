@@ -43,6 +43,12 @@ export type BookApiSpec = Tspec.DefineApiSpec<{
         body: Omit<Book, 'id'>,
         responses: { 200: Book },
       },
+      delete: {
+        operationId: 'deleteBook',
+        summary: 'Delete Book',
+        path: { id: Tspec.Integer },
+        responses: { 204: Tspec.NoContent },
+      },
     },
   }
 }>;
