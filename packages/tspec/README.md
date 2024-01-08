@@ -154,5 +154,10 @@ https://ts-spec.github.io/tspec
 
 
 ---
+
+## Stargazers over time
 Give a ⭐️ if you find this project useful and to show your appreciation! [![Stars](https://img.shields.io/github/stars/ts-spec/tspec?style=social)](https://github.com/ts-spec/tspec/stargazers)
+
+[![Stargazers over time](https://starchart.cc/ts-spec/tspec.svg?variant=adaptive)](https://starchart.cc/ts-spec/tspec)
+
 
