@@ -70,7 +70,7 @@ const handleExamples = (schema: any): any => { // TODO: fix types
 };
 
 const handleConst = (schema: any): any => { // TODO: fix types
-  if (schema.const) {
+  if (schema.const !== undefined) {
     const { const: c, ...rest } = schema;
     return {
       ...rest,
