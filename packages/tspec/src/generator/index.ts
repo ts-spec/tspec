@@ -111,6 +111,7 @@ const getOpenapiSchemas = async (
     strictNullChecks: true,
     ignoreErrors: ignoreErrors || true,
     esModuleInterop: compilerOptions.esModuleInterop,
+    constAsEnum: true,
     // rejectDateType: true,
     validationKeywords: [
       /** NOTE: JSON schema keywords. see https://swagger.io/docs/specification/data-models/keywords/ */
