@@ -72,6 +72,13 @@ const omitPathSchemaFields = (schema: OpenAPIV3.SchemaObject & { mediaType?: str
   return rest;
 }
 
+const isNoContentSchema = (schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject): boolean => (
+  'type' in schema && schema.type === 'string'
+  && 'enum' in schema && Array.isArray(schema.enum)
+  && schema.enum.length === 1 && schema.enum[0] === ''
+)
+
+
 export const getOpenapiPaths = (
   openapiSchemas: SchemaMapping,
   tspecSymbols: string[],
@@ -141,8 +148,7 @@ export const getOpenapiPaths = (
           const schema = getPropertyByPath(responses, code, openapiSchemas);
           const { description = '', mediaType } = schema as any;
           const contentSchema = responses.properties[code];
-          const isNoContent = 'type' in contentSchema && contentSchema.type === 'string'
-            && 'const' in contentSchema && contentSchema.const === '';
+          const isNoContent = isNoContentSchema(contentSchema);
           const resSchema = {
             description,
             content: isNoContent ? undefined : {
