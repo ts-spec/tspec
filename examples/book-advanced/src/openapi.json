@@ -13,6 +13,11 @@
         ],
         "summary": "Search Books",
         "description": "Search books by keyword",
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
         "parameters": [
           {
             "description": "Search keyword",
@@ -50,6 +55,11 @@
           "Book"
         ],
         "summary": "Update Book",
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
@@ -114,6 +124,11 @@
           "Book"
         ],
         "summary": "Delete Book",
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
@@ -204,6 +219,13 @@
           "tags",
           "title"
         ]
+      }
+    },
+    "securitySchemes": {
+      "jwt": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
     }
   }

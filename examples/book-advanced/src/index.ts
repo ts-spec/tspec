@@ -16,6 +16,7 @@ interface Book {
 type Tag = 'Romance' | 'Fantasy' | 'Adventure';
 
 export type BookApiSpec = Tspec.DefineApiSpec<{
+  security: 'jwt',
   tags: ['Book'],
   basePath: '/books',
   paths: {
@@ -53,4 +54,16 @@ export type BookApiSpec = Tspec.DefineApiSpec<{
   }
 }>;
 
-initTspecServer({ outputPath: 'src/openapi.json', port: 3000 });
+initTspecServer({
+  openapi: {
+    securityDefinitions: {
+      jwt: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+      },
+    },
+  },
+  outputPath: 'src/openapi.json',
+  port: 3000,
+});
