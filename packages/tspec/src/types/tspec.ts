@@ -171,6 +171,12 @@ export namespace Tspec {
   export type BinaryString = string;
 
   /**
+   * @items.type string
+   * @items.format binary
+   */
+  export type BinaryStringArray = string[];
+
+  /**
    * @TJS-format email
    * @examples ["test@test.com"]
    * */
