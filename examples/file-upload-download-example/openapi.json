@@ -90,6 +90,63 @@
           }
         }
       }
+    },
+    "/files/multiple-upload": {
+      "post": {
+        "operationId": "FileApiSpec_post_/multiple-upload",
+        "tags": [
+          "File"
+        ],
+        "summary": "Upload Multiple Files",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    },
+                    "type": "array"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "files"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "fileNames": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "fileNames"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

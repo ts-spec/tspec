@@ -127,6 +127,7 @@ The following utility types are provided by Tspec.
 | `Tspec.PasswordString` | Password string (e.g. `password`) |
 | `Tspec.ByteString` | Byte string (e.g. `dGVzdA==`) |
 | `Tspec.BinaryString` | Binary string (e.g. `0x1234`) |
+| `Tspec.BinaryStringArray` | Binary string array (e.g. `[0x1234, 0x5678]`) |
 | `Tspec.EmailString` | Email string (e.g. `test@test.com`) |
 | `Tspec.UuidString` | UUID string (e.g. `123e4567-e89b-12d3-a456-426614174000`) |
 | `Tspec.UrlString` | URL string (e.g. `http://localhost`) |

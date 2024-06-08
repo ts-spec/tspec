@@ -104,3 +104,24 @@ paths:
 
 Then, you can download the file in Swagger UI.
 ![File Download](/assets/images/file-download.png)
+
+## Multiple File Uploads
+
+If you want to upload multiple files, you can use `Tspec.BinaryStringArray` type.
+```ts{6-9}
+export type FileApiSpec = Tspec.DefineApiSpec<{
+  paths: {
+    '/files/multiple-upload': {
+      post: {
+        summary: 'Upload Files',
+        /** @mediaType multipart/form-data */
+        body: {
+          files: Tspec.BinaryStringArray;
+        },
+        responses: { 200: { fileNames: string[] } },
+      },
+    },
+  },
+}>;
+```
+

@@ -24,6 +24,16 @@ export type FileApiSpec = Tspec.DefineApiSpec<{
         },
       },
     },
+    '/multiple-upload': {
+      post: {
+        summary: 'Upload Multiple Files',
+        /** @mediaType multipart/form-data */
+        body: {
+          files: Tspec.BinaryStringArray;
+        },
+        responses: { 200: { fileNames: string[] } },
+      },
+    }
   },
 }>;
 
