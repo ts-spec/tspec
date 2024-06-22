@@ -44,7 +44,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "Schema description defined by JSDoc",
             "content": {
               "application/json": {
                 "schema": {
