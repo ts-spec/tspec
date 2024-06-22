@@ -24,6 +24,7 @@
     "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-plugin-import": "^2.27.5",
     "rollup": "^3.21.6",
+    "rollup-plugin-dts": "^6.1.1",
     "tsx": "^3.12.7"
   },
   "peerDependencies": {
@@ -32,7 +33,6 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "build": "concurrently npm:build:*",
-    "build:types": "tsc --emitDeclarationOnly",
     "build:rollup": "yarn rollup",
     "rollup": "rollup --config rollup.config.ts --configPlugin 'sucrase={transforms: [\"typescript\"]}'",
     "watch": "yarn rollup -w"
@@ -61,6 +61,9 @@
       "default": "./dist/cli.js"
     }
   },
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/ts-spec/tspec"

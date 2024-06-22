@@ -1,5 +1,6 @@
 import nodeResolve from '@rollup/plugin-node-resolve';
 import sucrase from '@rollup/plugin-sucrase';
+import dts from 'rollup-plugin-dts';
 import { defineConfig } from 'rollup';
 
 export default defineConfig([
@@ -46,4 +47,18 @@ export default defineConfig([
       nodeResolve(),
     ],
   },
+  // Type Definitions
+  {
+    input: {
+      index: 'src/index.ts',
+      cli: 'src/cli/index.ts',
+    },
+    output: [
+      {
+        dir: 'dist',
+        format: 'es',
+      },
+    ],
+    plugins: [dts()],
+  }
 ]);
