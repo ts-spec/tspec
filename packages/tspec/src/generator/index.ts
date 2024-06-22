@@ -183,6 +183,7 @@ export const defaultGenerateParams = {
   openapi: {
     title: 'Tspec API',
     version: '0.0.1',
+    description: '',
   },
   debug: false,
   ignoreErrors: true,
@@ -226,6 +227,7 @@ export const generateTspec = async (
     info: {
       title: params.openapi?.title || 'Tspec API',
       version: params.openapi?.version || '0.0.1',
+      description: params.openapi?.description || '',
     },
     openapi: (params.specVersion === 3 && '3.0.3') || '3.0.3',
     paths,

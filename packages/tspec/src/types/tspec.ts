@@ -115,6 +115,7 @@ export namespace Tspec {
     openapi?: {
       title?: string,
       version?: string,
+      description?: string,
       securityDefinitions?: OpenAPIV3.ComponentsObject['securitySchemes'],
       servers?: OpenAPIV3.ServerObject[],
     },

@@ -75,6 +75,9 @@ function validateTspecConfig(config: Tspec.GenerateParams): asserts config is Ts
   if (config.openapi?.version) {
     validatePrimitive('openapiVersion', config.openapi.version, 'string');
   }
+  if (config.openapi?.description){
+    validatePrimitive('openapiDescription', config.openapi.description, 'string');
+  }
   if (config.debug) {
     validatePrimitive('debug', config.debug, 'boolean');
   }

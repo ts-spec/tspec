@@ -56,6 +56,8 @@ export type BookApiSpec = Tspec.DefineApiSpec<{
 
 initTspecServer({
   openapi: {
+    title: 'Book API',
+    description: 'This is a sample Book API',
     securityDefinitions: {
       jwt: {
           type: "http",

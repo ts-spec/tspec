@@ -24,6 +24,7 @@ interface GeneratorOptions {
   specVersion?: SupportedSpecVersion,
   openapiTitle?: string,
   openapiVersion?: string,
+  openapiDescription?: string,
   debug?: boolean,
   ignoreErrors?: boolean,
 }
@@ -41,6 +42,7 @@ const baseOptions = {
   specVersion: { type: 'number' },
   openapiTitle: { type: 'string', default: defaultArgs.openapi.title },
   openapiVersion: { type: 'string', default: defaultArgs.openapi.version },
+  openapiDescription: { type: 'string', default: defaultArgs.openapi.description },
   debug: { type: 'boolean', default: defaultArgs.debug },
   ignoreErrors: { type: 'boolean', default: defaultArgs.ignoreErrors },
 } as const;
@@ -73,6 +75,9 @@ const validateGeneratorOptions = (args: GeneratorOptions): Tspec.GenerateParams 
     openapi: {
       title: args.openapiTitle !== defaultArgs.openapi.title ? args.openapiTitle : undefined,
       version: args.openapiVersion !== defaultArgs.openapi.version ? args.openapiVersion : undefined,
+      description: args.openapiDescription !== defaultArgs.openapi.description
+        ? args.openapiDescription
+        : undefined,
     },
     debug: args.debug !== defaultArgs.debug ? args.debug : undefined,
     ignoreErrors: args.ignoreErrors !== defaultArgs.ignoreErrors ? args.ignoreErrors : undefined,
