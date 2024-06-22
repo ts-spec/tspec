@@ -34,6 +34,7 @@ pnpx tspec generate [options]
 |`--specVersion [version]`|number|Version to use for OpenAPI schema (Currently supports only 3)|`3`|
 |`--openapiTitle [title]`|string|`title` property of OpenAPI schema|`Tspec`|
 |`--openapiVersion [version]`|string|`version` property of OpenAPI schema|`1.0.0`|
+|`--openapiDescription [description]`|string|`description` property of OpenAPI schema|`This is Tspec API`|
 |`--debug [true / false]`|boolean|Print debug information for Tspec|`false`|
 |`--ignoreErrors [true / false]`|boolean|Whether ignore errors in Tspec or not|`false`|
 :::
@@ -84,6 +85,7 @@ Create `tspec.config.json` in your project root directory.
   "openapi": {
     "title": "Tspec API",
     "version": "0.0.1",
+    "description": "This is Tspec API",
   },
   "debug": false,
   "ignoreErrors": true,
@@ -111,6 +113,7 @@ const options: Tspec.GenerateParams = {
   openapi: {
     title: 'Tspec API',
     version: '0.0.1',
+    description: "This is Tspec API",
   },
   debug: false,
   ignoreErrors: true,
@@ -133,6 +136,7 @@ const options: Tspec.InitTspecServerOptions = {
   openapi: {
     title: 'Tspec API',
     version: '0.0.1',
+    description: "This is Tspec API",
   },
   debug: false,
   ignoreErrors: true,

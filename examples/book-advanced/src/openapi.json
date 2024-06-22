@@ -1,7 +1,8 @@
 {
   "info": {
     "title": "Book Example",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "description": "Description"
   },
   "openapi": "3.0.3",
   "paths": {
@@ -219,13 +220,6 @@
           "tags",
           "title"
         ]
-      }
-    },
-    "securitySchemes": {
-      "jwt": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
       }
     }
   }
