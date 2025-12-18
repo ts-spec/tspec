@@ -31,7 +31,10 @@ const getTspecSignatures = (p: ts.Program) => {
     .map((entryPointName) => p.getSourceFile(entryPointName)).filter(isDefined);
 
   const names: string[] = [];
+  // Track name -> filePath to detect true duplicates vs hot-reload duplicates
+  const seenSignatures = new Map<string, string>();
   entryPoints.forEach((srcFile) => {
+    const filePath = srcFile.fileName;
     srcFile.forEachChild((node) => {
       if (!isNodeExported(node)) {
         return;
@@ -49,9 +52,15 @@ const getTspecSignatures = (p: ts.Program) => {
         return;
       }
       const name = (node as any).name.escapedText as string;
-      if (names.includes(name)) {
-        throw new Error(`Duplicate name: ${name}`);
+      const existingFilePath = seenSignatures.get(name);
+      if (existingFilePath) {
+        // Skip if same name from same file (hot-reload duplicate)
+        if (existingFilePath === filePath) {
+          return;
+        }
+        throw new Error(`Duplicate name: ${name} (found in ${existingFilePath} and ${filePath})`);
       }
+      seenSignatures.set(name, filePath);
       names.push(name);
     });
   });
