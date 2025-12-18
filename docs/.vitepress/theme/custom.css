@@ -4,3 +4,40 @@
   /* --vp-home-hero-name-background: -webkit-linear-gradient(120deg, #42E595, #3BB2B8); */
   /* --vp-home-hero-name-background: -webkit-linear-gradient(120deg, #85C48D, #2BB6C7); */
 }
+
+/* Home page markdown content styling */
+.VPHome .vp-doc {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
+}
+
+.VPHome .vp-doc h2 {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--vp-c-divider);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.VPHome .vp-doc p {
+  margin: 16px 0;
+  line-height: 28px;
+}
+
+.VPHome .vp-doc .vp-code-group {
+  margin: 24px 0;
+}
+
+.VPHome .vp-doc pre {
+  border-radius: 8px;
+}
+
+.VPHome .integration-links {
+  margin-top: 32px;
+  padding: 16px 24px;
+  background: var(--vp-c-bg-soft);
+  border-radius: 8px;
+  text-align: center;
+}

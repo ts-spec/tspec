@@ -16,7 +16,6 @@ hero:
 
 features:
   - title: Type-driven OpenAPI
-  # - title: TypeScript ♥ OpenAPI
     icon: 📝
     details: Automatically parses your TypeScript types and generates up-to-date OpenAPI specification.
   - title: Swagger UI Integration
@@ -25,18 +24,18 @@ features:
   - title: Zero Configuration
     icon: ⚡️
     details: Tspec is designed to be zero-configuration. You can start using it right away without any configuration.
-  - title: NestJS Support
-    icon: 🚀
-    details: Generate OpenAPI spec directly from NestJS controllers with a single --nestjs flag.
+  - title: Framework Agnostic
+    icon: 🔌
+    details: Works with any framework - Express, NestJS, Fastify, or standalone TypeScript projects.
 ---
 
-## Two Ways to Generate OpenAPI
+## Integrations
 
-Tspec supports both **type-first** and **NestJS controller** approaches. Choose the one that fits your project!
+Tspec supports multiple ways to generate OpenAPI specs. Choose the approach that fits your project!
 
 ::: code-group
 
-```ts [Type-First Approach]
+```ts [Tspec Types]
 import { Tspec } from "tspec";
 
 interface Book {
@@ -59,7 +58,39 @@ export type BookApiSpec = Tspec.DefineApiSpec<{
 // Run: npx tspec generate
 ```
 
-```ts [NestJS Controller]
+```ts [Express]
+import express from 'express';
+import { Tspec } from 'tspec';
+
+const app = express();
+
+interface Book {
+  id: number;
+  title: string;
+}
+
+/** @summary Get book by id */
+app.get('/books/:id', (req, res) => {
+  const book: Book = { id: 1, title: 'Erta Ale' };
+  res.json(book);
+});
+
+export type BookApiSpec = Tspec.DefineApiSpec<{
+  paths: {
+    '/books/{id}': {
+      get: {
+        summary: 'Get book by id',
+        path: { id: number },
+        responses: { 200: Book },
+      },
+    },
+  }
+}>;
+
+// Run: npx tspec generate
+```
+
+```ts [NestJS]
 import { Controller, Get, Param } from '@nestjs/common';
 
 interface Book {
@@ -69,9 +100,7 @@ interface Book {
 
 @Controller('books')
 export class BooksController {
-  /**
-   * @summary Get book by id
-   */
+  /** @summary Get book by id */
   @Get(':id')
   findOne(@Param('id') id: string): Promise<Book> {
     // ...
@@ -83,7 +112,7 @@ export class BooksController {
 
 :::
 
-Both approaches generate the same OpenAPI specification:
+All approaches generate the same OpenAPI specification:
 
 ```yaml
 paths:
@@ -103,4 +132,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/Book'
 ```
+
+<div class="integration-links">
+
+**Learn more:** [Tspec Types](/guide/defining-api-spec) · [Express](/guide/express-integration) · [NestJS](/guide/nestjs-integration)
+
+</div>
 
