@@ -5,7 +5,7 @@ import * as TJS from 'typescript-json-schema';
 import { assertIsDefined } from '../utils/types';
 
 import {
-  accessSchema, getObjectPropertyByPath, getPropertyByPath, getRawPropertyByPath, getTextListPropertyByPath, getTextPropertyByPath,
+  accessSchema, getObjectPropertyByPath, getPropertyByPath, getTextListPropertyByPath, getTextPropertyByPath,
 } from './schemaParser';
 import { SchemaMapping } from './types';
 
@@ -67,11 +67,8 @@ const resolveParameters = ({ path, query, header, cookie }: ResolveParametersPar
   return [...pathParams, ...queryParams, ...headerParams, ...cookieParams];
 };
 
-const omitSchemaMetaFields = (schema: any) => {
-  if (!schema || '$ref' in schema) {
-    return schema;
-  }
-  const { mediaType, description, ...rest } = schema;
+const omitPathSchemaFields = (schema: OpenAPIV3.SchemaObject & { mediaType?: string }) => {
+  const { mediaType, ...rest } = schema;
   return rest;
 }
 
@@ -124,7 +121,6 @@ export const getOpenapiPaths = (
     const headerParams = getObjectPropertyByPath(spec, 'header', openapiSchemas) as any;
     const cookieParams = getObjectPropertyByPath(spec, 'cookie', openapiSchemas) as any;
     const bodyParams = getPropertyByPath(spec, 'body', openapiSchemas) as any;
-    const bodySchema = getRawPropertyByPath(spec, 'body', openapiSchemas) as any;
 
     const operation = {
       operationId: operationId || `${controllerName}_${method}_${path}`,
@@ -143,21 +139,25 @@ export const getOpenapiPaths = (
         required: true,
         content: {
           [bodyParams?.mediaType || 'application/json']: {
-            schema: omitSchemaMetaFields(bodySchema),
+            schema: omitPathSchemaFields(bodyParams),
           },
         },
       },
       responses: Object.fromEntries(
         Object.keys(responses.properties).map((code) => {
           const schema = getPropertyByPath(responses, code, openapiSchemas);
-          const { description = '', mediaType } = schema as any;
-          const contentSchema = responses.properties[code];
+          const { mediaType } = schema as any;
+          const contentSchema = responses.properties[code] as any;
           const isNoContent = isNoContentSchema(contentSchema);
+          // Use JSDoc description from contentSchema, fallback to resolved schema description
+          const description = contentSchema?.description || (schema as any)?.description || '';
+          // Remove description from schema to avoid duplication in output
+          const { description: _, ...cleanContentSchema } = contentSchema || {};
           const resSchema = {
             description,
             content: isNoContent ? undefined : {
               [mediaType || 'application/json']: {
-                schema: contentSchema,
+                schema: cleanContentSchema,
               },
             },
           };
