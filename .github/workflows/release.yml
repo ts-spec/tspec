@@ -47,6 +47,10 @@ jobs:
       - name: Build
         run: yarn build
 
+      - name: Pull latest changes
+        run: git pull --rebase
+        working-directory: ${{ github.workspace }}
+
       - name: Bump version
         id: bump
         run: |
@@ -59,6 +63,7 @@ jobs:
           git add package.json
           git commit -m "chore: bump version to v${{ steps.bump.outputs.version }}"
           git push
+        working-directory: ${{ github.workspace }}
 
       - name: Create Git tag
         run: |
