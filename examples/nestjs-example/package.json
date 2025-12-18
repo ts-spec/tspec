@@ -1,0 +1,16 @@
+{
+  "name": "nestjs-example",
+  "version": "1.0.0",
+  "description": "NestJS example for Tspec",
+  "scripts": {
+    "generate": "tspec generate --nestjs --openapiTitle 'NestJS Books API'"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "reflect-metadata": "^0.1.13",
+    "tspec": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.0"
+  }
+}

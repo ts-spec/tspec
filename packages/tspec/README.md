@@ -12,6 +12,7 @@ Type-driven API Documentation library for [TypeScript](https://www.typescriptlan
 - **Easy to learn**: No need to learn new OpenAPI Spec syntax. Just use TypeScript types.
 - **Easy to use**: Only few lines of code are needed to generate OpenAPI Specification.
 - **Flexible**: You can use any framework you want. It doesn't impose any framework-specific constraints.
+- **NestJS Support**: Generate OpenAPI spec directly from NestJS controllers with `--nestjs` flag.
 
 ## Installation
 ```bash
@@ -148,6 +149,31 @@ const initServer = async () => {
 }
 initServer();
 ```
+
+## NestJS Support
+
+Tspec can generate OpenAPI spec directly from your NestJS controllers:
+
+```ts
+@Controller('books')
+export class BooksController {
+  @Get(':id')
+  findOne(@Param('id') id: string): Promise<Book> {
+    // ...
+  }
+
+  @Post()
+  create(@Body() dto: CreateBookDto): Promise<Book> {
+    // ...
+  }
+}
+```
+
+```bash
+npx tspec generate --nestjs
+```
+
+See the [NestJS Integration Guide](https://ts-spec.github.io/tspec/guide/nestjs-integration) for more details.
 
 ## Documentation
 https://ts-spec.github.io/tspec
