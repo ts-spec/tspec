@@ -1,0 +1,134 @@
+{
+  "paths": {
+    "/tasks": {
+      "get": {
+        "summary": "Get all tasks",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": ["pending", "active", "completed", "cancelled"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [1, 2, 3, 4, 5],
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Task"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create task",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "description": "Task title",
+                    "type": "string"
+                  },
+                  "status": {
+                    "description": "Task status",
+                    "enum": ["pending", "active", "completed", "cancelled"],
+                    "type": "string"
+                  },
+                  "priority": {
+                    "description": "Task priority",
+                    "enum": [1, 2, 3, 4, 5],
+                    "type": "number"
+                  },
+                  "tags": {
+                    "description": "Optional tags",
+                    "type": "array",
+                    "items": {
+                      "enum": ["urgent", "important", "low"],
+                      "type": "string"
+                    }
+                  }
+                },
+                "additionalProperties": false,
+                "required": ["title", "status", "priority"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Task with enum/union types",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Task": {
+        "description": "Task with enum/union types",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Task ID",
+            "type": "number"
+          },
+          "title": {
+            "description": "Task title",
+            "type": "string"
+          },
+          "status": {
+            "description": "Task status",
+            "enum": ["pending", "active", "completed", "cancelled"],
+            "type": "string"
+          },
+          "priority": {
+            "description": "Task priority",
+            "enum": [1, 2, 3, 4, 5],
+            "type": "number"
+          },
+          "tags": {
+            "description": "Optional tags",
+            "type": "array",
+            "items": {
+              "enum": ["urgent", "important", "low"],
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": ["id", "title", "status", "priority"]
+      }
+    }
+  }
+}

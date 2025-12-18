@@ -1,0 +1,122 @@
+{
+  "paths": {
+    "/users": {
+      "get": {
+        "summary": "Get all users",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create user",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "User name",
+                    "type": "string"
+                  },
+                  "email": {
+                    "description": "User email",
+                    "type": "string"
+                  },
+                  "isActive": {
+                    "description": "Is active",
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false,
+                "required": ["name", "isActive"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Basic User Schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Get user by id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Basic User Schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "description": "Basic User Schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "User ID",
+            "type": "number"
+          },
+          "name": {
+            "description": "User name",
+            "type": "string"
+          },
+          "email": {
+            "description": "User email",
+            "type": "string"
+          },
+          "isActive": {
+            "description": "Is active",
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["id", "name", "isActive"]
+      }
+    }
+  }
+}

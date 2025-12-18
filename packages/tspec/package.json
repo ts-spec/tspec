@@ -25,7 +25,8 @@
     "eslint-plugin-import": "^2.27.5",
     "rollup": "^3.21.6",
     "rollup-plugin-dts": "^6.1.1",
-    "tsx": "^3.12.7"
+    "tsx": "^3.12.7",
+    "vitest": "^4.0.16"
   },
   "peerDependencies": {
     "express": "^4.17.1"
@@ -35,7 +36,9 @@
     "build": "concurrently npm:build:*",
     "build:rollup": "yarn rollup",
     "rollup": "rollup --config rollup.config.ts --configPlugin 'sucrase={transforms: [\"typescript\"]}'",
-    "watch": "yarn rollup -w"
+    "watch": "yarn rollup -w",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "debug": "^4.3.4",

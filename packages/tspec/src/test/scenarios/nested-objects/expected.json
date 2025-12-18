@@ -1,0 +1,163 @@
+{
+  "paths": {
+    "/employees": {
+      "get": {
+        "summary": "Get all employees",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Employee"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create employee",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "Employee name",
+                    "type": "string"
+                  },
+                  "homeAddress": {
+                    "$ref": "#/components/schemas/Address"
+                  },
+                  "workAddress": {
+                    "$ref": "#/components/schemas/Address"
+                  },
+                  "company": {
+                    "$ref": "#/components/schemas/Company"
+                  }
+                },
+                "additionalProperties": false,
+                "required": ["name", "homeAddress", "company"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Employee with nested objects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Employee"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/employees/{id}": {
+      "get": {
+        "summary": "Get employee by id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Employee with nested objects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Employee"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Address": {
+        "description": "Address schema",
+        "type": "object",
+        "properties": {
+          "street": {
+            "description": "Street name",
+            "type": "string"
+          },
+          "city": {
+            "description": "City name",
+            "type": "string"
+          },
+          "zipCode": {
+            "description": "Zip code",
+            "type": "string"
+          },
+          "country": {
+            "description": "Country",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["street", "city", "zipCode", "country"]
+      },
+      "Company": {
+        "description": "Company schema",
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "Company name",
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["name", "address"]
+      },
+      "Employee": {
+        "description": "Employee with nested objects",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Employee ID",
+            "type": "number"
+          },
+          "name": {
+            "description": "Employee name",
+            "type": "string"
+          },
+          "homeAddress": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "workAddress": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "company": {
+            "$ref": "#/components/schemas/Company"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["id", "name", "homeAddress", "company"]
+      }
+    }
+  }
+}
