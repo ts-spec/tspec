@@ -464,6 +464,41 @@ describe('Tspec Schema Generation', () => {
       expect(errorSchema?.properties).toHaveProperty('details');
     });
   });
+
+  describe('Union Type Body', () => {
+    let spec: OpenAPIV3.Document;
+
+    beforeAll(async () => {
+      spec = await generateSpec(path.join(SCENARIOS_DIR, 'union-body'));
+    });
+
+    it('should generate requestBody with union type (anyOf)', () => {
+      const operation = getPathOperation(spec, '/books', 'post');
+      expect(operation).toBeDefined();
+      
+      const bodySchema = getRequestBodySchema(operation!) as any;
+      expect(bodySchema).toBeDefined();
+      expect(bodySchema?.anyOf).toBeDefined();
+      expect(bodySchema?.anyOf).toHaveLength(2);
+    });
+
+    it('should include both union variants in anyOf', () => {
+      const operation = getPathOperation(spec, '/books', 'post');
+      const bodySchema = getRequestBodySchema(operation!) as any;
+      
+      const poemVariant = bodySchema?.anyOf?.find((v: any) => 
+        v.properties?.type?.enum?.[0] === 'poem'
+      );
+      expect(poemVariant).toBeDefined();
+      expect(poemVariant?.properties?.verses?.type).toBe('number');
+      
+      const novelVariant = bodySchema?.anyOf?.find((v: any) => 
+        v.properties?.type?.enum?.[0] === 'novel'
+      );
+      expect(novelVariant).toBeDefined();
+      expect(novelVariant?.properties?.chapters?.type).toBe('number');
+    });
+  });
 });
 
 describe('Scenario Snapshot Tests', () => {
@@ -477,6 +512,7 @@ describe('Scenario Snapshot Tests', () => {
     'query-params',
     'jsdoc-annotations',
     'multiple-responses',
+    'union-body',
   ])('scenario "%s" should match expected output structure', async (scenarioName: string) => {
     const scenarioDir = path.join(SCENARIOS_DIR, scenarioName);
     const spec = await generateSpec(scenarioDir);
