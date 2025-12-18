@@ -20,6 +20,11 @@ features:
     details: Automatically parses your TypeScript types and generates up-to-date OpenAPI specification.
     link: /guide/defining-api-spec
     linkText: Learn more
+  - title: Zero Configuration
+    icon: ⚡️
+    details: Tspec is designed to be zero-configuration. You can start using it right away without any setup.
+    link: /guide/getting-started
+    linkText: Get started
   - title: Swagger UI Integration
     icon: 💎
     details: Tspec integrates Swagger UI to provide a beautiful and interactive API documentation.
