@@ -120,7 +120,7 @@ export const getOpenapiPaths = (
     const queryParams = getObjectPropertyByPath(spec, 'query', openapiSchemas) as any;
     const headerParams = getObjectPropertyByPath(spec, 'header', openapiSchemas) as any;
     const cookieParams = getObjectPropertyByPath(spec, 'cookie', openapiSchemas) as any;
-    const bodyParams = getObjectPropertyByPath(spec, 'body', openapiSchemas) as any;
+    const bodyParams = getPropertyByPath(spec, 'body', openapiSchemas) as any;
 
     const operation = {
       operationId: operationId || `${controllerName}_${method}_${path}`,
