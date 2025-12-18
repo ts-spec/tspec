@@ -5,7 +5,7 @@ import * as TJS from 'typescript-json-schema';
 import { assertIsDefined } from '../utils/types';
 
 import {
-  accessSchema, getObjectPropertyByPath, getPropertyByPath, getTextListPropertyByPath, getTextPropertyByPath,
+  accessSchema, getObjectPropertyByPath, getPropertyByPath, getRawPropertyByPath, getTextListPropertyByPath, getTextPropertyByPath,
 } from './schemaParser';
 import { SchemaMapping } from './types';
 
@@ -67,11 +67,6 @@ const resolveParameters = ({ path, query, header, cookie }: ResolveParametersPar
   return [...pathParams, ...queryParams, ...headerParams, ...cookieParams];
 };
 
-const omitPathSchemaFields = (schema: OpenAPIV3.SchemaObject & { mediaType?: string }) => {
-  const { mediaType, ...rest } = schema;
-  return rest;
-}
-
 const isNoContentSchema = (schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject): boolean => (
   'type' in schema && schema.type === 'string'
   && 'enum' in schema && Array.isArray(schema.enum)
@@ -121,6 +116,7 @@ export const getOpenapiPaths = (
     const headerParams = getObjectPropertyByPath(spec, 'header', openapiSchemas) as any;
     const cookieParams = getObjectPropertyByPath(spec, 'cookie', openapiSchemas) as any;
     const bodyParams = getPropertyByPath(spec, 'body', openapiSchemas) as any;
+    const bodySchema = getRawPropertyByPath(spec, 'body', openapiSchemas) as any;
 
     const operation = {
       operationId: operationId || `${controllerName}_${method}_${path}`,
@@ -139,7 +135,7 @@ export const getOpenapiPaths = (
         required: true,
         content: {
           [bodyParams?.mediaType || 'application/json']: {
-            schema: omitPathSchemaFields(bodyParams),
+            schema: bodySchema,
           },
         },
       },
