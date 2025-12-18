@@ -1,0 +1,201 @@
+{
+  "paths": {
+    "/articles/": {
+      "get": {
+        "tags": ["Article"],
+        "summary": "Get all articles",
+        "description": "Retrieve a list of all articles",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Article"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Article"],
+        "summary": "Create article",
+        "description": "Create a new article (requires authentication)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "description": "Article title",
+                    "type": "string"
+                  },
+                  "content": {
+                    "description": "Article content",
+                    "type": "string"
+                  },
+                  "authorId": {
+                    "description": "Author ID",
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false,
+                "required": ["title", "content", "authorId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Article schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Article"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/articles/{id}": {
+      "get": {
+        "tags": ["Article"],
+        "summary": "Get article by id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Article schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Article"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Article", "Admin"],
+        "summary": "Update article",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "description": "Article title",
+                    "type": "string"
+                  },
+                  "content": {
+                    "description": "Article content",
+                    "type": "string"
+                  },
+                  "authorId": {
+                    "description": "Author ID",
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false,
+                "required": ["title", "content", "authorId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Article schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Article"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Article", "Admin"],
+        "summary": "Delete article",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Empty Response Body"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Article": {
+        "description": "Article schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Article ID",
+            "type": "number"
+          },
+          "title": {
+            "description": "Article title",
+            "type": "string"
+          },
+          "content": {
+            "description": "Article content",
+            "type": "string"
+          },
+          "authorId": {
+            "description": "Author ID",
+            "type": "number"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["id", "title", "content", "authorId"]
+      }
+    }
+  }
+}

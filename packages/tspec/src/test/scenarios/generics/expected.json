@@ -1,0 +1,180 @@
+{
+  "paths": {
+    "/products": {
+      "get": {
+        "summary": "Get paginated products",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pagination wrapper",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse%3CProduct%3E"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/categories": {
+      "get": {
+        "summary": "Get paginated categories",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pagination wrapper",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse%3CCategory%3E"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Product": {
+        "description": "Product schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Product ID",
+            "type": "number"
+          },
+          "name": {
+            "description": "Product name",
+            "type": "string"
+          },
+          "price": {
+            "description": "Product price",
+            "type": "number"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["id", "name", "price"]
+      },
+      "Category": {
+        "description": "Category schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Category ID",
+            "type": "number"
+          },
+          "name": {
+            "description": "Category name",
+            "type": "string"
+          },
+          "description": {
+            "description": "Category description",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["id", "name"]
+      },
+      "PaginatedResponse_Product_": {
+        "description": "Pagination wrapper",
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "Items in current page",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Product"
+            }
+          },
+          "total": {
+            "description": "Total count",
+            "type": "number"
+          },
+          "page": {
+            "description": "Current page",
+            "type": "number"
+          },
+          "pageSize": {
+            "description": "Items per page",
+            "type": "number"
+          },
+          "hasNext": {
+            "description": "Has next page",
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["items", "total", "page", "pageSize", "hasNext"]
+      },
+      "PaginatedResponse_Category_": {
+        "description": "Pagination wrapper",
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "Items in current page",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Category"
+            }
+          },
+          "total": {
+            "description": "Total count",
+            "type": "number"
+          },
+          "page": {
+            "description": "Current page",
+            "type": "number"
+          },
+          "pageSize": {
+            "description": "Items per page",
+            "type": "number"
+          },
+          "hasNext": {
+            "description": "Has next page",
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["items", "total", "page", "pageSize", "hasNext"]
+      }
+    }
+  }
+}

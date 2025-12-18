@@ -1,0 +1,118 @@
+{
+  "paths": {
+    "/search": {
+      "get": {
+        "summary": "Search with various query params",
+        "parameters": [
+          {
+            "description": "Search keyword",
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page number",
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "description": "Items per page",
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "description": "Sort by field",
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": ["title", "score", "date"],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sort order",
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by tags",
+            "name": "tags",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "description": "Include archived",
+            "name": "includeArchived",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchResult"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SearchResult": {
+        "description": "Search result",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Result ID",
+            "type": "number"
+          },
+          "title": {
+            "description": "Result title",
+            "type": "string"
+          },
+          "score": {
+            "description": "Result score",
+            "type": "number"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["id", "title", "score"]
+      }
+    }
+  }
+}

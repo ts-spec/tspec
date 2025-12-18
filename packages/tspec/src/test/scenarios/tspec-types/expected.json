@@ -1,0 +1,129 @@
+{
+  "paths": {
+    "/events": {
+      "get": {
+        "summary": "Get all events",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Event"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{id}": {
+      "get": {
+        "summary": "Get event by id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "examples": [1]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Event with Tspec special types",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete event",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "examples": [1]
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Empty Response Body"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Event": {
+        "description": "Event with Tspec special types",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Event ID",
+            "type": "integer",
+            "examples": [1]
+          },
+          "title": {
+            "description": "Event title",
+            "type": "string"
+          },
+          "date": {
+            "description": "Event date",
+            "type": "string",
+            "format": "date",
+            "examples": ["2023-03-30"]
+          },
+          "createdAt": {
+            "description": "Created at",
+            "type": "string",
+            "format": "date-time",
+            "examples": ["2023-03-30T12:00:00Z"]
+          },
+          "organizerEmail": {
+            "description": "Organizer email",
+            "type": "string",
+            "format": "email",
+            "examples": ["test@test.com"]
+          },
+          "uuid": {
+            "description": "Event UUID",
+            "type": "string",
+            "format": "uuid",
+            "examples": ["00000000-0000-0000-0000-000000000000"]
+          },
+          "url": {
+            "description": "Event URL",
+            "type": "string",
+            "format": "uri",
+            "examples": ["http://localhost"]
+          },
+          "coverImage": {
+            "description": "Cover image",
+            "type": "string",
+            "format": "uri",
+            "examples": ["https://picsum.photos/200/300"]
+          }
+        },
+        "additionalProperties": false,
+        "required": ["id", "title", "date", "createdAt", "organizerEmail", "uuid", "url"]
+      }
+    }
+  }
+}

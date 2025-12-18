@@ -1,0 +1,126 @@
+{
+  "paths": {
+    "/profiles": {
+      "get": {
+        "summary": "Get all profiles",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserProfile"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create profile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "description": "Username",
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 20,
+                    "pattern": "^[a-zA-Z0-9_]+$"
+                  },
+                  "age": {
+                    "description": "User age",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 150
+                  },
+                  "email": {
+                    "description": "User email",
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "website": {
+                    "description": "User website",
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "name": {
+                    "type": "string",
+                    "deprecated": true
+                  }
+                },
+                "additionalProperties": false,
+                "required": ["username", "email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User profile with JSDoc annotations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserProfile": {
+        "description": "User profile with JSDoc annotations",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "User ID",
+            "type": "number",
+            "minimum": 1
+          },
+          "username": {
+            "description": "Username",
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 20,
+            "pattern": "^[a-zA-Z0-9_]+$"
+          },
+          "age": {
+            "description": "User age",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 150
+          },
+          "email": {
+            "description": "User email",
+            "type": "string",
+            "format": "email"
+          },
+          "website": {
+            "description": "User website",
+            "type": "string",
+            "format": "uri"
+          },
+          "name": {
+            "type": "string",
+            "deprecated": true
+          }
+        },
+        "additionalProperties": false,
+        "required": ["id", "username", "email"]
+      }
+    }
+  }
+}
