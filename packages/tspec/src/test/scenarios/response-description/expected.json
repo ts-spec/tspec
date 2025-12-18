@@ -1,0 +1,72 @@
+{
+  "info": {
+    "title": "Tspec API",
+    "version": "0.0.1",
+    "description": ""
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/tasks/{id}": {
+      "delete": {
+        "operationId": "ResponseDescriptionApiSpec_delete_/tasks/{id}",
+        "tags": [],
+        "summary": "Delete a task",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Task deleted successfully"
+          },
+          "400": {
+            "description": "Invalid parameters provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "message"
+        ]
+      }
+    }
+  }
+}
