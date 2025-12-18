@@ -11,7 +11,9 @@ export const accessSchema = (
   }
   if ('$ref' in obj) {
     const [, schemaName] = obj.$ref.split('#/components/schemas/');
-    return schemas[schemaName];
+    // Try URL-decoded name first (for typescript-json-schema >= 0.67)
+    const decodedName = decodeURIComponent(schemaName);
+    return schemas[decodedName] || schemas[schemaName];
   }
   return obj;
 };

@@ -102,9 +102,12 @@ const findAllRefAndReplace = (schema: any, nameMapping: any): any => { // TODO: 
   if (schema && typeof schema === 'object') {
     if (schema.$ref) {
       const [, schemaName] = schema.$ref.split('#/definitions/');
+      // Handle URL-encoded $ref from typescript-json-schema >= 0.67
+      const decodedName = decodeURIComponent(schemaName);
+      const mappedName = nameMapping[decodedName] || nameMapping[schemaName];
       return {
         ...schema,
-        $ref: `#/components/schemas/${nameMapping[schemaName]}`,
+        $ref: `#/components/schemas/${mappedName}`,
       };
     }
     return Object.fromEntries(
