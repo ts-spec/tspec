@@ -237,7 +237,35 @@ const buildSchemaRef = (
       const required: string[] = [];
 
       for (const prop of typeDef.properties) {
-        properties[prop.name] = buildSchemaRef(prop.type, schemas, typeDefinitions, enumDefinitions);
+        const baseSchema = buildSchemaRef(prop.type, schemas, typeDefinitions, enumDefinitions);
+        
+        // Merge JSDoc tags into the schema
+        const propSchema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject = '$ref' in baseSchema
+          ? baseSchema
+          : {
+              ...baseSchema,
+              description: prop.description || baseSchema.description,
+              example: prop.example,
+              format: prop.format || baseSchema.format,
+              deprecated: prop.deprecated,
+              minimum: prop.minimum,
+              maximum: prop.maximum,
+              minLength: prop.minLength,
+              maxLength: prop.maxLength,
+              pattern: prop.pattern,
+              default: prop.default,
+            };
+        
+        // Clean up undefined values
+        if (!('$ref' in propSchema)) {
+          Object.keys(propSchema).forEach((key) => {
+            if ((propSchema as Record<string, unknown>)[key] === undefined) {
+              delete (propSchema as Record<string, unknown>)[key];
+            }
+          });
+        }
+        
+        properties[prop.name] = propSchema;
         if (prop.required) {
           required.push(prop.name);
         }
