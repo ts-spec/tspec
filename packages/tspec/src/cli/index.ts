@@ -7,9 +7,12 @@ import yargs from 'yargs';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { hideBin } from 'yargs/helpers';
 
+import fs from 'fs/promises';
+
 import { Tspec } from 'types/tspec';
 
 import { defaultGenerateParams as defaultArgs, generateTspec } from '../generator';
+import { parseNestControllers, generateOpenApiFromNest } from '../nestjs';
 import { initTspecServer } from '../server';
 
 enum SupportedSpecVersion {
@@ -27,6 +30,9 @@ interface GeneratorOptions {
   openapiDescription?: string,
   debug?: boolean,
   ignoreErrors?: boolean,
+  // NestJS options
+  nestjs?: boolean,
+  controllerGlobs?: readonly (string | number)[] | (string | number)[],
 }
 
 interface RunServerOptions extends GeneratorOptions {
@@ -50,6 +56,8 @@ const baseOptions = {
 const generatorOptions = {
   ...baseOptions,
   outputPath: { type: 'string', default: 'openapi.json' },
+  nestjs: { type: 'boolean', default: false, description: 'Generate from NestJS controllers' },
+  controllerGlobs: { type: 'array', default: ['src/**/*.controller.ts'], description: 'Glob patterns for NestJS controller files (used with --nestjs)' },
 } as const;
 
 const runServerOptions = {
@@ -84,7 +92,35 @@ const validateGeneratorOptions = (args: GeneratorOptions): Tspec.GenerateParams 
   };
 };
 
-const specGenerator = async (args: RunServerOptions) => {
+const specGenerator = async (args: GeneratorOptions) => {
+  // NestJS mode
+  if (args.nestjs) {
+    console.log('Parsing NestJS controllers...');
+
+    const app = parseNestControllers({
+      tsconfigPath: args.tsconfigPath,
+      controllerGlobs: args.controllerGlobs
+        ? Array.from(args.controllerGlobs).map((g) => g.toString())
+        : ['src/**/*.controller.ts'],
+    });
+
+    console.log(`Found ${app.controllers.length} controller(s)`);
+    for (const controller of app.controllers) {
+      console.log(`  - ${controller.name}: ${controller.methods.length} method(s)`);
+    }
+
+    const openapi = generateOpenApiFromNest(app, {
+      title: args.openapiTitle,
+      version: args.openapiVersion,
+      description: args.openapiDescription,
+    });
+
+    await fs.writeFile(args.outputPath || 'openapi.json', JSON.stringify(openapi, null, 2), 'utf-8');
+    console.log(`\nGenerated OpenAPI spec: ${args.outputPath || 'openapi.json'}`);
+    return;
+  }
+
+  // Standard Tspec mode
   const generateTspecParams = await validateGeneratorOptions(args);
   await generateTspec(generateTspecParams);
 };
@@ -93,6 +129,7 @@ const startTspecServer = async (args: RunServerOptions) => {
   const generateTspecParams = await validateGeneratorOptions(args);
   initTspecServer({ ...generateTspecParams, port: args.port, proxyHost: args.proxyHost });
 };
+
 
 export const runCli = async () => yargs(hideBin(process.argv))
   .usage('Usage: $0 <command> [options]')

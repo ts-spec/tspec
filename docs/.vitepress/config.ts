@@ -26,7 +26,8 @@ export default defineConfig({
           { text: 'Describing Schema', link: '/guide/describing-schema' },
           { text: 'Defining API Spec', link: '/guide/defining-api-spec' },
           { text: 'CRUD API Example', link: '/guide/crud-api-example' },
-          { text: 'Express Integration', link: '/guide/express-integration' }, // with Request validation
+          { text: 'Express Integration', link: '/guide/express-integration' },
+          { text: 'NestJS Integration', link: '/guide/nestjs-integration' },
           { text: 'API Testing', link: '/guide/api-testing' },
           { text: 'Authentication', link: '/guide/authentication' },
           { text: 'File Upload/Download', link: '/guide/file-upload-download' },

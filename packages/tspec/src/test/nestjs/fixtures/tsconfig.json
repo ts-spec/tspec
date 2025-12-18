@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "ES2021",
+    "skipLibCheck": true,
+    "strictNullChecks": true
+  },
+  "include": ["./*.ts"]
+}
