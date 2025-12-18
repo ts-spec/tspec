@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import * as glob from 'glob';
+import { globSync } from 'glob';
 
 import {
   NestControllerMetadata,
@@ -28,7 +28,7 @@ export const parseNestControllers = (options: NestParserOptions): ParsedNestApp 
   );
 
   const files = controllerGlobs.flatMap((pattern) =>
-    glob.sync(pattern, { ignore: ['**/node_modules/**'] })
+    globSync(pattern, { ignore: ['**/node_modules/**'] })
   );
 
   const program = ts.createProgram(files, parsedConfig.options);

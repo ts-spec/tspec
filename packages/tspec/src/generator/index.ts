@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import { dirname } from 'path';
 
 import debug from 'debug';
-import glob from 'glob';
+import { globSync } from 'glob';
 import { OpenAPIV3 } from 'openapi-types';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import ts from 'typescript';
@@ -91,7 +91,7 @@ const getDefaultProgramFiles = (compilerOptions: ts.CompilerOptions) => {
 
 const getProgramFiles = (compilerOptions: ts.CompilerOptions, specPathGlobs?: string[]) => {
   const srcGlobs = specPathGlobs || getDefaultProgramFiles(compilerOptions);
-  const programFils = [...new Set(srcGlobs.flatMap((g) => glob.sync(g, {
+  const programFils = [...new Set(srcGlobs.flatMap((g) => globSync(g, {
     ignore: ['**/node_modules/**'],
   })))];
   DEBUG({ programFils });
