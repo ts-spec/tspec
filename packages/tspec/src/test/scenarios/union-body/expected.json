@@ -1,0 +1,141 @@
+{
+  "info": {
+    "title": "Tspec API",
+    "version": "0.0.1",
+    "description": ""
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/books": {
+      "post": {
+        "operationId": "UnionBodyApiSpec_post_/books",
+        "tags": [],
+        "summary": "Create a book",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "poem"
+                        ]
+                      },
+                      "verses": {
+                        "type": "number"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                      "type",
+                      "verses"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "novel"
+                        ]
+                      },
+                      "chapters": {
+                        "type": "number"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                      "chapters",
+                      "type"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BookRequest": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "poem"
+                ]
+              },
+              "verses": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "verses"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "novel"
+                ]
+              },
+              "chapters": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "chapters",
+              "type"
+            ]
+          }
+        ]
+      },
+      "Book": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title"
+        ]
+      }
+    }
+  }
+}
