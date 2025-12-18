@@ -150,14 +150,18 @@ export const getOpenapiPaths = (
       responses: Object.fromEntries(
         Object.keys(responses.properties).map((code) => {
           const schema = getPropertyByPath(responses, code, openapiSchemas);
-          const { description = '', mediaType } = schema as any;
-          const contentSchema = responses.properties[code];
+          const { mediaType } = schema as any;
+          const contentSchema = responses.properties[code] as any;
           const isNoContent = isNoContentSchema(contentSchema);
+          // Use JSDoc description from contentSchema, fallback to resolved schema description
+          const description = contentSchema?.description || (schema as any)?.description || '';
+          // Remove description from schema to avoid duplication in output
+          const { description: _, ...cleanContentSchema } = contentSchema || {};
           const resSchema = {
             description,
             content: isNoContent ? undefined : {
               [mediaType || 'application/json']: {
-                schema: contentSchema,
+                schema: cleanContentSchema,
               },
             },
           };
