@@ -67,6 +67,14 @@ const resolveParameters = ({ path, query, header, cookie }: ResolveParametersPar
   return [...pathParams, ...queryParams, ...headerParams, ...cookieParams];
 };
 
+const omitSchemaMetaFields = (schema: any) => {
+  if (!schema || '$ref' in schema) {
+    return schema;
+  }
+  const { mediaType, description, ...rest } = schema;
+  return rest;
+}
+
 const isNoContentSchema = (schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject): boolean => (
   'type' in schema && schema.type === 'string'
   && 'enum' in schema && Array.isArray(schema.enum)
@@ -135,7 +143,7 @@ export const getOpenapiPaths = (
         required: true,
         content: {
           [bodyParams?.mediaType || 'application/json']: {
-            schema: bodySchema,
+            schema: omitSchemaMetaFields(bodySchema),
           },
         },
       },
