@@ -1,4 +1,4 @@
-name: Test
+name: CI Test
 
 on:
   push:
@@ -9,7 +9,8 @@ on:
       - main
 
 jobs:
-  test:
+  test-and-build:
+    name: Test & Build (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -20,7 +21,7 @@ jobs:
         node-version: [22, 24]
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node.js ${{ matrix.node-version }}

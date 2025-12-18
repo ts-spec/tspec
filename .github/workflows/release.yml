@@ -1,4 +1,4 @@
-name: Release
+name: NPM Release
 
 on:
   workflow_dispatch:
@@ -13,7 +13,8 @@ on:
           - major
 
 jobs:
-  release:
+  publish-npm:
+    name: Publish to NPM
     runs-on: ubuntu-latest
     defaults:
       run:

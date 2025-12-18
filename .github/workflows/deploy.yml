@@ -1,10 +1,11 @@
-name: Deploy
+name: Docs Deploy
 on:
   push:
     branches:
       - main
 jobs:
-  deploy:
+  deploy-docs:
+    name: Deploy Documentation
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -16,17 +17,20 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Install dependencies
         run: yarn --frozen-lockfile --silent
-      - name: Build
+      - name: Build docs
         run: yarn docs:build
-      - uses: actions/configure-pages@v4
-      - uses: actions/upload-pages-artifact@v3
+      - name: Configure Pages
+        uses: actions/configure-pages@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
           path: docs/.vitepress/dist
-      - name: Deploy
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
