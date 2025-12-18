@@ -60,7 +60,7 @@ export const getRawPropertyByPath = (
   const [first, ...rest] = path.split('.');
   const value = schema.properties?.[first];
   if (!value) {
-    return undefined;ㅊ
+    return undefined;
   }
   if (rest.length === 0) {
     return value;
