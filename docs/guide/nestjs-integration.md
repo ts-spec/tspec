@@ -291,6 +291,9 @@ Tspec parses the following NestJS decorators:
 - `@Body()` - Request body
 - `@Headers()` - Header parameters
 
+### Swagger Decorators
+- `@ApiTags(...tags)` - Adds tags to all operations in the controller
+
 ## JSDoc Support
 
 Tspec extracts documentation from JSDoc comments:
@@ -319,6 +322,70 @@ The current NestJS integration has some limitations:
 ::: tip
 For more advanced use cases, consider using the standard Tspec approach with `Tspec.DefineApiSpec` alongside your NestJS controllers.
 :::
+
+## Programmatic API
+
+You can also generate OpenAPI specs programmatically using the `generateNestTspec` function:
+
+```ts
+import { generateNestTspec } from 'tspec';
+
+const spec = generateNestTspec({
+  tsconfigPath: './tsconfig.json',
+  controllerGlobs: ['src/**/*.controller.ts'],
+  openapi: {
+    title: 'My API',
+    version: '1.0.0',
+    description: 'My NestJS API documentation',
+  },
+});
+
+// Use the spec object directly or write to file
+console.log(JSON.stringify(spec, null, 2));
+```
+
+### Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `tsconfigPath` | `string` | `./tsconfig.json` | Path to TypeScript config file |
+| `controllerGlobs` | `string[]` | `['src/**/*.controller.ts']` | Glob patterns to find controller files |
+| `openapi.title` | `string` | `Tspec API` | API title |
+| `openapi.version` | `string` | `0.0.1` | API version |
+| `openapi.description` | `string` | - | API description |
+
+## Using @ApiTags
+
+Tspec supports the `@ApiTags` decorator from `@nestjs/swagger` to organize your API operations:
+
+```ts
+import { Controller, Get } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+
+@ApiTags('Users', 'Admin')
+@Controller('users')
+export class UsersController {
+  @Get()
+  findAll(): Promise<User[]> {
+    // This operation will have tags: ['Users', 'Admin']
+  }
+}
+```
+
+You can also use enum values or constants:
+
+```ts
+enum ApiTag {
+  USERS = 'users',
+  ADMIN = 'admin',
+}
+
+@ApiTags(ApiTag.USERS, ApiTag.ADMIN)
+@Controller('users')
+export class UsersController {
+  // ...
+}
+```
 
 ## Combining with Standard Tspec
 
