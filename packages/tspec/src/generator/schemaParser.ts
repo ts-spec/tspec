@@ -46,6 +46,26 @@ export const getPropertyByPath = (
   return getPropertyByPath(firstValue, rest.join('.'), schemas);
 };
 
+export const getRawPropertyByPath = (
+  obj: Schema | undefined,
+  path: string,
+  schemas: SchemaMapping,
+): Schema | undefined => {
+  const schema = accessSchema(obj, schemas);
+  if (!schema) {
+    return undefined;
+  }
+  const [first, ...rest] = path.split('.');
+  const value = schema.properties?.[first];
+  if (!value) {
+    return undefined;
+  }
+  if (rest.length === 0) {
+    return value;
+  }
+  return getRawPropertyByPath(value, rest.join('.'), schemas);
+};
+
 const getText = (obj: Schema | undefined): string | undefined => {
   if (!obj || '$ref' in obj || obj.type !== 'string' || obj.enum?.length !== 1) {
     return undefined;
