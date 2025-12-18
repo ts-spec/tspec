@@ -11,7 +11,9 @@ export const accessSchema = (
   }
   if ('$ref' in obj) {
     const [, schemaName] = obj.$ref.split('#/components/schemas/');
-    return schemas[schemaName];
+    // Try URL-decoded name first (for typescript-json-schema >= 0.67)
+    const decodedName = decodeURIComponent(schemaName);
+    return schemas[decodedName] || schemas[schemaName];
   }
   return obj;
 };
@@ -58,7 +60,7 @@ export const getRawPropertyByPath = (
   const [first, ...rest] = path.split('.');
   const value = schema.properties?.[first];
   if (!value) {
-    return undefined;
+    return undefined;ㅊ
   }
   if (rest.length === 0) {
     return value;
