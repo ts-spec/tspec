@@ -8,6 +8,9 @@ import {
   NestParserOptions,
   ParsedNestApp,
   HttpMethod,
+  TypeDefinition,
+  PropertyDefinition,
+  EnumDefinition,
 } from './types';
 
 const HTTP_METHOD_DECORATORS = ['Get', 'Post', 'Put', 'Patch', 'Delete', 'Options', 'Head'];
@@ -52,7 +55,146 @@ export const parseNestControllers = (options: NestParserOptions): ParsedNestApp 
     });
   }
 
-  return { controllers, imports };
+  // Collect type definitions from all source files
+  const typeDefinitions = new Map<string, TypeDefinition>();
+  const typesToResolve = new Set<string>();
+
+  // Collect all type names used in controllers
+  for (const controller of controllers) {
+    for (const method of controller.methods) {
+      collectTypeNames(method.returnType, typesToResolve);
+      for (const param of method.parameters) {
+        collectTypeNames(param.type, typesToResolve);
+      }
+    }
+  }
+
+  // Resolve type and enum definitions with multiple passes to handle nested types
+  const enumDefinitions = new Map<string, EnumDefinition>();
+  const allEnums = new Map<string, ts.EnumDeclaration>();
+  const allTypes = new Map<string, ts.ClassDeclaration | ts.InterfaceDeclaration>();
+  const allTypeAliases = new Map<string, ts.TypeAliasDeclaration>();
+
+  // First pass: collect all type/enum declarations (including .d.ts files for Prisma enums)
+  // Also collect Prisma-style const enums
+  const prismaConstEnums = new Map<string, string[]>(); // enumName -> values
+
+  // Helper to recursively visit all nodes
+  const visitNode = (node: ts.Node) => {
+    if (ts.isClassDeclaration(node) || ts.isInterfaceDeclaration(node)) {
+      const typeName = node.name?.text;
+      if (typeName && !allTypes.has(typeName)) {
+        allTypes.set(typeName, node);
+      }
+    }
+    if (ts.isTypeAliasDeclaration(node)) {
+      if (!allTypeAliases.has(node.name.text)) {
+        allTypeAliases.set(node.name.text, node);
+      }
+    }
+    if (ts.isEnumDeclaration(node)) {
+      if (!allEnums.has(node.name.text)) {
+        allEnums.set(node.name.text, node);
+      }
+    }
+    // Handle Prisma-style const enum: export const Gender: { MALE: 'MALE', ... }
+    if (ts.isVariableStatement(node)) {
+      const declaration = node.declarationList.declarations[0];
+      if (declaration && ts.isIdentifier(declaration.name) && declaration.type) {
+        const enumName = declaration.name.text;
+        if (ts.isTypeLiteralNode(declaration.type)) {
+          const values: string[] = [];
+          declaration.type.members.forEach((member) => {
+            if (ts.isPropertySignature(member) && ts.isIdentifier(member.name)) {
+              // Check if the type is a string literal
+              if (member.type && ts.isLiteralTypeNode(member.type) && 
+                  ts.isStringLiteral(member.type.literal)) {
+                values.push(member.type.literal.text);
+              }
+            }
+          });
+          if (values.length > 0 && !prismaConstEnums.has(enumName)) {
+            prismaConstEnums.set(enumName, values);
+          }
+        }
+      }
+    }
+    ts.forEachChild(node, visitNode);
+  };
+
+  for (const sourceFile of program.getSourceFiles()) {
+    // Skip node_modules except for .prisma/client (where Prisma generates enums)
+    const fileName = sourceFile.fileName;
+    if (fileName.includes('node_modules') && !fileName.includes('.prisma/client')) {
+      continue;
+    }
+
+    visitNode(sourceFile);
+  }
+
+  // Second pass: resolve types and collect nested type references
+  const resolveTypes = () => {
+    let newTypesFound = false;
+    
+    for (const typeName of typesToResolve) {
+      if (typeDefinitions.has(typeName) || enumDefinitions.has(typeName)) continue;
+
+      const typeNode = allTypes.get(typeName);
+      if (typeNode) {
+        const typeDef = parseTypeDefinition(typeNode, checker);
+        if (typeDef) {
+          typeDefinitions.set(typeName, typeDef);
+          // Collect nested types from properties
+          for (const prop of typeDef.properties) {
+            const prevSize = typesToResolve.size;
+            collectTypeNames(prop.type, typesToResolve);
+            if (typesToResolve.size > prevSize) newTypesFound = true;
+          }
+        }
+      }
+
+      const typeAliasNode = allTypeAliases.get(typeName);
+      if (typeAliasNode) {
+        const typeDef = parseTypeAliasDefinition(typeAliasNode, checker);
+        if (typeDef) {
+          typeDefinitions.set(typeName, typeDef);
+          for (const prop of typeDef.properties) {
+            const prevSize = typesToResolve.size;
+            collectTypeNames(prop.type, typesToResolve);
+            if (typesToResolve.size > prevSize) newTypesFound = true;
+          }
+        }
+      }
+
+      const enumNode = allEnums.get(typeName);
+      if (enumNode) {
+        const enumDef = parseEnumDefinition(enumNode);
+        if (enumDef) {
+          enumDefinitions.set(typeName, enumDef);
+        }
+      }
+
+      // Check Prisma-style const enums
+      const prismaEnumValues = prismaConstEnums.get(typeName);
+      if (prismaEnumValues) {
+        enumDefinitions.set(typeName, {
+          name: typeName,
+          values: prismaEnumValues,
+          description: `Prisma enum ${typeName}`,
+        });
+      }
+    }
+
+    return newTypesFound;
+  };
+
+  // Keep resolving until no new types are found
+  let maxIterations = 10;
+  while (resolveTypes() && maxIterations-- > 0) {
+    // Continue resolving nested types
+  }
+
+  return { controllers, imports, typeDefinitions, enumDefinitions };
 };
 
 const parseController = (
@@ -74,6 +216,9 @@ const parseController = (
   const controllerPath = getDecoratorStringArg(controllerDecorator);
   const className = node.name?.text || 'UnnamedController';
 
+  // Parse @ApiTags decorator
+  const tags = parseApiTags(decorators, checker);
+
   const methods: NestMethodMetadata[] = [];
 
   node.members.forEach((member) => {
@@ -90,7 +235,52 @@ const parseController = (
     path: controllerPath || '',
     filePath: sourceFile.fileName,
     methods,
+    tags,
   };
+};
+
+// Parse @ApiTags decorator to extract tag names
+const parseApiTags = (
+  decorators: readonly ts.Decorator[],
+  checker: ts.TypeChecker,
+): string[] | undefined => {
+  const apiTagsDecorator = decorators.find((d) =>
+    ts.isCallExpression(d.expression) &&
+    ts.isIdentifier(d.expression.expression) &&
+    d.expression.expression.text === 'ApiTags'
+  );
+
+  if (!apiTagsDecorator || !ts.isCallExpression(apiTagsDecorator.expression)) {
+    return undefined;
+  }
+
+  const args = apiTagsDecorator.expression.arguments;
+  const tags: string[] = [];
+
+  for (const arg of args) {
+    if (ts.isStringLiteral(arg)) {
+      tags.push(arg.text);
+    } else if (ts.isPropertyAccessExpression(arg)) {
+      // Handle enum-like access: ApiTag.MY_FOOD -> resolve to actual value
+      const type = checker.getTypeAtLocation(arg);
+      if (type.isStringLiteral()) {
+        tags.push(type.value);
+      } else if (ts.isIdentifier(arg.name)) {
+        // Fallback to member name if value can't be resolved
+        tags.push(arg.name.text);
+      }
+    } else if (ts.isIdentifier(arg)) {
+      // Handle variable reference - try to resolve value
+      const type = checker.getTypeAtLocation(arg);
+      if (type.isStringLiteral()) {
+        tags.push(type.value);
+      } else {
+        tags.push(arg.text);
+      }
+    }
+  }
+
+  return tags.length > 0 ? tags : undefined;
 };
 
 const parseMethod = (
@@ -213,11 +403,23 @@ const getTypeString = (
     const typeName = typeNode.typeName;
     if (ts.isIdentifier(typeName)) {
       const name = typeName.text;
+      // Unwrap Promise types
       if (name === 'Promise' && typeNode.typeArguments?.length) {
         return getTypeString(typeNode.typeArguments[0], checker);
       }
+      // Handle generic types with type arguments (e.g., DataResponse<T>)
+      if (typeNode.typeArguments?.length) {
+        const typeArgs = typeNode.typeArguments.map((arg) => getTypeString(arg, checker)).join(', ');
+        return `${name}<${typeArgs}>`;
+      }
       return name;
     }
+  }
+
+  // Handle array types
+  if (ts.isArrayTypeNode(typeNode)) {
+    const elementType = getTypeString(typeNode.elementType, checker);
+    return `${elementType}[]`;
   }
 
   const type = checker.getTypeFromTypeNode(typeNode);
@@ -234,6 +436,130 @@ const getJsDocDescription = (node: ts.Node): string | undefined => {
     return comment.map((c) => (typeof c === 'string' ? c : c.text)).join('');
   }
   return undefined;
+};
+
+// Helper function to collect type names from a type string
+const collectTypeNames = (typeStr: string, typesToResolve: Set<string>): void => {
+  // Remove Promise wrapper
+  const unwrapped = typeStr.replace(/^Promise<(.+)>$/, '$1');
+  
+  // Handle array types
+  const arrayMatch = unwrapped.match(/^(.+)\[\]$/) || unwrapped.match(/^Array<(.+)>$/);
+  if (arrayMatch) {
+    collectTypeNames(arrayMatch[1], typesToResolve);
+    return;
+  }
+
+  // Handle generic types like DataResponse<T>
+  const genericMatch = unwrapped.match(/^(\w+)<(.+)>$/);
+  if (genericMatch) {
+    typesToResolve.add(genericMatch[1]);
+    collectTypeNames(genericMatch[2], typesToResolve);
+    return;
+  }
+
+  // Skip primitive types
+  const primitives = ['string', 'number', 'boolean', 'void', 'any', 'unknown', 'null', 'undefined'];
+  if (!primitives.includes(unwrapped.toLowerCase())) {
+    typesToResolve.add(unwrapped);
+  }
+};
+
+// Parse class or interface declaration to TypeDefinition
+const parseTypeDefinition = (
+  node: ts.ClassDeclaration | ts.InterfaceDeclaration,
+  checker: ts.TypeChecker,
+): TypeDefinition | null => {
+  const typeName = node.name?.text;
+  if (!typeName) return null;
+
+  const properties: PropertyDefinition[] = [];
+  const description = getJsDocDescription(node);
+
+  node.members.forEach((member) => {
+    if (ts.isPropertyDeclaration(member) || ts.isPropertySignature(member)) {
+      const propName = ts.isIdentifier(member.name) ? member.name.text : undefined;
+      if (!propName) return;
+
+      const propType = getTypeString(member.type, checker);
+      const required = !member.questionToken;
+      const propDescription = getJsDocDescription(member);
+
+      // Check if it's an array type
+      const isArray = propType.endsWith('[]') || propType.startsWith('Array<');
+
+      properties.push({
+        name: propName,
+        type: propType,
+        required,
+        description: propDescription,
+        isArray,
+      });
+    }
+  });
+
+  return { name: typeName, properties, description };
+};
+
+// Parse type alias declaration to TypeDefinition
+const parseTypeAliasDefinition = (
+  node: ts.TypeAliasDeclaration,
+  checker: ts.TypeChecker,
+): TypeDefinition | null => {
+  const typeName = node.name.text;
+  const description = getJsDocDescription(node);
+
+  // Handle object type literals
+  if (ts.isTypeLiteralNode(node.type)) {
+    const properties: PropertyDefinition[] = [];
+
+    node.type.members.forEach((member) => {
+      if (ts.isPropertySignature(member)) {
+        const propName = ts.isIdentifier(member.name) ? member.name.text : undefined;
+        if (!propName) return;
+
+        const propType = getTypeString(member.type, checker);
+        const required = !member.questionToken;
+        const propDescription = getJsDocDescription(member);
+        const isArray = propType.endsWith('[]') || propType.startsWith('Array<');
+
+        properties.push({
+          name: propName,
+          type: propType,
+          required,
+          description: propDescription,
+          isArray,
+        });
+      }
+    });
+
+    return { name: typeName, properties, description };
+  }
+
+  // For other type aliases, return empty properties
+  return { name: typeName, properties: [], description };
+};
+
+// Parse enum declaration to EnumDefinition
+const parseEnumDefinition = (node: ts.EnumDeclaration): EnumDefinition | null => {
+  const enumName = node.name.text;
+  const description = getJsDocDescription(node);
+  const values: string[] = [];
+
+  node.members.forEach((member) => {
+    if (member.initializer) {
+      if (ts.isStringLiteral(member.initializer)) {
+        values.push(member.initializer.text);
+      } else if (ts.isNumericLiteral(member.initializer)) {
+        values.push(member.initializer.text);
+      }
+    } else if (ts.isIdentifier(member.name)) {
+      // For enums without explicit values, use the member name
+      values.push(member.name.text);
+    }
+  });
+
+  return { name: enumName, values, description };
 };
 
 const collectImports = (
