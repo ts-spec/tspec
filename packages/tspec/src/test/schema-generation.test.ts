@@ -472,28 +472,27 @@ describe('Tspec Schema Generation', () => {
       spec = await generateSpec(path.join(SCENARIOS_DIR, 'union-body'));
     });
 
-    it('should generate requestBody with $ref to union type schema', () => {
+    it('should generate requestBody with union type (anyOf)', () => {
       const operation = getPathOperation(spec, '/books', 'post');
       expect(operation).toBeDefined();
       
       const bodySchema = getRequestBodySchema(operation!) as any;
       expect(bodySchema).toBeDefined();
-      expect(bodySchema?.$ref).toBe('#/components/schemas/BookRequest');
+      expect(bodySchema?.anyOf).toBeDefined();
+      expect(bodySchema?.anyOf).toHaveLength(2);
     });
 
-    it('should generate BookRequest schema with anyOf containing both union variants', () => {
-      const bookRequestSchema = getComponentSchema(spec, 'BookRequest') as any;
-      expect(bookRequestSchema).toBeDefined();
-      expect(bookRequestSchema?.anyOf).toBeDefined();
-      expect(bookRequestSchema?.anyOf).toHaveLength(2);
+    it('should include both union variants in anyOf', () => {
+      const operation = getPathOperation(spec, '/books', 'post');
+      const bodySchema = getRequestBodySchema(operation!) as any;
       
-      const poemVariant = bookRequestSchema?.anyOf?.find((v: any) => 
+      const poemVariant = bodySchema?.anyOf?.find((v: any) => 
         v.properties?.type?.enum?.[0] === 'poem'
       );
       expect(poemVariant).toBeDefined();
       expect(poemVariant?.properties?.verses?.type).toBe('number');
       
-      const novelVariant = bookRequestSchema?.anyOf?.find((v: any) => 
+      const novelVariant = bodySchema?.anyOf?.find((v: any) => 
         v.properties?.type?.enum?.[0] === 'novel'
       );
       expect(novelVariant).toBeDefined();
