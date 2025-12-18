@@ -5,6 +5,7 @@ export interface NestControllerMetadata {
   path: string;
   filePath: string;
   methods: NestMethodMetadata[];
+  tags?: string[]; // From @ApiTags decorator
 }
 
 export interface NestMethodMetadata {
@@ -35,4 +36,27 @@ export interface NestParserOptions {
 export interface ParsedNestApp {
   controllers: NestControllerMetadata[];
   imports: Map<string, string>; // typeName -> import path
+  typeDefinitions: Map<string, TypeDefinition>; // typeName -> type definition
+  enumDefinitions: Map<string, EnumDefinition>; // enumName -> enum definition
+}
+
+export interface EnumDefinition {
+  name: string;
+  values: string[];
+  description?: string;
+}
+
+export interface TypeDefinition {
+  name: string;
+  properties: PropertyDefinition[];
+  description?: string;
+}
+
+export interface PropertyDefinition {
+  name: string;
+  type: string;
+  required: boolean;
+  description?: string;
+  isArray?: boolean;
+  enumValues?: string[];
 }
