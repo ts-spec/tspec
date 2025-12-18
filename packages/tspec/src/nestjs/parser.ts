@@ -438,6 +438,87 @@ const getJsDocDescription = (node: ts.Node): string | undefined => {
   return undefined;
 };
 
+interface JsDocTags {
+  example?: unknown;
+  format?: string;
+  deprecated?: boolean;
+  nullable?: boolean;
+  minimum?: number;
+  maximum?: number;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  default?: unknown;
+}
+
+const getJsDocTags = (node: ts.Node): JsDocTags => {
+  const jsDocComments = (node as any).jsDoc as ts.JSDoc[] | undefined;
+  if (!jsDocComments?.length) return {};
+
+  const tags: JsDocTags = {};
+  
+  for (const jsDoc of jsDocComments) {
+    if (!jsDoc.tags) continue;
+    
+    for (const tag of jsDoc.tags) {
+      const tagName = tag.tagName.text.toLowerCase();
+      const tagComment = typeof tag.comment === 'string' 
+        ? tag.comment 
+        : Array.isArray(tag.comment) 
+          ? tag.comment.map((c: any) => (typeof c === 'string' ? c : c.text)).join('')
+          : undefined;
+      
+      switch (tagName) {
+        case 'example':
+          // Try to parse as JSON, otherwise keep as string
+          if (tagComment) {
+            try {
+              tags.example = JSON.parse(tagComment);
+            } catch {
+              tags.example = tagComment;
+            }
+          }
+          break;
+        case 'format':
+          tags.format = tagComment;
+          break;
+        case 'deprecated':
+          tags.deprecated = true;
+          break;
+        case 'nullable':
+          tags.nullable = true;
+          break;
+        case 'minimum':
+          if (tagComment) tags.minimum = Number(tagComment);
+          break;
+        case 'maximum':
+          if (tagComment) tags.maximum = Number(tagComment);
+          break;
+        case 'minlength':
+          if (tagComment) tags.minLength = Number(tagComment);
+          break;
+        case 'maxlength':
+          if (tagComment) tags.maxLength = Number(tagComment);
+          break;
+        case 'pattern':
+          tags.pattern = tagComment;
+          break;
+        case 'default':
+          if (tagComment) {
+            try {
+              tags.default = JSON.parse(tagComment);
+            } catch {
+              tags.default = tagComment;
+            }
+          }
+          break;
+      }
+    }
+  }
+  
+  return tags;
+};
+
 // Helper function to collect type names from a type string
 const collectTypeNames = (typeStr: string, typesToResolve: Set<string>): void => {
   // Remove Promise wrapper
@@ -484,6 +565,7 @@ const parseTypeDefinition = (
       const propType = getTypeString(member.type, checker);
       const required = !member.questionToken;
       const propDescription = getJsDocDescription(member);
+      const jsDocTags = getJsDocTags(member);
 
       // Check if it's an array type
       const isArray = propType.endsWith('[]') || propType.startsWith('Array<');
@@ -494,6 +576,7 @@ const parseTypeDefinition = (
         required,
         description: propDescription,
         isArray,
+        ...jsDocTags,
       });
     }
   });

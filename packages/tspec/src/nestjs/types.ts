@@ -59,4 +59,14 @@ export interface PropertyDefinition {
   description?: string;
   isArray?: boolean;
   enumValues?: string[];
+  example?: unknown;
+  format?: string;
+  deprecated?: boolean;
+  nullable?: boolean;
+  minimum?: number;
+  maximum?: number;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  default?: unknown;
 }
