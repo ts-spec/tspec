@@ -16,6 +16,8 @@ import { convertToOpenapiSchemas } from './openapiSchemaConverter';
 import { SchemaMapping } from './types';
 import { getTspecConfigFromConfigFile, isTspecFileConfigAvailable } from './config';
 import { mergeDeep } from '../utils/merge';
+import { parseNestControllers } from '../nestjs/parser';
+import { generateOpenApiFromNest } from '../nestjs/openapiGenerator';
 
 export const DEBUG = debug('tspec');
 
@@ -221,6 +223,29 @@ export const generateTspec = async (
 ): Promise<OpenAPIV3.Document> => {
   const params = await getGenerateTspecParams(generateParams);
 
+  // NestJS mode
+  if (params.nestjs) {
+    const app = parseNestControllers({
+      tsconfigPath: params.tsconfigPath || 'tsconfig.json',
+      controllerGlobs: params.specPathGlobs || ['src/**/*.controller.ts'],
+    });
+
+    const openapi = generateOpenApiFromNest(app, {
+      title: params.openapi?.title,
+      version: params.openapi?.version,
+      description: params.openapi?.description,
+      servers: params.openapi?.servers,
+      securitySchemes: params.openapi?.securityDefinitions,
+    });
+
+    if (params.outputPath) {
+      await createJsonFile(params.outputPath, openapi);
+    }
+
+    return openapi;
+  }
+
+  // Standard Tspec mode
   const {
     openapiSchemas, tspecSymbols,
   } = await getOpenapiSchemas(
