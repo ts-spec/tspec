@@ -7,12 +7,9 @@ import yargs from 'yargs';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { hideBin } from 'yargs/helpers';
 
-import fs from 'fs/promises';
-
 import { Tspec } from 'types/tspec';
 
 import { defaultGenerateParams as defaultArgs, generateTspec } from '../generator';
-import { parseNestControllers, generateOpenApiFromNest } from '../nestjs';
 import { initTspecServer } from '../server';
 
 enum SupportedSpecVersion {
@@ -91,34 +88,13 @@ const validateGeneratorOptions = (args: GeneratorOptions): Tspec.GenerateParams 
 };
 
 const specGenerator = async (args: GeneratorOptions) => {
-  // NestJS mode
+  const generateTspecParams = validateGeneratorOptions(args);
+
+  // NestJS mode: add nestjs flag to params
   if (args.nestjs) {
-    console.log('Parsing NestJS controllers...');
-
-    const controllerGlobs = args.specPathGlobs.map((g) => g.toString());
-    const app = parseNestControllers({
-      tsconfigPath: args.tsconfigPath,
-      controllerGlobs,
-    });
-
-    console.log(`Found ${app.controllers.length} controller(s)`);
-    for (const controller of app.controllers) {
-      console.log(`  - ${controller.name}: ${controller.methods.length} method(s)`);
-    }
-
-    const openapi = generateOpenApiFromNest(app, {
-      title: args.openapiTitle,
-      version: args.openapiVersion,
-      description: args.openapiDescription,
-    });
-
-    await fs.writeFile(args.outputPath || 'openapi.json', JSON.stringify(openapi, null, 2), 'utf-8');
-    console.log(`\nGenerated OpenAPI spec: ${args.outputPath || 'openapi.json'}`);
-    return;
+    generateTspecParams.nestjs = true;
   }
 
-  // Standard Tspec mode
-  const generateTspecParams = await validateGeneratorOptions(args);
   await generateTspec(generateTspecParams);
 };
 
