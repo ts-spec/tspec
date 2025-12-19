@@ -23,14 +23,16 @@ function Query(): ParameterDecorator {
 function Body(): ParameterDecorator {
   return () => {};
 }
-function ApiResponse(options: { status: number; description?: string; type?: any }): MethodDecorator {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function ApiResponse(options: { status: number; description?: string; type?: Function }): MethodDecorator {
   return () => {};
 }
 
-interface Book {
-  id: number;
-  title: string;
-  author: string;
+// Use class instead of interface for @ApiResponse type parameter (interfaces can't be used as values)
+class Book {
+  id!: number;
+  title!: string;
+  author!: string;
 }
 
 interface CreateBookDto {

@@ -251,7 +251,7 @@ When using `--nestjs` flag, the following options are available:
 |--------|---------|-------------|
 | `--nestjs` | `false` | Enable NestJS controller parsing |
 | `--tsconfigPath` | `tsconfig.json` | Path to TypeScript config file |
-| `--controllerGlobs` | `src/**/*.controller.ts` | Glob patterns to find controller files |
+| `--specPathGlobs` | `src/**/*.controller.ts` | Glob patterns to find controller files |
 | `--outputPath` | `openapi.json` | Output path for generated OpenAPI spec |
 | `--openapiTitle` | `Tspec API` | API title in OpenAPI info |
 | `--openapiVersion` | `0.0.1` | API version in OpenAPI info |
@@ -262,7 +262,7 @@ When using `--nestjs` flag, the following options are available:
 ```bash
 npx tspec generate --nestjs \
   --tsconfigPath tsconfig.json \
-  --controllerGlobs 'src/**/*.controller.ts' \
+  --specPathGlobs 'src/**/*.controller.ts' \
   --outputPath docs/openapi.json \
   --openapiTitle 'My NestJS API' \
   --openapiVersion '2.0.0' \
@@ -293,6 +293,7 @@ Tspec parses the following NestJS decorators:
 
 ### Swagger Decorators
 - `@ApiTags(...tags)` - Adds tags to all operations in the controller
+- `@ApiResponse({ status, description?, type? })` - Defines response status codes and types
 
 ## JSDoc Support
 
@@ -325,14 +326,15 @@ For more advanced use cases, consider using the standard Tspec approach with `Ts
 
 ## Programmatic API
 
-You can also generate OpenAPI specs programmatically using the `generateNestTspec` function:
+You can generate OpenAPI specs programmatically using the `generateTspec` function with `nestjs: true`:
 
 ```ts
-import { generateNestTspec } from 'tspec';
+import { generateTspec } from 'tspec';
 
-const spec = generateNestTspec({
+const spec = await generateTspec({
   tsconfigPath: './tsconfig.json',
-  controllerGlobs: ['src/**/*.controller.ts'],
+  specPathGlobs: ['src/**/*.controller.ts'],
+  nestjs: true,
   openapi: {
     title: 'My API',
     version: '1.0.0',
@@ -349,10 +351,69 @@ console.log(JSON.stringify(spec, null, 2));
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `tsconfigPath` | `string` | `./tsconfig.json` | Path to TypeScript config file |
-| `controllerGlobs` | `string[]` | `['src/**/*.controller.ts']` | Glob patterns to find controller files |
+| `specPathGlobs` | `string[]` | `['src/**/*.controller.ts']` | Glob patterns to find controller files |
+| `nestjs` | `boolean` | `false` | Enable NestJS controller parsing mode |
+| `outputPath` | `string` | - | Output path for generated OpenAPI spec |
 | `openapi.title` | `string` | `Tspec API` | API title |
 | `openapi.version` | `string` | `0.0.1` | API version |
 | `openapi.description` | `string` | - | API description |
+| `openapi.securityDefinitions` | `object` | - | Security schemes |
+| `openapi.servers` | `array` | - | Server URLs |
+
+## Using @ApiResponse
+
+Tspec supports the `@ApiResponse` decorator from `@nestjs/swagger` to define multiple response types:
+
+```ts
+import { Controller, Get, Param } from '@nestjs/common';
+import { ApiResponse } from '@nestjs/swagger';
+
+class Book {
+  id: number;
+  title: string;
+  author: string;
+}
+
+class ErrorResponse {
+  message: string;
+  statusCode: number;
+}
+
+@Controller('books')
+export class BooksController {
+  @Get(':id')
+  @ApiResponse({ status: 200, description: 'Book found', type: Book })
+  @ApiResponse({ status: 404, description: 'Book not found', type: ErrorResponse })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  findOne(@Param('id') id: string): Promise<Book> {
+    // implementation
+  }
+}
+```
+
+This generates the following responses in OpenAPI:
+
+```yaml
+responses:
+  '200':
+    description: Book found
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/Book'
+  '404':
+    description: Book not found
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/ErrorResponse'
+  '500':
+    description: Internal server error
+```
+
+::: tip
+When `@ApiResponse` decorators are present, they override the default response generation based on return type.
+:::
 
 ## Using @ApiTags
 
