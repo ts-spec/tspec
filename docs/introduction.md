@@ -17,3 +17,4 @@ It automatically parses your TypeScript types and generates up-to-date [OpenAPI 
 - **Easy to learn**: No need to learn new OpenAPI Spec syntax. Just use TypeScript types.
 - **Easy to use**: Only few lines of code are needed to generate OpenAPI Specification.
 - **Flexible**: You can use any framework you want. It doesn't impose any framework-specific constraints.
+- **Just Works**: Supports both CommonJS and ESM out of the box. No transformers (ts-node, babel, swc) required.

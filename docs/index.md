@@ -30,6 +30,11 @@ features:
     details: Tspec integrates Swagger UI to provide a beautiful and interactive API documentation.
     link: /guide/generating-document
     linkText: Learn more
+  - title: Compatibility
+    icon: ✅
+    details: Works with both CommonJS and ESM. No ts-node, no babel, no swc required. Pure TypeScript.
+    link: /guide/getting-started
+    linkText: Get started
   - title: Express Integration
     icon: 🚂
     details: Seamlessly integrate with Express.js using Tspec type definitions.
