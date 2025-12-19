@@ -1,0 +1,178 @@
+// Mock NestJS decorators for testing
+function Controller(path?: string): ClassDecorator {
+  return () => {};
+}
+function Get(path?: string): MethodDecorator {
+  return () => {};
+}
+function Post(path?: string): MethodDecorator {
+  return () => {};
+}
+function Put(path?: string): MethodDecorator {
+  return () => {};
+}
+function Param(name?: string): ParameterDecorator {
+  return () => {};
+}
+function Body(): ParameterDecorator {
+  return () => {};
+}
+function ApiTags(...tags: string[]): ClassDecorator {
+  return () => {};
+}
+
+/**
+ * 사용자 성별
+ */
+export enum Gender {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+  OTHER = 'OTHER',
+}
+
+/**
+ * 활동 레벨
+ */
+export enum ActivityLevel {
+  SEDENTARY = 'SEDENTARY',
+  MODERATELY_ACTIVE = 'MODERATELY_ACTIVE',
+  VERY_ACTIVE = 'VERY_ACTIVE',
+}
+
+/**
+ * 사용자 DTO
+ */
+export class UserDto {
+  /**
+   * 사용자 ID
+   * @example 1
+   */
+  id!: number;
+
+  /**
+   * 이메일
+   * @example "user@example.com"
+   */
+  email!: string | null;
+
+  /**
+   * 이름
+   * @example "홍길동"
+   */
+  name!: string | null;
+
+  /**
+   * 나이
+   * @minimum 0
+   * @maximum 150
+   * @example 25
+   */
+  age?: number;
+
+  /**
+   * 성별
+   * @example "MALE"
+   */
+  gender?: Gender | null;
+
+  /**
+   * 활동 레벨
+   * @example "MODERATELY_ACTIVE"
+   */
+  activityLevel?: ActivityLevel | null;
+
+  /**
+   * 생성일시
+   */
+  createdAt!: Date;
+
+  /**
+   * @deprecated 더 이상 사용하지 않음
+   */
+  legacyField?: string;
+}
+
+/**
+ * 사용자 생성 DTO
+ */
+export class CreateUserDto {
+  /**
+   * 이메일
+   * @example "newuser@example.com"
+   * @pattern ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$
+   */
+  email!: string;
+
+  /**
+   * 이름
+   * @minLength 2
+   * @maxLength 50
+   * @example "김철수"
+   */
+  name!: string;
+
+  /**
+   * 비밀번호
+   * @minLength 8
+   */
+  password!: string;
+}
+
+/**
+ * 단일 데이터 응답
+ */
+export class DataResponse<T> {
+  data!: T;
+}
+
+/**
+ * 페이지네이션 응답
+ */
+export class PaginatedResponse<T> {
+  data!: T[];
+  nextToken?: string | null;
+  totalCount?: number | null;
+}
+
+/**
+ * 사용자 API 컨트롤러
+ */
+@ApiTags('Users')
+@Controller('users')
+export class UsersController {
+  /**
+   * 사용자 목록 조회
+   * @summary Get all users
+   */
+  @Get()
+  findAll(): Promise<PaginatedResponse<UserDto>> {
+    return Promise.resolve({ data: [], nextToken: null, totalCount: 0 });
+  }
+
+  /**
+   * 사용자 상세 조회
+   */
+  @Get(':id')
+  findOne(@Param('id') id: string): Promise<DataResponse<UserDto>> {
+    return Promise.resolve({ data: {} as UserDto });
+  }
+
+  /**
+   * 사용자 생성
+   */
+  @Post()
+  create(@Body() createUserDto: CreateUserDto): Promise<DataResponse<UserDto>> {
+    return Promise.resolve({ data: {} as UserDto });
+  }
+
+  /**
+   * 사용자 수정
+   */
+  @Put(':id')
+  update(
+    @Param('id') id: string,
+    @Body() updateUserDto: Partial<CreateUserDto>,
+  ): Promise<DataResponse<UserDto>> {
+    return Promise.resolve({ data: {} as UserDto });
+  }
+}
