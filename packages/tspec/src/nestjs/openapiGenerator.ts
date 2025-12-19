@@ -3,11 +3,15 @@ import { OpenAPIV3 } from 'openapi-types';
 import {
   NestControllerMetadata,
   NestMethodMetadata,
-  NestParameterMetadata,
   ParsedNestApp,
-  TypeDefinition,
-  EnumDefinition,
 } from './types';
+import {
+  buildSchemaRef as buildSchemaRefFromBuilder,
+  buildPrimitiveSchema as buildPrimitiveSchemaFromBuilder,
+  unwrapPromise as unwrapPromiseFromBuilder,
+  createSchemaBuilderContext,
+  SchemaBuilderContext,
+} from '../generator/schemaBuilder';
 
 export interface GenerateOpenApiOptions {
   title?: string;
@@ -22,7 +26,7 @@ export const generateOpenApiFromNest = (
   options: GenerateOpenApiOptions = {},
 ): OpenAPIV3.Document => {
   const paths: OpenAPIV3.PathsObject = {};
-  const schemas: Record<string, OpenAPIV3.SchemaObject> = {};
+  const context = createSchemaBuilderContext(app.typeDefinitions, app.enumDefinitions);
 
   for (const controller of app.controllers) {
     const basePath = controller.path ? `/${controller.path}`.replace(/\/+/g, '/') : '';
@@ -38,7 +42,7 @@ export const generateOpenApiFromNest = (
         paths[fullPath] = {};
       }
 
-      const operation = buildOperation(method, controller, schemas, app.typeDefinitions, app.enumDefinitions);
+      const operation = buildOperation(method, controller, context);
       (paths[fullPath] as OpenAPIV3.PathItemObject)[method.httpMethod] = operation;
     }
   }
@@ -53,7 +57,7 @@ export const generateOpenApiFromNest = (
     servers: options.servers,
     paths,
     components: {
-      schemas: Object.keys(schemas).length > 0 ? schemas : undefined,
+      schemas: Object.keys(context.schemas).length > 0 ? context.schemas : undefined,
       securitySchemes: options.securitySchemes,
     },
   };
@@ -62,9 +66,7 @@ export const generateOpenApiFromNest = (
 const buildOperation = (
   method: NestMethodMetadata,
   controller: NestControllerMetadata,
-  schemas: Record<string, OpenAPIV3.SchemaObject>,
-  typeDefinitions: Map<string, TypeDefinition>,
-  enumDefinitions: Map<string, EnumDefinition>,
+  context: SchemaBuilderContext,
 ): OpenAPIV3.OperationObject => {
   const parameters: OpenAPIV3.ParameterObject[] = [];
   let requestBody: OpenAPIV3.RequestBodyObject | undefined;
@@ -95,7 +97,7 @@ const buildOperation = (
 
     // Include body params in multipart form if present
     for (const bodyParam of bodyParams) {
-      const bodySchema = buildSchemaRef(bodyParam.type, schemas, typeDefinitions, enumDefinitions);
+      const bodySchema = buildSchemaRefFromBuilder(bodyParam.type, context);
       if ('properties' in bodySchema && bodySchema.properties) {
         Object.assign(properties, bodySchema.properties);
         if (bodySchema.required) {
@@ -123,7 +125,7 @@ const buildOperation = (
           required: param.required,
           content: {
             'application/json': {
-              schema: buildSchemaRef(param.type, schemas, typeDefinitions, enumDefinitions),
+              schema: buildSchemaRefFromBuilder(param.type, context),
             },
           },
         };
@@ -137,12 +139,12 @@ const buildOperation = (
         name: param.name,
         in: param.category === 'param' ? 'path' : param.category,
         required: param.category === 'param' ? true : param.required,
-        schema: buildPrimitiveSchema(param.type),
+        schema: buildPrimitiveSchemaFromBuilder(param.type),
       });
     }
   }
 
-  const returnType = unwrapPromise(method.returnType);
+  const returnType = unwrapPromiseFromBuilder(method.returnType);
   const responses: OpenAPIV3.ResponsesObject = {};
 
   if (returnType === 'void') {
@@ -152,7 +154,7 @@ const buildOperation = (
       description: 'Successful response',
       content: {
         'application/json': {
-          schema: buildSchemaRef(returnType, schemas, typeDefinitions, enumDefinitions),
+          schema: buildSchemaRefFromBuilder(returnType, context),
         },
       },
     };
@@ -174,236 +176,4 @@ const buildOperation = (
     requestBody,
     responses,
   };
-};
-
-const buildSchemaRef = (
-  typeName: string,
-  schemas: Record<string, OpenAPIV3.SchemaObject>,
-  typeDefinitions: Map<string, TypeDefinition>,
-  enumDefinitions: Map<string, EnumDefinition>,
-): OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject => {
-  const primitiveSchema = buildPrimitiveSchema(typeName);
-  if (primitiveSchema.type) {
-    return primitiveSchema;
-  }
-
-  // Handle nullable types (T | null, T | undefined)
-  const nullableMatch = typeName.match(/^(.+?)\s*\|\s*(null|undefined)$/) ||
-                        typeName.match(/^(null|undefined)\s*\|\s*(.+)$/);
-  if (nullableMatch) {
-    const innerType = nullableMatch[1] === 'null' || nullableMatch[1] === 'undefined' 
-      ? nullableMatch[2] 
-      : nullableMatch[1];
-    const innerSchema = buildSchemaRef(innerType.trim(), schemas, typeDefinitions, enumDefinitions);
-    // OpenAPI 3.0 nullable
-    if ('$ref' in innerSchema) {
-      return { allOf: [innerSchema], nullable: true };
-    }
-    return { ...innerSchema, nullable: true };
-  }
-
-  // Handle inline object types like { status: string; message: string; }
-  if (typeName.startsWith('{') && typeName.endsWith('}')) {
-    return parseInlineObjectType(typeName, schemas, typeDefinitions, enumDefinitions);
-  }
-
-  // Handle array types
-  const arrayMatch = typeName.match(/^(.+)\[\]$/);
-  if (arrayMatch) {
-    return {
-      type: 'array',
-      items: buildSchemaRef(arrayMatch[1], schemas, typeDefinitions, enumDefinitions),
-    };
-  }
-
-  // Handle generic array types like Array<T>
-  const genericArrayMatch = typeName.match(/^Array<(.+)>$/);
-  if (genericArrayMatch) {
-    return {
-      type: 'array',
-      items: buildSchemaRef(genericArrayMatch[1], schemas, typeDefinitions, enumDefinitions),
-    };
-  }
-
-  // Handle generic types like DataResponse<T>, PaginatedResponse<T>
-  const genericMatch = typeName.match(/^(\w+)<(.+)>$/);
-  if (genericMatch) {
-    const [, wrapperType, innerType] = genericMatch;
-    
-    // Look up the wrapper type definition and substitute the type parameter
-    const wrapperDef = typeDefinitions.get(wrapperType);
-    if (wrapperDef && wrapperDef.properties.length > 0) {
-      const properties: Record<string, OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject> = {};
-      const required: string[] = [];
-
-      for (const prop of wrapperDef.properties) {
-        // Substitute type parameter T with the actual inner type
-        let propType = prop.type;
-        if (propType === 'T') {
-          propType = innerType;
-        } else if (propType === 'T[]') {
-          propType = `${innerType}[]`;
-        } else if (propType.includes('<T>')) {
-          propType = propType.replace('<T>', `<${innerType}>`);
-        }
-        
-        properties[prop.name] = buildSchemaRef(propType, schemas, typeDefinitions, enumDefinitions);
-        if (prop.required) {
-          required.push(prop.name);
-        }
-      }
-
-      return {
-        type: 'object',
-        properties,
-        required: required.length > 0 ? required : undefined,
-      };
-    }
-    
-    // Fallback: just resolve the inner type if wrapper definition not found
-    return buildSchemaRef(innerType, schemas, typeDefinitions, enumDefinitions);
-  }
-
-  // Handle Date type
-  if (typeName === 'Date') {
-    return { type: 'string', format: 'date-time' };
-  }
-
-  // Check if it's an enum
-  const enumDef = enumDefinitions.get(typeName);
-  if (enumDef) {
-    if (!schemas[typeName]) {
-      schemas[typeName] = {
-        type: 'string',
-        enum: enumDef.values,
-        description: enumDef.description,
-      };
-    }
-    return { $ref: `#/components/schemas/${typeName}` };
-  }
-
-  // Register as a reference schema with resolved properties
-  if (!schemas[typeName]) {
-    const typeDef = typeDefinitions.get(typeName);
-    if (typeDef && typeDef.properties.length > 0) {
-      const properties: Record<string, OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject> = {};
-      const required: string[] = [];
-
-      for (const prop of typeDef.properties) {
-        const baseSchema = buildSchemaRef(prop.type, schemas, typeDefinitions, enumDefinitions);
-        
-        // Merge JSDoc tags into the schema
-        const propSchema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject = '$ref' in baseSchema
-          ? baseSchema
-          : {
-              ...baseSchema,
-              description: prop.description || baseSchema.description,
-              example: prop.example,
-              format: prop.format || baseSchema.format,
-              deprecated: prop.deprecated,
-              minimum: prop.minimum,
-              maximum: prop.maximum,
-              minLength: prop.minLength,
-              maxLength: prop.maxLength,
-              pattern: prop.pattern,
-              default: prop.default,
-            };
-        
-        // Clean up undefined values
-        if (!('$ref' in propSchema)) {
-          Object.keys(propSchema).forEach((key) => {
-            if ((propSchema as Record<string, unknown>)[key] === undefined) {
-              delete (propSchema as Record<string, unknown>)[key];
-            }
-          });
-        }
-        
-        properties[prop.name] = propSchema;
-        if (prop.required) {
-          required.push(prop.name);
-        }
-      }
-
-      schemas[typeName] = {
-        type: 'object',
-        description: typeDef.description,
-        properties,
-        required: required.length > 0 ? required : undefined,
-      };
-    } else {
-      schemas[typeName] = {
-        type: 'object',
-        description: `Schema for ${typeName}`,
-      };
-    }
-  }
-
-  return { $ref: `#/components/schemas/${typeName}` };
-};
-
-// Parse inline object types like { status: string; message: string; }
-const parseInlineObjectType = (
-  typeName: string,
-  schemas: Record<string, OpenAPIV3.SchemaObject>,
-  typeDefinitions: Map<string, TypeDefinition>,
-  enumDefinitions: Map<string, EnumDefinition>,
-): OpenAPIV3.SchemaObject => {
-  const inner = typeName.slice(1, -1).trim();
-  if (!inner) {
-    return { type: 'object' };
-  }
-
-  const properties: Record<string, OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject> = {};
-  const required: string[] = [];
-
-  // Parse properties like "status: string; message: string;"
-  const propMatches = inner.split(';').filter(p => p.trim());
-  for (const propStr of propMatches) {
-    const colonIndex = propStr.indexOf(':');
-    if (colonIndex === -1) continue;
-
-    let propName = propStr.slice(0, colonIndex).trim();
-    const propType = propStr.slice(colonIndex + 1).trim();
-
-    // Check for optional property (name?)
-    const isOptional = propName.endsWith('?');
-    if (isOptional) {
-      propName = propName.slice(0, -1);
-    }
-
-    properties[propName] = buildSchemaRef(propType, schemas, typeDefinitions, enumDefinitions);
-    if (!isOptional) {
-      required.push(propName);
-    }
-  }
-
-  return {
-    type: 'object',
-    properties,
-    required: required.length > 0 ? required : undefined,
-  };
-};
-
-const buildPrimitiveSchema = (typeName: string): OpenAPIV3.SchemaObject => {
-  switch (typeName.toLowerCase()) {
-    case 'string':
-      return { type: 'string' };
-    case 'number':
-      return { type: 'number' };
-    case 'boolean':
-      return { type: 'boolean' };
-    case 'any':
-    case 'unknown':
-      return {};
-    default:
-      return {};
-  }
-};
-
-const unwrapPromise = (type: string): string => {
-  const promiseMatch = type.match(/^Promise<(.+)>$/);
-  if (promiseMatch) {
-    return promiseMatch[1];
-  }
-  return type;
 };

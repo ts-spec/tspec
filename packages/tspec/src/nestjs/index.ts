@@ -14,17 +14,25 @@ export type {
   ParsedNestApp,
   HttpMethod,
 } from './types';
+export type { GenerateOpenApiOptions } from './openapiGenerator';
+
+/**
+ * @deprecated Use `Tspec.GenerateParams` instead
+ */
+export type GenerateNestTspecOptions = Tspec.GenerateParams;
 
 /**
  * Generate OpenAPI spec from NestJS controllers programmatically
  * 
+ * @deprecated Use `generateTspec` with `nestjs: true` instead
  * @example
  * ```typescript
- * import { generateNestTspec } from 'tspec';
+ * import { generateTspec } from 'tspec';
  * 
- * const spec = generateNestTspec({
+ * const spec = await generateTspec({
  *   tsconfigPath: './tsconfig.json',
  *   specPathGlobs: ['src/**\/*.controller.ts'],
+ *   nestjs: true,
  *   openapi: {
  *     title: 'My API',
  *     version: '1.0.0',
