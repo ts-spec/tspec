@@ -23,11 +23,16 @@ function Query(): ParameterDecorator {
 function Body(): ParameterDecorator {
   return () => {};
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function ApiResponse(options: { status: number; description?: string; type?: Function }): MethodDecorator {
+  return () => {};
+}
 
-interface Book {
-  id: number;
-  title: string;
-  author: string;
+// Use class instead of interface for @ApiResponse type parameter (interfaces can't be used as values)
+class Book {
+  id!: number;
+  title!: string;
+  author!: string;
 }
 
 interface CreateBookDto {
@@ -63,6 +68,8 @@ export class BooksController {
    * Get a single book by ID
    */
   @Get(':id')
+  @ApiResponse({ status: 200, description: 'Book found', type: Book })
+  @ApiResponse({ status: 404, description: 'Book not found' })
   findOne(@Param('id') id: string): Promise<Book> {
     return Promise.resolve({} as Book);
   }

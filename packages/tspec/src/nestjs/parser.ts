@@ -11,6 +11,7 @@ import {
   TypeDefinition,
   PropertyDefinition,
   EnumDefinition,
+  NestApiResponse,
 } from './types';
 
 const HTTP_METHOD_DECORATORS = ['Get', 'Post', 'Put', 'Patch', 'Delete', 'Options', 'Head'];
@@ -240,6 +241,69 @@ const parseController = (
   };
 };
 
+// Parse @ApiResponse decorators to extract response definitions
+const parseApiResponses = (
+  decorators: readonly ts.Decorator[],
+  checker: ts.TypeChecker,
+): NestApiResponse[] => {
+  const responses: NestApiResponse[] = [];
+
+  for (const decorator of decorators) {
+    if (!ts.isCallExpression(decorator.expression)) continue;
+    if (!ts.isIdentifier(decorator.expression.expression)) continue;
+
+    const decoratorName = decorator.expression.expression.text;
+    if (decoratorName !== 'ApiResponse') continue;
+
+    const args = decorator.expression.arguments;
+    if (args.length === 0) continue;
+
+    const firstArg = args[0];
+    if (!ts.isObjectLiteralExpression(firstArg)) continue;
+
+    let status: number | undefined;
+    let description: string | undefined;
+    let type: string | undefined;
+
+    for (const prop of firstArg.properties) {
+      if (!ts.isPropertyAssignment(prop)) continue;
+      if (!ts.isIdentifier(prop.name)) continue;
+
+      const propName = prop.name.text;
+      const propValue = prop.initializer;
+
+      switch (propName) {
+        case 'status':
+          if (ts.isNumericLiteral(propValue)) {
+            status = parseInt(propValue.text, 10);
+          }
+          break;
+        case 'description':
+          if (ts.isStringLiteral(propValue)) {
+            description = propValue.text;
+          }
+          break;
+        case 'type':
+          if (ts.isIdentifier(propValue)) {
+            type = propValue.text;
+          } else if (ts.isArrayLiteralExpression(propValue) && propValue.elements.length > 0) {
+            const firstElement = propValue.elements[0];
+            if (ts.isIdentifier(firstElement)) {
+              type = `${firstElement.text}[]`;
+            }
+          }
+          break;
+      }
+    }
+
+    if (status !== undefined) {
+      responses.push({ status, description, type });
+    }
+  }
+
+  return responses;
+};
+
 // Parse @ApiTags decorator to extract tag names
 const parseApiTags = (
   decorators: readonly ts.Decorator[],
@@ -320,6 +384,9 @@ const parseMethod = (
     .map((t) => t.comment?.toString())
     .filter((t): t is string => !!t);
 
+  // Parse @ApiResponse decorators
+  const responses = parseApiResponses(decorators, checker);
+
   return {
     name: methodName,
     httpMethod,
@@ -329,6 +396,7 @@ const parseMethod = (
     description,
     summary,
     tags: tags.length > 0 ? tags : undefined,
+    responses: responses.length > 0 ? responses : undefined,
   };
 };
 
