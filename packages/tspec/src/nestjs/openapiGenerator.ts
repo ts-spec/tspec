@@ -98,7 +98,18 @@ const buildOperation = (
     // Include body params in multipart form if present
     for (const bodyParam of bodyParams) {
       const bodySchema = buildSchemaRefFromBuilder(bodyParam.type, context);
-      if ('properties' in bodySchema && bodySchema.properties) {
+      
+      // If it's a $ref, resolve it from context.schemas to get properties
+      if ('$ref' in bodySchema) {
+        const refName = bodySchema.$ref.replace('#/components/schemas/', '');
+        const resolvedSchema = context.schemas[refName];
+        if (resolvedSchema && 'properties' in resolvedSchema && resolvedSchema.properties) {
+          Object.assign(properties, resolvedSchema.properties);
+          if (resolvedSchema.required) {
+            required.push(...resolvedSchema.required);
+          }
+        }
+      } else if ('properties' in bodySchema && bodySchema.properties) {
         Object.assign(properties, bodySchema.properties);
         if (bodySchema.required) {
           required.push(...bodySchema.required);
@@ -106,6 +117,9 @@ const buildOperation = (
       }
     }
 
+    // Remove duplicates from required array
+    const uniqueRequired = [...new Set(required)];
+    
     requestBody = {
       required: fileParams.some(p => p.required),
       content: {
@@ -113,7 +127,7 @@ const buildOperation = (
           schema: {
             type: 'object',
             properties,
-            required: required.length > 0 ? required : undefined,
+            required: uniqueRequired.length > 0 ? uniqueRequired : undefined,
           },
         },
       },
@@ -148,6 +162,8 @@ const buildOperation = (
   const responses: OpenAPIV3.ResponsesObject = {};
 
   // Use @ApiResponse decorators if available
+  const hasSuccessResponse = method.responses?.some(r => r.status >= 200 && r.status < 300);
+  
   if (method.responses && method.responses.length > 0) {
     for (const apiResponse of method.responses) {
       const statusCode = apiResponse.status.toString();
@@ -163,6 +179,22 @@ const buildOperation = (
       } else {
         responses[statusCode] = {
           description: apiResponse.description || `Response ${statusCode}`,
+        };
+      }
+    }
+    
+    // If no success response defined via @ApiResponse, generate one from return type
+    if (!hasSuccessResponse) {
+      if (returnType === 'void') {
+        responses['204'] = { description: 'No Content' };
+      } else {
+        responses['200'] = {
+          description: 'Successful response',
+          content: {
+            'application/json': {
+              schema: buildSchemaRefFromBuilder(returnType, context),
+            },
+          },
         };
       }
     }

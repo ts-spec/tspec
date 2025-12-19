@@ -123,6 +123,8 @@ export namespace Tspec {
     ignoreErrors?: boolean,
     /** Enable NestJS controller parsing mode (uses specPathGlobs for controller files) */
     nestjs?: boolean,
+    /** Suppress all console output */
+    silent?: boolean,
   }
 
   export interface InitTspecServerOptions extends GenerateParams {

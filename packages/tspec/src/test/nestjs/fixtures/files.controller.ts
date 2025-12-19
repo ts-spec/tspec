@@ -50,6 +50,28 @@ interface FileMetadata {
 }
 
 /**
+ * DTO for file upload with additional fields
+ */
+class CreateFromImageDto {
+  /**
+   * 섭취 시간
+   * @format date-time
+   * @example "2024-11-24T12:30:00.000Z"
+   */
+  intakeAt?: string;
+
+  /**
+   * 메모
+   */
+  memo?: string;
+}
+
+// Mock ApiResponse decorator
+function ApiResponse(options: { status: number; description?: string; type?: any }): MethodDecorator {
+  return () => {};
+}
+
+/**
  * File Upload Controller
  */
 @Controller('files')
@@ -85,5 +107,31 @@ export class FilesController {
     @Body() metadata: FileMetadata,
   ): Promise<UploadResponse> {
     return Promise.resolve({ fileName: file.originalname, url: '' });
+  }
+
+  /**
+   * Upload image with DTO fields (Issue #87 test case 1)
+   * @summary Upload image with additional DTO fields
+   */
+  @Post('from-image')
+  @UseInterceptors(FileInterceptor('file'))
+  createFromImage(
+    @UploadedFile() file: MulterFile,
+    @Body() dto: CreateFromImageDto,
+  ): Promise<UploadResponse> {
+    return Promise.resolve({ fileName: file.originalname, url: '' });
+  }
+
+  /**
+   * Endpoint with only error ApiResponse (Issue #87 test case 2)
+   * @summary Test endpoint with only error response defined
+   */
+  @Post('with-error-response')
+  @ApiResponse({ status: 409, description: 'Conflict error' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  createWithErrorResponse(
+    @Body() metadata: FileMetadata,
+  ): Promise<UploadResponse> {
+    return Promise.resolve({ fileName: '', url: '' });
   }
 }

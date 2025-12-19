@@ -43,6 +43,7 @@ describe('Generator Module', () => {
         specPathGlobs: [path.join(SCENARIOS_DIR, 'basic-types/spec.ts')],
         tsconfigPath: path.join(__dirname, '../../tsconfig.json'),
         ignoreErrors: true,
+        silent: true,
       });
 
       expect(spec.openapi).toBe('3.0.3');
@@ -56,6 +57,7 @@ describe('Generator Module', () => {
         specPathGlobs: [path.join(SCENARIOS_DIR, 'basic-types/spec.ts')],
         tsconfigPath: path.join(__dirname, '../../tsconfig.json'),
         ignoreErrors: true,
+        silent: true,
         openapi: {
           title: 'Custom Title',
         },
@@ -71,6 +73,7 @@ describe('Generator Module', () => {
         specPathGlobs: [path.join(SCENARIOS_DIR, 'basic-types/spec.ts')],
         tsconfigPath: path.join(__dirname, '../../tsconfig.json'),
         ignoreErrors: true,
+        silent: true,
       });
 
       expect(spec.components).toBeDefined();
@@ -83,6 +86,7 @@ describe('Generator Module', () => {
         specPathGlobs: [path.join(SCENARIOS_DIR, 'basic-types/spec.ts')],
         tsconfigPath: path.join(__dirname, '../../tsconfig.json'),
         ignoreErrors: true,
+        silent: true,
         openapi: {
           securityDefinitions: {
             bearerAuth: {
@@ -109,6 +113,7 @@ describe('Generator Module', () => {
         specPathGlobs: [path.join(SCENARIOS_DIR, 'basic-types/spec.ts')],
         tsconfigPath: path.join(__dirname, '../../tsconfig.json'),
         ignoreErrors: true,
+        silent: true,
         openapi: {
           servers: [
             { url: 'https://api.prod.com', description: 'Production' },
@@ -129,6 +134,7 @@ describe('Generator Module', () => {
         specPathGlobs: [path.join(SCENARIOS_DIR, 'basic-types/spec.ts')],
         tsconfigPath: path.join(__dirname, '../../tsconfig.json'),
         ignoreErrors: true,
+        silent: true,
       });
 
       expect(Object.keys(spec.paths).length).toBeGreaterThan(0);
@@ -142,6 +148,7 @@ describe('Generator Module', () => {
         ],
         tsconfigPath: path.join(__dirname, '../../tsconfig.json'),
         ignoreErrors: true,
+        silent: true,
       });
 
       expect(spec.paths).toBeDefined();
@@ -192,6 +199,7 @@ describe('Generator Module', () => {
         specPathGlobs: [path.join(SCENARIOS_DIR, 'basic-types/spec.ts')],
         tsconfigPath: path.join(__dirname, '../../tsconfig.json'),
         ignoreErrors: true,
+        silent: true,
         outputPath,
       });
 
@@ -208,6 +216,7 @@ describe('Generator Module', () => {
         specPathGlobs: [path.join(SCENARIOS_DIR, 'basic-types/spec.ts')],
         tsconfigPath: path.join(__dirname, '../../tsconfig.json'),
         ignoreErrors: true,
+        silent: true,
       });
 
       // Should still return the spec
@@ -222,6 +231,7 @@ describe('Generator Module', () => {
         specPathGlobs: [path.join(SCENARIOS_DIR, 'basic-types/spec.ts')],
         tsconfigPath: path.join(__dirname, '../../tsconfig.json'),
         ignoreErrors: true,
+        silent: true,
         specVersion: 3,
       });
 
@@ -236,6 +246,7 @@ describe('Generator Module', () => {
         specPathGlobs: [path.join(SCENARIOS_DIR, 'basic-types/spec.ts')],
         tsconfigPath: path.join(__dirname, '../../tsconfig.json'),
         ignoreErrors: true,
+        silent: true,
       });
 
       expect(spec).toBeDefined();

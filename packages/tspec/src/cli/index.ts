@@ -29,6 +29,8 @@ interface GeneratorOptions {
   ignoreErrors?: boolean,
   /** Enable NestJS controller parsing mode (uses specPathGlobs for controller files) */
   nestjs?: boolean,
+  /** Suppress all console output */
+  silent?: boolean,
 }
 
 interface RunServerOptions extends GeneratorOptions {
@@ -53,6 +55,7 @@ const generatorOptions = {
   ...baseOptions,
   outputPath: { type: 'string', default: 'openapi.json' },
   nestjs: { type: 'boolean', default: false, description: 'Generate from NestJS controllers (uses specPathGlobs for controller files)' },
+  silent: { type: 'boolean', default: false, description: 'Suppress all console output' },
 } as const;
 
 const runServerOptions = {
@@ -73,7 +76,7 @@ const validateGeneratorOptions = (args: GeneratorOptions): Tspec.GenerateParams 
       : undefined,
     tsconfigPath: args.tsconfigPath !== defaultArgs.tsconfigPath ? args.tsconfigPath : undefined,
     configPath: args.configPath !== defaultArgs.configPath ? args.configPath : undefined,
-    outputPath: args.outputPath,
+    outputPath: args.outputPath !== 'openapi.json' ? args.outputPath : undefined,
     specVersion: args.specVersion !== defaultArgs.specVersion ? args.specVersion : undefined,
     openapi: {
       title: args.openapiTitle !== defaultArgs.openapi.title ? args.openapiTitle : undefined,
@@ -93,6 +96,11 @@ const specGenerator = async (args: GeneratorOptions) => {
   // NestJS mode: add nestjs flag to params
   if (args.nestjs) {
     generateTspecParams.nestjs = true;
+  }
+
+  // Silent mode: suppress console output
+  if (args.silent) {
+    generateTspecParams.silent = true;
   }
 
   await generateTspec(generateTspecParams);

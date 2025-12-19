@@ -27,6 +27,7 @@ describe('CLI and Generate Function', () => {
         specPathGlobs: [path.join(SCENARIOS_DIR, 'basic-types/spec.ts')],
         tsconfigPath: path.join(__dirname, '../../tsconfig.json'),
         ignoreErrors: true,
+        silent: true,
       });
 
       expect(spec).toBeDefined();
@@ -40,6 +41,7 @@ describe('CLI and Generate Function', () => {
         specPathGlobs: [path.join(SCENARIOS_DIR, 'basic-types/spec.ts')],
         tsconfigPath: path.join(__dirname, '../../tsconfig.json'),
         ignoreErrors: true,
+        silent: true,
         openapi: {
           title: 'Custom API Title',
           version: '2.0.0',
@@ -57,6 +59,7 @@ describe('CLI and Generate Function', () => {
         specPathGlobs: [path.join(SCENARIOS_DIR, 'basic-types/spec.ts')],
         tsconfigPath: path.join(__dirname, '../../tsconfig.json'),
         ignoreErrors: true,
+        silent: true,
         openapi: {
           title: 'API with Security',
           version: '1.0.0',
@@ -83,6 +86,7 @@ describe('CLI and Generate Function', () => {
         specPathGlobs: [path.join(SCENARIOS_DIR, 'basic-types/spec.ts')],
         tsconfigPath: path.join(__dirname, '../../tsconfig.json'),
         ignoreErrors: true,
+        silent: true,
         openapi: {
           title: 'API with Servers',
           version: '1.0.0',
@@ -106,6 +110,7 @@ describe('CLI and Generate Function', () => {
         specPathGlobs: [path.join(SCENARIOS_DIR, 'basic-types/spec.ts')],
         tsconfigPath: path.join(__dirname, '../../tsconfig.json'),
         ignoreErrors: true,
+        silent: true,
         outputPath,
       });
 
@@ -124,6 +129,7 @@ describe('CLI and Generate Function', () => {
         tsconfigPath: path.join(FIXTURES_DIR, 'tsconfig.json'),
         specPathGlobs: [path.join(FIXTURES_DIR, 'books.controller.ts')],
         nestjs: true,
+        silent: true,
       });
 
       expect(spec).toBeDefined();
@@ -138,6 +144,7 @@ describe('CLI and Generate Function', () => {
         tsconfigPath: path.join(FIXTURES_DIR, 'tsconfig.json'),
         specPathGlobs: [path.join(FIXTURES_DIR, 'books.controller.ts')],
         nestjs: true,
+        silent: true,
         openapi: {
           title: 'NestJS Books API',
           version: '3.0.0',
@@ -155,6 +162,7 @@ describe('CLI and Generate Function', () => {
         tsconfigPath: path.join(FIXTURES_DIR, 'tsconfig.json'),
         specPathGlobs: [path.join(FIXTURES_DIR, 'books.controller.ts')],
         nestjs: true,
+        silent: true,
         openapi: {
           title: 'Secure API',
           version: '1.0.0',
@@ -181,6 +189,7 @@ describe('CLI and Generate Function', () => {
         tsconfigPath: path.join(FIXTURES_DIR, 'tsconfig.json'),
         specPathGlobs: [path.join(FIXTURES_DIR, 'books.controller.ts')],
         nestjs: true,
+        silent: true,
         openapi: {
           title: 'API',
           version: '1.0.0',
@@ -203,6 +212,7 @@ describe('CLI and Generate Function', () => {
           path.join(FIXTURES_DIR, 'users.controller.ts'),
         ],
         nestjs: true,
+        silent: true,
       });
 
       expect(spec.paths['/books']).toBeDefined();
@@ -214,6 +224,7 @@ describe('CLI and Generate Function', () => {
         tsconfigPath: path.join(FIXTURES_DIR, 'tsconfig.json'),
         specPathGlobs: [path.join(FIXTURES_DIR, 'files.controller.ts')],
         nestjs: true,
+        silent: true,
       });
 
       expect(spec.paths['/files/upload']).toBeDefined();
@@ -226,6 +237,7 @@ describe('CLI and Generate Function', () => {
         tsconfigPath: path.join(FIXTURES_DIR, 'tsconfig.json'),
         specPathGlobs: [path.join(FIXTURES_DIR, 'books.controller.ts')],
         nestjs: true,
+        silent: true,
       });
 
       // findOne method has @ApiResponse decorators
