@@ -30,9 +30,8 @@ interface GeneratorOptions {
   openapiDescription?: string,
   debug?: boolean,
   ignoreErrors?: boolean,
-  // NestJS options
+  /** Enable NestJS controller parsing mode (uses specPathGlobs for controller files) */
   nestjs?: boolean,
-  controllerGlobs?: readonly (string | number)[] | (string | number)[],
 }
 
 interface RunServerOptions extends GeneratorOptions {
@@ -56,8 +55,7 @@ const baseOptions = {
 const generatorOptions = {
   ...baseOptions,
   outputPath: { type: 'string', default: 'openapi.json' },
-  nestjs: { type: 'boolean', default: false, description: 'Generate from NestJS controllers' },
-  controllerGlobs: { type: 'array', default: ['src/**/*.controller.ts'], description: 'Glob patterns for NestJS controller files (used with --nestjs)' },
+  nestjs: { type: 'boolean', default: false, description: 'Generate from NestJS controllers (uses specPathGlobs for controller files)' },
 } as const;
 
 const runServerOptions = {
@@ -97,11 +95,10 @@ const specGenerator = async (args: GeneratorOptions) => {
   if (args.nestjs) {
     console.log('Parsing NestJS controllers...');
 
+    const controllerGlobs = args.specPathGlobs.map((g) => g.toString());
     const app = parseNestControllers({
       tsconfigPath: args.tsconfigPath,
-      controllerGlobs: args.controllerGlobs
-        ? Array.from(args.controllerGlobs).map((g) => g.toString())
-        : ['src/**/*.controller.ts'],
+      controllerGlobs,
     });
 
     console.log(`Found ${app.controllers.length} controller(s)`);

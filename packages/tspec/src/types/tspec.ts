@@ -121,6 +121,8 @@ export namespace Tspec {
     },
     debug?: boolean,
     ignoreErrors?: boolean,
+    /** Enable NestJS controller parsing mode (uses specPathGlobs for controller files) */
+    nestjs?: boolean,
   }
 
   export interface InitTspecServerOptions extends GenerateParams {

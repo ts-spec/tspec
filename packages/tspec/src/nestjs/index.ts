@@ -1,8 +1,8 @@
 import type { OpenAPIV3 } from 'openapi-types';
 import { parseNestControllers } from './parser';
 import { generateOpenApiFromNest } from './openapiGenerator';
-import type { GenerateOpenApiOptions } from './openapiGenerator';
 import type { NestParserOptions } from './types';
+import type { Tspec } from '../types/tspec';
 
 export { parseNestControllers } from './parser';
 export { generateOpenApiFromNest } from './openapiGenerator';
@@ -14,19 +14,6 @@ export type {
   ParsedNestApp,
   HttpMethod,
 } from './types';
-export type { GenerateOpenApiOptions } from './openapiGenerator';
-
-/**
- * Options for generating OpenAPI spec from NestJS controllers
- */
-export interface GenerateNestTspecOptions {
-  /** Path to tsconfig.json */
-  tsconfigPath?: string;
-  /** Glob patterns for controller files */
-  controllerGlobs?: string[];
-  /** OpenAPI document options */
-  openapi?: GenerateOpenApiOptions;
-}
 
 /**
  * Generate OpenAPI spec from NestJS controllers programmatically
@@ -37,7 +24,7 @@ export interface GenerateNestTspecOptions {
  * 
  * const spec = generateNestTspec({
  *   tsconfigPath: './tsconfig.json',
- *   controllerGlobs: ['src/**\/*.controller.ts'],
+ *   specPathGlobs: ['src/**\/*.controller.ts'],
  *   openapi: {
  *     title: 'My API',
  *     version: '1.0.0',
@@ -45,12 +32,18 @@ export interface GenerateNestTspecOptions {
  * });
  * ```
  */
-export const generateNestTspec = (options: GenerateNestTspecOptions = {}): OpenAPIV3.Document => {
+export const generateNestTspec = (options: Tspec.GenerateParams = {}): OpenAPIV3.Document => {
   const parserOptions: NestParserOptions = {
     tsconfigPath: options.tsconfigPath || './tsconfig.json',
-    controllerGlobs: options.controllerGlobs || ['src/**/*.controller.ts'],
+    controllerGlobs: options.specPathGlobs || ['src/**/*.controller.ts'],
   };
 
   const app = parseNestControllers(parserOptions);
-  return generateOpenApiFromNest(app, options.openapi || {});
+  return generateOpenApiFromNest(app, {
+    title: options.openapi?.title,
+    version: options.openapi?.version,
+    description: options.openapi?.description,
+    servers: options.openapi?.servers,
+    securitySchemes: options.openapi?.securityDefinitions,
+  });
 };
