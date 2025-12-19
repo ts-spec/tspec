@@ -218,18 +218,33 @@ export const createJsonFile = async (filePath: string, json: any) => {
   await fs.writeFile(filePath, JSON.stringify(json, null, 2));
 }
 
+// Logger helper that respects silent mode
+const createLogger = (silent?: boolean) => ({
+  log: (...args: unknown[]) => !silent && console.log(...args),
+  info: (...args: unknown[]) => !silent && console.log(...args),
+});
+
 export const generateTspec = async (
   generateParams: Tspec.GenerateParams = {},
 ): Promise<OpenAPIV3.Document> => {
   const params = await getGenerateTspecParams(generateParams);
+  const logger = createLogger(params.silent);
 
   // NestJS mode
   if (params.nestjs) {
+    logger.log('Parsing NestJS controllers...');
+    
     const app = parseNestControllers({
       tsconfigPath: params.tsconfigPath || 'tsconfig.json',
       controllerGlobs: params.specPathGlobs || ['src/**/*.controller.ts'],
     });
 
+    logger.log(`Found ${app.controllers.length} controller(s)`);
+    for (const controller of app.controllers) {
+      logger.log(`  - ${controller.name}: ${controller.methods.length} method(s)`);
+    }
+
+    logger.log('Generating OpenAPI spec...');
     const openapi = generateOpenApiFromNest(app, {
       title: params.openapi?.title,
       version: params.openapi?.version,
@@ -240,12 +255,15 @@ export const generateTspec = async (
 
     if (params.outputPath) {
       await createJsonFile(params.outputPath, openapi);
+      logger.log(`Generated: ${params.outputPath}`);
     }
 
     return openapi;
   }
 
   // Standard Tspec mode
+  logger.log('Scanning for Tspec definitions...');
+  
   const {
     openapiSchemas, tspecSymbols,
   } = await getOpenapiSchemas(
@@ -254,6 +272,12 @@ export const generateTspec = async (
     params.ignoreErrors,
   );
 
+  logger.log(`Found ${tspecSymbols.length} API spec(s)`);
+  for (const symbol of tspecSymbols) {
+    logger.log(`  - ${symbol}`);
+  }
+
+  logger.log('Generating OpenAPI spec...');
   const paths = getOpenapiPaths(openapiSchemas, tspecSymbols);
   const schemas = getOpenapiSchemasOnly(openapiSchemas, tspecSymbols);
 
@@ -272,8 +296,13 @@ export const generateTspec = async (
     servers: params.openapi?.servers,
   };
 
+  const pathCount = Object.keys(paths).length;
+  const schemaCount = Object.keys(schemas).length;
+  logger.log(`Generated ${pathCount} path(s), ${schemaCount} schema(s)`);
+
   if (params.outputPath) {
     await createJsonFile(params.outputPath, openapi);
+    logger.log(`Output: ${params.outputPath}`);
   }
 
   return openapi;

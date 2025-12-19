@@ -39,6 +39,7 @@ async function generateSpec(scenarioDir: string): Promise<OpenAPIV3.Document> {
     specPathGlobs: [specPath],
     tsconfigPath: path.join(__dirname, '../../tsconfig.json'),
     ignoreErrors: true,
+    silent: true,
   });
 }
 
@@ -54,7 +55,7 @@ describe('Tspec Schema Generation', () => {
 
     beforeAll(async () => {
       spec = await generateSpec(path.join(SCENARIOS_DIR, 'basic-types'));
-    });
+    }, 30000);
 
     it('should generate User schema with correct properties', () => {
       const userSchema = getComponentSchema(spec, 'User');

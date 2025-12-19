@@ -50,7 +50,7 @@ describe('NestJS Parser', () => {
       const controller = result.controllers[0];
       expect(controller.name).toBe('FilesController');
       expect(controller.path).toBe('files');
-      expect(controller.methods).toHaveLength(3);
+      expect(controller.methods).toHaveLength(5);
 
       // Single file upload
       const uploadFile = controller.methods.find((m) => m.name === 'uploadFile');
@@ -141,6 +141,60 @@ describe('NestJS Parser', () => {
       const uploadWithMetadataOp = uploadWithMetadataPath?.post as any;
       const metadataSchema = uploadWithMetadataOp.requestBody.content['multipart/form-data'].schema;
       expect(metadataSchema.properties.document).toEqual({ type: 'string', format: 'binary' });
+    });
+
+    it('should include DTO fields in multipart/form-data schema (Issue #87)', () => {
+      const result = parseNestControllers({
+        tsconfigPath: path.join(fixturesPath, 'tsconfig.json'),
+        controllerGlobs: [path.join(fixturesPath, 'files.controller.ts')],
+      });
+
+      const openapi = generateOpenApiFromNest(result, {
+        title: 'Files API',
+        version: '1.0.0',
+      });
+
+      // File upload with DTO fields
+      const fromImagePath = openapi.paths['/files/from-image'];
+      expect(fromImagePath?.post).toBeDefined();
+      const fromImageOp = fromImagePath?.post as any;
+      expect(fromImageOp.requestBody.content['multipart/form-data']).toBeDefined();
+      const fromImageSchema = fromImageOp.requestBody.content['multipart/form-data'].schema;
+      
+      // Should have file field
+      expect(fromImageSchema.properties.file).toEqual({ type: 'string', format: 'binary' });
+      
+      // Should also have DTO fields (intakeAt, memo)
+      expect(fromImageSchema.properties.intakeAt).toBeDefined();
+      expect(fromImageSchema.properties.memo).toBeDefined();
+    });
+
+    it('should generate 200 response when only error responses are defined via @ApiResponse (Issue #87)', () => {
+      const result = parseNestControllers({
+        tsconfigPath: path.join(fixturesPath, 'tsconfig.json'),
+        controllerGlobs: [path.join(fixturesPath, 'files.controller.ts')],
+      });
+
+      const openapi = generateOpenApiFromNest(result, {
+        title: 'Files API',
+        version: '1.0.0',
+      });
+
+      // Endpoint with only error ApiResponse decorators
+      const withErrorPath = openapi.paths['/files/with-error-response'];
+      expect(withErrorPath?.post).toBeDefined();
+      const withErrorOp = withErrorPath?.post as any;
+      
+      // Should have error responses from @ApiResponse
+      expect(withErrorOp.responses['409']).toBeDefined();
+      expect(withErrorOp.responses['409'].description).toBe('Conflict error');
+      expect(withErrorOp.responses['400']).toBeDefined();
+      expect(withErrorOp.responses['400'].description).toBe('Bad request');
+      
+      // Should also have auto-generated 200 response from return type
+      expect(withErrorOp.responses['200']).toBeDefined();
+      expect(withErrorOp.responses['200'].description).toBe('Successful response');
+      expect(withErrorOp.responses['200'].content['application/json']).toBeDefined();
     });
   });
 });
