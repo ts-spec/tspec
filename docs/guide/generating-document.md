@@ -30,6 +30,7 @@ pnpx tspec generate [options]
 |-|-|-|-|
 |`--specPathGlobs [path]`|string[]|Path of TypeScript files which you want to generate OpenAPI schema|`src/**/*.ts`|
 |`--tsconfigPath [path]`|string|Path of tsconfig|`./tsconfig.json`|
+|`--configPath [path]`|string|Path of Tspec configuration file|`./tspec.config.json`|
 |`--outputPath [path]`|string|Path of output OpenAPI schema|`./generate/openapi.yaml`|
 |`--specVersion [version]`|number|Version to use for OpenAPI schema (Currently supports only 3)|`3`|
 |`--openapiTitle [title]`|string|`title` property of OpenAPI schema|`Tspec`|
@@ -37,6 +38,7 @@ pnpx tspec generate [options]
 |`--openapiDescription [description]`|string|`description` property of OpenAPI schema|`This is Tspec API`|
 |`--debug [true / false]`|boolean|Print debug information for Tspec|`false`|
 |`--ignoreErrors [true / false]`|boolean|Whether ignore errors in Tspec or not|`false`|
+|`--nestjs [true / false]`|boolean|Generate from NestJS controllers (uses `specPathGlobs` for controller files)|`false`|
 :::
 
 ### **`server`**
@@ -86,9 +88,23 @@ Create `tspec.config.json` in your project root directory.
     "title": "Tspec API",
     "version": "0.0.1",
     "description": "This is Tspec API",
+    "securityDefinitions": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "servers": [
+      {
+        "url": "https://api.example.com",
+        "description": "Production server"
+      }
+    ]
   },
   "debug": false,
   "ignoreErrors": true,
+  "nestjs": false
 }
 ```
 
@@ -108,15 +124,30 @@ import { generateTspec, Tspec } from 'tspec';
 const options: Tspec.GenerateParams = {
   specPathGlobs: ['src/**/*.ts'],
   tsconfigPath: './tsconfig.json',
+  configPath: './tspec.config.json',
   outputPath: './generate/openapi.json',
   specVersion: 3,
   openapi: {
     title: 'Tspec API',
     version: '0.0.1',
-    description: "This is Tspec API",
+    description: 'This is Tspec API',
+    securityDefinitions: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+    },
+    servers: [
+      {
+        url: 'https://api.example.com',
+        description: 'Production server',
+      },
+    ],
   },
   debug: false,
   ignoreErrors: true,
+  nestjs: false, // Set to true for NestJS mode (uses specPathGlobs for controller files)
 };
 
 const openApiSpec = await generateTspec(options);
@@ -131,12 +162,26 @@ import { initTspecServer, Tspec } from 'tspec';
 const options: Tspec.InitTspecServerOptions = {
   specPathGlobs: ['src/**/*.ts'],
   tsconfigPath: './tsconfig.json',
+  configPath: './tspec.config.json',
   outputPath: './generate/openapi.json',
   specVersion: 3,
   openapi: {
     title: 'Tspec API',
     version: '0.0.1',
-    description: "This is Tspec API",
+    description: 'This is Tspec API',
+    securityDefinitions: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+    },
+    servers: [
+      {
+        url: 'https://api.example.com',
+        description: 'Production server',
+      },
+    ],
   },
   debug: false,
   ignoreErrors: true,
