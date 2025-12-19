@@ -15,6 +15,7 @@ import {
 
 const HTTP_METHOD_DECORATORS = ['Get', 'Post', 'Put', 'Patch', 'Delete', 'Options', 'Head'];
 const PARAM_DECORATORS = ['Param', 'Query', 'Body', 'Headers'];
+const FILE_DECORATORS = ['UploadedFile', 'UploadedFiles'];
 
 export const parseNestControllers = (options: NestParserOptions): ParsedNestApp => {
   const { tsconfigPath, controllerGlobs } = options;
@@ -337,6 +338,9 @@ const parseParameters = (
 ): NestParameterMetadata[] => {
   const params: NestParameterMetadata[] = [];
 
+  // Extract file field name from @UseInterceptors(FileInterceptor('fieldName')) or FilesInterceptor
+  const fileFieldName = extractFileFieldName(node);
+
   node.parameters.forEach((param) => {
     const decorators = ts.canHaveDecorators(param) ? ts.getDecorators(param) : undefined;
     if (!decorators) return;
@@ -346,6 +350,23 @@ const parseParameters = (
       if (!ts.isIdentifier(decorator.expression.expression)) continue;
 
       const decoratorName = decorator.expression.expression.text;
+      
+      // Handle file upload decorators
+      if (FILE_DECORATORS.includes(decoratorName)) {
+        const paramName = ts.isIdentifier(param.name) ? param.name.text : 'file';
+        const isMultiple = decoratorName === 'UploadedFiles';
+        const required = !param.questionToken;
+
+        params.push({
+          name: paramName,
+          type: isMultiple ? 'File[]' : 'File',
+          category: isMultiple ? 'files' : 'file',
+          required,
+          fieldName: fileFieldName || (isMultiple ? 'files' : 'file'),
+        });
+        break;
+      }
+      
       if (!PARAM_DECORATORS.includes(decoratorName)) continue;
 
       const category = decoratorName.toLowerCase() as NestParameterMetadata['category'];
@@ -365,6 +386,37 @@ const parseParameters = (
   });
 
   return params;
+};
+
+// Extract field name from @UseInterceptors(FileInterceptor('fieldName')) or FilesInterceptor
+const extractFileFieldName = (node: ts.MethodDeclaration): string | undefined => {
+  const decorators = ts.canHaveDecorators(node) ? ts.getDecorators(node) : undefined;
+  if (!decorators) return undefined;
+
+  for (const decorator of decorators) {
+    if (!ts.isCallExpression(decorator.expression)) continue;
+    if (!ts.isIdentifier(decorator.expression.expression)) continue;
+
+    const decoratorName = decorator.expression.expression.text;
+    if (decoratorName !== 'UseInterceptors') continue;
+
+    // Look for FileInterceptor or FilesInterceptor in the arguments
+    for (const arg of decorator.expression.arguments) {
+      if (!ts.isCallExpression(arg)) continue;
+      if (!ts.isIdentifier(arg.expression)) continue;
+
+      const interceptorName = arg.expression.text;
+      if (interceptorName === 'FileInterceptor' || interceptorName === 'FilesInterceptor') {
+        // First argument is the field name
+        const fieldNameArg = arg.arguments[0];
+        if (fieldNameArg && ts.isStringLiteral(fieldNameArg)) {
+          return fieldNameArg.text;
+        }
+      }
+    }
+  }
+
+  return undefined;
 };
 
 const getDecoratorStringArg = (decorator: ts.Decorator): string | undefined => {
@@ -523,6 +575,15 @@ const getJsDocTags = (node: ts.Node): JsDocTags => {
 const collectTypeNames = (typeStr: string, typesToResolve: Set<string>): void => {
   // Remove Promise wrapper
   const unwrapped = typeStr.replace(/^Promise<(.+)>$/, '$1');
+  
+  // Handle union types like "Gender | null" or "string | number"
+  if (unwrapped.includes(' | ')) {
+    const parts = unwrapped.split(' | ').map((p) => p.trim());
+    for (const part of parts) {
+      collectTypeNames(part, typesToResolve);
+    }
+    return;
+  }
   
   // Handle array types
   const arrayMatch = unwrapped.match(/^(.+)\[\]$/) || unwrapped.match(/^Array<(.+)>$/);

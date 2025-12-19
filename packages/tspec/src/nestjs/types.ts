@@ -24,8 +24,10 @@ export type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete' | 'options'
 export interface NestParameterMetadata {
   name: string;
   type: string;
-  category: 'param' | 'query' | 'body' | 'headers';
+  category: 'param' | 'query' | 'body' | 'headers' | 'file' | 'files';
   required: boolean;
+  /** Field name for file upload (from FileInterceptor) */
+  fieldName?: string;
 }
 
 export interface NestParserOptions {

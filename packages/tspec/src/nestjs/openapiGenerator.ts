@@ -69,17 +69,70 @@ const buildOperation = (
   const parameters: OpenAPIV3.ParameterObject[] = [];
   let requestBody: OpenAPIV3.RequestBodyObject | undefined;
 
-  for (const param of method.parameters) {
-    if (param.category === 'body') {
-      requestBody = {
-        required: param.required,
-        content: {
-          'application/json': {
-            schema: buildSchemaRef(param.type, schemas, typeDefinitions, enumDefinitions),
+  // Check for file upload parameters
+  const fileParams = method.parameters.filter(p => p.category === 'file' || p.category === 'files');
+  const bodyParams = method.parameters.filter(p => p.category === 'body');
+
+  if (fileParams.length > 0) {
+    // Build multipart/form-data request body for file uploads
+    const properties: Record<string, OpenAPIV3.SchemaObject> = {};
+    const required: string[] = [];
+
+    for (const fileParam of fileParams) {
+      const fieldName = fileParam.fieldName || fileParam.name;
+      if (fileParam.category === 'files') {
+        properties[fieldName] = {
+          type: 'array',
+          items: { type: 'string', format: 'binary' },
+        };
+      } else {
+        properties[fieldName] = { type: 'string', format: 'binary' };
+      }
+      if (fileParam.required) {
+        required.push(fieldName);
+      }
+    }
+
+    // Include body params in multipart form if present
+    for (const bodyParam of bodyParams) {
+      const bodySchema = buildSchemaRef(bodyParam.type, schemas, typeDefinitions, enumDefinitions);
+      if ('properties' in bodySchema && bodySchema.properties) {
+        Object.assign(properties, bodySchema.properties);
+        if (bodySchema.required) {
+          required.push(...bodySchema.required);
+        }
+      }
+    }
+
+    requestBody = {
+      required: fileParams.some(p => p.required),
+      content: {
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            properties,
+            required: required.length > 0 ? required : undefined,
           },
         },
-      };
-    } else {
+      },
+    };
+  } else {
+    for (const param of method.parameters) {
+      if (param.category === 'body') {
+        requestBody = {
+          required: param.required,
+          content: {
+            'application/json': {
+              schema: buildSchemaRef(param.type, schemas, typeDefinitions, enumDefinitions),
+            },
+          },
+        };
+      }
+    }
+  }
+
+  for (const param of method.parameters) {
+    if (param.category !== 'body' && param.category !== 'file' && param.category !== 'files') {
       parameters.push({
         name: param.name,
         in: param.category === 'param' ? 'path' : param.category,
