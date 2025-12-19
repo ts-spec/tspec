@@ -147,7 +147,26 @@ const buildOperation = (
   const returnType = unwrapPromiseFromBuilder(method.returnType);
   const responses: OpenAPIV3.ResponsesObject = {};
 
-  if (returnType === 'void') {
+  // Use @ApiResponse decorators if available
+  if (method.responses && method.responses.length > 0) {
+    for (const apiResponse of method.responses) {
+      const statusCode = apiResponse.status.toString();
+      if (apiResponse.type) {
+        responses[statusCode] = {
+          description: apiResponse.description || `Response ${statusCode}`,
+          content: {
+            'application/json': {
+              schema: buildSchemaRefFromBuilder(apiResponse.type, context),
+            },
+          },
+        };
+      } else {
+        responses[statusCode] = {
+          description: apiResponse.description || `Response ${statusCode}`,
+        };
+      }
+    }
+  } else if (returnType === 'void') {
     responses['204'] = { description: 'No Content' };
   } else {
     responses['200'] = {

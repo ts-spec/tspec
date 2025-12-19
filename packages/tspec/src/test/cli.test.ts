@@ -3,7 +3,6 @@ import path from 'path';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { generateTspec } from '../generator';
-import { generateNestTspec } from '../nestjs';
 import type { Tspec } from '../types/tspec';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -119,11 +118,12 @@ describe('CLI and Generate Function', () => {
     });
   });
 
-  describe('generateNestTspec', () => {
-    it('should generate OpenAPI spec from NestJS controllers', () => {
-      const spec = generateNestTspec({
+  describe('generateTspec with nestjs mode', () => {
+    it('should generate OpenAPI spec from NestJS controllers', async () => {
+      const spec = await generateTspec({
         tsconfigPath: path.join(FIXTURES_DIR, 'tsconfig.json'),
         specPathGlobs: [path.join(FIXTURES_DIR, 'books.controller.ts')],
+        nestjs: true,
       });
 
       expect(spec).toBeDefined();
@@ -133,10 +133,11 @@ describe('CLI and Generate Function', () => {
       expect(spec.paths['/books']?.post).toBeDefined();
     });
 
-    it('should use custom openapi options for NestJS', () => {
-      const spec = generateNestTspec({
+    it('should use custom openapi options for NestJS', async () => {
+      const spec = await generateTspec({
         tsconfigPath: path.join(FIXTURES_DIR, 'tsconfig.json'),
         specPathGlobs: [path.join(FIXTURES_DIR, 'books.controller.ts')],
+        nestjs: true,
         openapi: {
           title: 'NestJS Books API',
           version: '3.0.0',
@@ -149,10 +150,11 @@ describe('CLI and Generate Function', () => {
       expect(spec.info.description).toBe('Books API generated from NestJS');
     });
 
-    it('should include securityDefinitions for NestJS', () => {
-      const spec = generateNestTspec({
+    it('should include securityDefinitions for NestJS', async () => {
+      const spec = await generateTspec({
         tsconfigPath: path.join(FIXTURES_DIR, 'tsconfig.json'),
         specPathGlobs: [path.join(FIXTURES_DIR, 'books.controller.ts')],
+        nestjs: true,
         openapi: {
           title: 'Secure API',
           version: '1.0.0',
@@ -174,10 +176,11 @@ describe('CLI and Generate Function', () => {
       });
     });
 
-    it('should include servers for NestJS', () => {
-      const spec = generateNestTspec({
+    it('should include servers for NestJS', async () => {
+      const spec = await generateTspec({
         tsconfigPath: path.join(FIXTURES_DIR, 'tsconfig.json'),
         specPathGlobs: [path.join(FIXTURES_DIR, 'books.controller.ts')],
+        nestjs: true,
         openapi: {
           title: 'API',
           version: '1.0.0',
@@ -192,28 +195,46 @@ describe('CLI and Generate Function', () => {
       expect(spec.servers?.[0].url).toBe('https://api.books.com');
     });
 
-    it('should parse multiple controllers', () => {
-      const spec = generateNestTspec({
+    it('should parse multiple controllers', async () => {
+      const spec = await generateTspec({
         tsconfigPath: path.join(FIXTURES_DIR, 'tsconfig.json'),
         specPathGlobs: [
           path.join(FIXTURES_DIR, 'books.controller.ts'),
           path.join(FIXTURES_DIR, 'users.controller.ts'),
         ],
+        nestjs: true,
       });
 
       expect(spec.paths['/books']).toBeDefined();
       expect(spec.paths['/users']).toBeDefined();
     });
 
-    it('should handle file upload controllers', () => {
-      const spec = generateNestTspec({
+    it('should handle file upload controllers', async () => {
+      const spec = await generateTspec({
         tsconfigPath: path.join(FIXTURES_DIR, 'tsconfig.json'),
         specPathGlobs: [path.join(FIXTURES_DIR, 'files.controller.ts')],
+        nestjs: true,
       });
 
       expect(spec.paths['/files/upload']).toBeDefined();
       const uploadOp = spec.paths['/files/upload']?.post as any;
       expect(uploadOp?.requestBody?.content?.['multipart/form-data']).toBeDefined();
+    });
+
+    it('should parse @ApiResponse decorators', async () => {
+      const spec = await generateTspec({
+        tsconfigPath: path.join(FIXTURES_DIR, 'tsconfig.json'),
+        specPathGlobs: [path.join(FIXTURES_DIR, 'books.controller.ts')],
+        nestjs: true,
+      });
+
+      // findOne method has @ApiResponse decorators
+      const findOneOp = spec.paths['/books/{id}']?.get as any;
+      expect(findOneOp).toBeDefined();
+      expect(findOneOp.responses['200']).toBeDefined();
+      expect(findOneOp.responses['200'].description).toBe('Book found');
+      expect(findOneOp.responses['404']).toBeDefined();
+      expect(findOneOp.responses['404'].description).toBe('Book not found');
     });
   });
 

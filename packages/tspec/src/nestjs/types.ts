@@ -8,6 +8,12 @@ export interface NestControllerMetadata {
   tags?: string[]; // From @ApiTags decorator
 }
 
+export interface NestApiResponse {
+  status: number;
+  description?: string;
+  type?: string;
+}
+
 export interface NestMethodMetadata {
   name: string;
   httpMethod: HttpMethod;
@@ -17,6 +23,7 @@ export interface NestMethodMetadata {
   description?: string;
   summary?: string;
   tags?: string[];
+  responses?: NestApiResponse[];
 }
 
 export type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete' | 'options' | 'head';
