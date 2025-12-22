@@ -43,10 +43,10 @@ pnpm add tspec
 
 ## Define ApiSpec
 
-Let's define a simple `Book` type and `BookApiSpec`:
+Tspec supports multiple ways to define API specifications depending on your framework.
 
 ::: code-group
-```ts[index.ts]{4,11}
+```ts [Basic]
 import { Tspec } from "tspec";
 
 /** Schema description defined by JSDoc */
@@ -69,24 +69,83 @@ export type BookApiSpec = Tspec.DefineApiSpec<{
   }
 }>;
 ```
+
+```ts [Express]
+import { Request, Response } from 'express';
+import { Tspec } from 'tspec';
+
+interface Book {
+  id: number;
+  title: string;
+}
+
+// Define your Express handler with typed parameters
+export const getBook = async (
+  req: Request<{ id: string }>,
+  res: Response<Book>,
+) => {
+  res.json({ id: Number(req.params.id), title: 'Book Title' });
+};
+
+// Use handler type to auto-generate parameters and responses
+export type BookApiSpec = Tspec.DefineApiSpec<{
+  paths: {
+    '/books/{id}': {
+      get: {
+        summary: 'Get book by id',
+        handler: typeof getBook,
+      },
+    },
+  },
+}>;
+```
+
+```ts [NestJS]
+import { Controller, Get, Param } from '@nestjs/common';
+
+interface Book {
+  id: number;
+  title: string;
+}
+
+/**
+ * Books API Controller
+ */
+@Controller('books')
+export class BooksController {
+  /**
+   * Get a single book by ID
+   * @summary Get book by ID
+   */
+  @Get(':id')
+  findOne(@Param('id') id: string): Promise<Book> {
+    return Promise.resolve({ id: Number(id), title: 'Book Title' });
+  }
+}
+
+// No need to define ApiSpec manually!
+// Use `tspec generate --nestjs` to generate OpenAPI spec
+```
 :::
 
 ## Generate OpenAPI Spec
 
-Now, let's generate OpenAPI Spec from `BookApiSpec`:
+Now, let's generate OpenAPI Spec:
 
 ::: code-group
-```bash [yarn]
-yarn tspec generate --outputPath openapi.json
-```
-
-```bash [npm]
+```bash [Basic / Express]
 npx tspec generate --outputPath openapi.json
 ```
 
-```bash [pnpm]
-pnpm tspec generate --outputPath openapi.json
+```bash [NestJS]
+npx tspec generate --nestjs --outputPath openapi.json
 ```
+:::
+
+::: tip
+- **Basic / Express**: Tspec automatically parses `Tspec.DefineApiSpec` from any files that match `**/*.ts`.
+- **NestJS**: Use the `--nestjs` flag to parse controllers directly. Default glob is `src/**/*.controller.ts`.
+- For more details, see [Express Integration](/guide/express-integration) and [NestJS Integration](/guide/nestjs-integration).
 :::
 
 :::details Generated OpenAPI Spec
@@ -135,13 +194,6 @@ components:
         - title
 ```
 :::
-
-::: tip
-Tspec automatically parses ApiSpec from any files that match the glob pattern `**/*.ts` in the current working directory.
-
-If you want to specify a different spec path, you can use the `--specPathGlobs` option.
-:::
-
 
 ## Serve OpenAPI Spec
 
