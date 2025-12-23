@@ -97,10 +97,9 @@ export const buildSchemaRef = (
       ? nullableMatch[2] 
       : nullableMatch[1];
     const innerSchema = buildSchemaRef(innerType.trim(), context);
-    // OpenAPI 3.0.x: use oneOf with null type for nullable $ref
-    // allOf + nullable is not valid in OpenAPI 3.0 (nullable requires type field)
+    // OpenAPI 3.0 nullable
     if ('$ref' in innerSchema) {
-      return { oneOf: [innerSchema, { type: 'null' as const }] } as OpenAPIV3.SchemaObject;
+      return { allOf: [innerSchema], nullable: true };
     }
     return { ...innerSchema, nullable: true };
   }
@@ -163,9 +162,8 @@ export const buildSchemaRef = (
       };
     }
     
-    // Fallback for unknown generic types: return inline object schema
-    // This prevents creating schemas with invalid names like "string, unknown"
-    return { type: 'object', additionalProperties: true };
+    // Fallback: just resolve the inner type if wrapper definition not found
+    return buildSchemaRef(innerType, context);
   }
 
   // Handle Date type

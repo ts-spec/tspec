@@ -84,12 +84,11 @@ describe('NestJS Schema Generation', () => {
 
       // Gender property should reference the enum schema
       expect(userDto.properties.gender).toBeDefined();
-      // Could be $ref, allOf with $ref, or oneOf with $ref (for nullable types)
+      // Could be $ref or allOf with $ref (for nullable types)
       const genderProp = userDto.properties.gender;
       const hasGenderRef = 
         genderProp.$ref === '#/components/schemas/Gender' ||
-        (genderProp.allOf && genderProp.allOf.some((s: any) => s.$ref === '#/components/schemas/Gender')) ||
-        (genderProp.oneOf && genderProp.oneOf.some((s: any) => s.$ref === '#/components/schemas/Gender'));
+        (genderProp.allOf && genderProp.allOf.some((s: any) => s.$ref === '#/components/schemas/Gender'));
       expect(hasGenderRef).toBe(true);
     });
   });
