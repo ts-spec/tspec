@@ -97,9 +97,10 @@ export const buildSchemaRef = (
       ? nullableMatch[2] 
       : nullableMatch[1];
     const innerSchema = buildSchemaRef(innerType.trim(), context);
-    // OpenAPI 3.0 nullable
+    // OpenAPI 3.0.x: use oneOf with null type for nullable $ref
+    // allOf + nullable is not valid in OpenAPI 3.0 (nullable requires type field)
     if ('$ref' in innerSchema) {
-      return { allOf: [innerSchema], nullable: true };
+      return { oneOf: [innerSchema, { type: 'null' as const }] } as OpenAPIV3.SchemaObject;
     }
     return { ...innerSchema, nullable: true };
   }
