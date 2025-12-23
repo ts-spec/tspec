@@ -153,7 +153,11 @@ const getOpenapiSchemas = async (
 
   const openapiSchemas = await convertToOpenapiSchemas(jsonSchemas);
 
-  return { openapiSchemas, tspecSymbols };
+  // Deep clone to break references to TypeScript compiler internals (program, generator, etc.)
+  // This prevents memory leaks caused by TypeScript's internal caches holding references
+  const clonedSchemas = JSON.parse(JSON.stringify(openapiSchemas)) as SchemaMapping;
+
+  return { openapiSchemas: clonedSchemas, tspecSymbols };
 };
 
 const getOpenapiSchemasOnly = (openapiSchemas: SchemaMapping, tspecSymbols: string[]) => {
