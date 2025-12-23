@@ -116,6 +116,11 @@ export class CreateUserDto {
    * @minLength 8
    */
   password!: string;
+
+  /**
+   * 메타데이터 (Record<string, unknown> 타입)
+   */
+  meta?: Record<string, unknown>;
 }
 
 /**

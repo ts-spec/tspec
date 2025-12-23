@@ -2,6 +2,7 @@ import convert from 'json-schema-to-openapi-schema'; // TODO: 이게 정말 필�
 import * as TJS from 'typescript-json-schema';
 
 import { SchemaMapping } from './types';
+import { sanitizeSchemaName } from './schemaBuilder';
 
 const isSchemaNullableOnly = (s: any) => (
   Object.keys(s).filter((key) => s[key] !== undefined).length === 1 && s.nullable
@@ -119,8 +120,8 @@ const findAllRefAndReplace = (schema: any, nameMapping: any): any => { // TODO: 
 
 const escapeSchemaNames = (schemas: SchemaMapping) => {
   const escapedNameMapping = Object.fromEntries(Object.keys(schemas).map((schemaName) => (
-    // only contain the characters A-Z a-z 0-9 - . _
-    [schemaName, schemaName.replace(/[^A-Za-z0-9_.-]/g, '_')]
+    // Use unified sanitizeSchemaName for consistent schema name handling
+    [schemaName, sanitizeSchemaName(schemaName)]
   )));
   const escapedSchemas = Object.fromEntries(Object.entries(schemas).map(([schemaName, schema]) => (
     [escapedNameMapping[schemaName], schema]

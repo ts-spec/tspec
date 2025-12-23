@@ -1,5 +1,22 @@
 import { OpenAPIV3 } from 'openapi-types';
 
+/**
+ * Sanitize a type name to be a valid OpenAPI schema name.
+ * Removes or replaces characters that are not allowed in schema names.
+ * e.g., "Record<string, unknown>" -> "Record_string_unknown_"
+ *       "string | null" -> "string_or_null"
+ */
+export const sanitizeSchemaName = (typeName: string): string => {
+  return typeName
+    .replace(/\s*\|\s*/g, '_or_')  // Union types: " | " -> "_or_"
+    .replace(/</g, '_')            // Generic open bracket
+    .replace(/>/g, '_')            // Generic close bracket
+    .replace(/,\s*/g, '_')         // Comma with optional space
+    .replace(/\s+/g, '_')          // Any remaining whitespace
+    .replace(/[^a-zA-Z0-9_]/g, '') // Remove any other special characters
+    .replace(/_+/g, '_');          // Collapse multiple underscores
+};
+
 export interface TypeDefinition {
   name: string;
   properties: PropertyDefinition[];
@@ -110,7 +127,7 @@ export const buildSchemaRef = (
     };
   }
 
-  // Handle generic types like DataResponse<T>, PaginatedResponse<T>
+  // Handle generic types like DataResponse<T>, PaginatedResponse<T>, Record<K, V>
   const genericMatch = typeName.match(/^(\w+)<(.+)>$/);
   if (genericMatch) {
     const [, wrapperType, innerType] = genericMatch;
@@ -145,8 +162,9 @@ export const buildSchemaRef = (
       };
     }
     
-    // Fallback: just resolve the inner type if wrapper definition not found
-    return buildSchemaRef(innerType, context);
+    // Fallback for unknown generic types: return inline object schema
+    // This prevents creating schemas with invalid names like "string, unknown"
+    return { type: 'object', additionalProperties: true };
   }
 
   // Handle Date type
@@ -157,18 +175,22 @@ export const buildSchemaRef = (
   // Check if it's an enum
   const enumDef = enumDefinitions.get(typeName);
   if (enumDef) {
-    if (!schemas[typeName]) {
-      schemas[typeName] = {
+    const schemaName = sanitizeSchemaName(typeName);
+    if (!schemas[schemaName]) {
+      schemas[schemaName] = {
         type: 'string',
         enum: enumDef.values,
         description: enumDef.description,
       };
     }
-    return { $ref: `#/components/schemas/${typeName}` };
+    return { $ref: `#/components/schemas/${schemaName}` };
   }
 
+  // Sanitize the type name for use as a schema name
+  const schemaName = sanitizeSchemaName(typeName);
+
   // Register as a reference schema with resolved properties
-  if (!schemas[typeName]) {
+  if (!schemas[schemaName]) {
     const typeDef = typeDefinitions.get(typeName);
     if (typeDef && typeDef.properties.length > 0) {
       const properties: Record<string, OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject> = {};
@@ -209,21 +231,21 @@ export const buildSchemaRef = (
         }
       }
 
-      schemas[typeName] = {
+      schemas[schemaName] = {
         type: 'object',
         description: typeDef.description,
         properties,
         required: required.length > 0 ? required : undefined,
       };
     } else {
-      schemas[typeName] = {
+      schemas[schemaName] = {
         type: 'object',
         description: `Schema for ${typeName}`,
       };
     }
   }
 
-  return { $ref: `#/components/schemas/${typeName}` };
+  return { $ref: `#/components/schemas/${schemaName}` };
 };
 
 // Parse inline object types like { status: string; message: string; }

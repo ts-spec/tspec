@@ -165,4 +165,19 @@ describe('NestJS Schema Generation', () => {
       expect(userDto.required).not.toContain('legacyField');
     });
   });
+
+  describe('Record types (Issue #89)', () => {
+    it('should handle Record<string, unknown> without creating invalid schema name', () => {
+      const openapi = getOpenApiSpec();
+      const createUserDto = openapi.components?.schemas?.CreateUserDto as any;
+
+      // meta property should be object with additionalProperties
+      expect(createUserDto.properties.meta).toBeDefined();
+      expect(createUserDto.properties.meta.type).toBe('object');
+      expect(createUserDto.properties.meta.additionalProperties).toBe(true);
+
+      // Should NOT have a schema with invalid name containing comma and space
+      expect(openapi.components?.schemas?.['string, unknown']).toBeUndefined();
+    });
+  });
 });
