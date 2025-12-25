@@ -81,13 +81,13 @@ describe('NestJS Parser', () => {
   });
 
   describe('generateOpenApiFromNest', () => {
-    it('should generate valid OpenAPI spec', () => {
+    it('should generate valid OpenAPI spec', async () => {
       const result = parseNestControllers({
         tsconfigPath: path.join(fixturesPath, 'tsconfig.json'),
         controllerGlobs: [path.join(fixturesPath, 'books.controller.ts')],
       });
 
-      const openapi = generateOpenApiFromNest(result, {
+      const openapi = await generateOpenApiFromNest(result, {
         title: 'Books API',
         version: '1.0.0',
       });
@@ -103,13 +103,13 @@ describe('NestJS Parser', () => {
       expect(openapi.paths['/books/{id}']?.delete).toBeDefined();
     });
 
-    it('should generate multipart/form-data for file uploads', () => {
+    it('should generate multipart/form-data for file uploads', async () => {
       const result = parseNestControllers({
         tsconfigPath: path.join(fixturesPath, 'tsconfig.json'),
         controllerGlobs: [path.join(fixturesPath, 'files.controller.ts')],
       });
 
-      const openapi = generateOpenApiFromNest(result, {
+      const openapi = await generateOpenApiFromNest(result, {
         title: 'Files API',
         version: '1.0.0',
       });
@@ -143,13 +143,13 @@ describe('NestJS Parser', () => {
       expect(metadataSchema.properties.document).toEqual({ type: 'string', format: 'binary' });
     });
 
-    it('should include DTO fields in multipart/form-data schema (Issue #87)', () => {
+    it('should include DTO fields in multipart/form-data schema (Issue #87)', async () => {
       const result = parseNestControllers({
         tsconfigPath: path.join(fixturesPath, 'tsconfig.json'),
         controllerGlobs: [path.join(fixturesPath, 'files.controller.ts')],
       });
 
-      const openapi = generateOpenApiFromNest(result, {
+      const openapi = await generateOpenApiFromNest(result, {
         title: 'Files API',
         version: '1.0.0',
       });
@@ -169,13 +169,13 @@ describe('NestJS Parser', () => {
       expect(fromImageSchema.properties.memo).toBeDefined();
     });
 
-    it('should generate 200 response when only error responses are defined via @ApiResponse (Issue #87)', () => {
+    it('should generate 200 response when only error responses are defined via @ApiResponse (Issue #87)', async () => {
       const result = parseNestControllers({
         tsconfigPath: path.join(fixturesPath, 'tsconfig.json'),
         controllerGlobs: [path.join(fixturesPath, 'files.controller.ts')],
       });
 
-      const openapi = generateOpenApiFromNest(result, {
+      const openapi = await generateOpenApiFromNest(result, {
         title: 'Files API',
         version: '1.0.0',
       });

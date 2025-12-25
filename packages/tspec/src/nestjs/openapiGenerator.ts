@@ -14,6 +14,7 @@ import {
   createSchemaBuilderContext,
   SchemaBuilderContext,
 } from '../generator/schemaBuilder';
+import { convertToOpenapiSchemas } from '../generator/openapiSchemaConverter';
 
 export interface GenerateOpenApiOptions {
   title?: string;
@@ -42,12 +43,20 @@ const buildPropertySchema = (
   return mergeJsDocAnnotations(baseSchema, prop);
 };
 
-export const generateOpenApiFromNest = (
+export const generateOpenApiFromNest = async (
   app: ParsedNestApp,
   options: GenerateOpenApiOptions = {},
-): OpenAPIV3.Document => {
+): Promise<OpenAPIV3.Document> => {
   const paths: OpenAPIV3.PathsObject = {};
-  const context = createSchemaBuilderContext(app.typeDefinitions, app.enumDefinitions);
+  
+  // If TJS schemas are available, convert them to OpenAPI format and use them
+  // This gives us fully resolved schemas without manual parsing
+  let tjsOpenApiSchemas: Record<string, OpenAPIV3.SchemaObject> | undefined;
+  if (app.tjsSchemas) {
+    tjsOpenApiSchemas = await convertToOpenapiSchemas(app.tjsSchemas);
+  }
+  
+  const context = createSchemaBuilderContext(app.typeDefinitions, app.enumDefinitions, tjsOpenApiSchemas);
 
   for (const controller of app.controllers) {
     const basePath = controller.path ? `/${controller.path}`.replace(/\/+/g, '/') : '';

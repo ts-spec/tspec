@@ -143,6 +143,21 @@ export class PaginatedResponse<T> {
 }
 
 /**
+ * 사용자 목록 응답 DTO (배열 프로퍼티 테스트용)
+ */
+export class UserListResponseDto {
+  /**
+   * 사용자 목록
+   */
+  users!: UserDto[];
+
+  /**
+   * 총 개수
+   */
+  totalCount!: number;
+}
+
+/**
  * 사용자 목록 조회 쿼리 DTO
  */
 export class ListUsersQueryDto {
@@ -214,5 +229,13 @@ export class UsersController {
     @Body() updateUserDto: Partial<CreateUserDto>,
   ): Promise<DataResponse<UserDto>> {
     return Promise.resolve({ data: {} as UserDto });
+  }
+
+  /**
+   * 사용자 목록 조회 (배열 프로퍼티 테스트용)
+   */
+  @Get('list')
+  getList(): Promise<UserListResponseDto> {
+    return Promise.resolve({ users: [], totalCount: 0 });
   }
 }

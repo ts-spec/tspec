@@ -79,13 +79,13 @@ describe('schemaBuilder', () => {
         expect(context.schemas['string, unknown']).toBeUndefined();
       });
 
-      it('should handle unknown generic types as object with additionalProperties', () => {
+      it('should handle Map<string, number> with typed additionalProperties', () => {
         const context = createSchemaBuilderContext();
         const schema = buildSchemaRef('Map<string, number>', context);
 
         expect(schema).toEqual({
           type: 'object',
-          additionalProperties: true,
+          additionalProperties: { type: 'number' },
         });
       });
     });
