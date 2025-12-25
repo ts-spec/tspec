@@ -54,6 +54,38 @@ export interface SchemaBuilderContext {
   enumDefinitions: Map<string, EnumDefinition>;
 }
 
+/**
+ * Merge JSDoc annotations from PropertyDefinition into an OpenAPI schema.
+ * This is a shared utility for building property schemas with JSDoc tags.
+ */
+export const mergeJsDocAnnotations = (
+  baseSchema: OpenAPIV3.SchemaObject,
+  prop: PropertyDefinition,
+): OpenAPIV3.SchemaObject => {
+  const schema: OpenAPIV3.SchemaObject = {
+    ...baseSchema,
+    description: prop.description || baseSchema.description,
+    example: prop.example,
+    format: prop.format || baseSchema.format,
+    deprecated: prop.deprecated,
+    minimum: prop.minimum,
+    maximum: prop.maximum,
+    minLength: prop.minLength,
+    maxLength: prop.maxLength,
+    pattern: prop.pattern,
+    default: prop.default,
+  };
+
+  // Clean up undefined values
+  Object.keys(schema).forEach((key) => {
+    if ((schema as Record<string, unknown>)[key] === undefined) {
+      delete (schema as Record<string, unknown>)[key];
+    }
+  });
+
+  return schema;
+};
+
 export const buildPrimitiveSchema = (typeName: string): OpenAPIV3.SchemaObject => {
   switch (typeName.toLowerCase()) {
     case 'string':
@@ -198,31 +230,10 @@ export const buildSchemaRef = (
       for (const prop of typeDef.properties) {
         const baseSchema = buildSchemaRef(prop.type, context);
         
-        // Merge JSDoc tags into the schema
+        // Merge JSDoc tags into the schema (skip for $ref schemas)
         const propSchema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject = '$ref' in baseSchema
           ? baseSchema
-          : {
-              ...baseSchema,
-              description: prop.description || baseSchema.description,
-              example: prop.example,
-              format: prop.format || baseSchema.format,
-              deprecated: prop.deprecated,
-              minimum: prop.minimum,
-              maximum: prop.maximum,
-              minLength: prop.minLength,
-              maxLength: prop.maxLength,
-              pattern: prop.pattern,
-              default: prop.default,
-            };
-        
-        // Clean up undefined values
-        if (!('$ref' in propSchema)) {
-          Object.keys(propSchema).forEach((key) => {
-            if ((propSchema as Record<string, unknown>)[key] === undefined) {
-              delete (propSchema as Record<string, unknown>)[key];
-            }
-          });
-        }
+          : mergeJsDocAnnotations(baseSchema, prop);
         
         properties[prop.name] = propSchema;
         if (prop.required) {
