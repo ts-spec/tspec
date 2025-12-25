@@ -118,6 +118,12 @@ export namespace Tspec {
       description?: string,
       securityDefinitions?: OpenAPIV3.ComponentsObject['securitySchemes'],
       servers?: OpenAPIV3.ServerObject[],
+      /**
+       * Map custom decorator names to security scheme names.
+       * Useful for composite decorators that wrap @ApiBearerAuth, etc.
+       * @example { "Auth": "bearerAuth", "AdminAuth": "bearerAuth" }
+       */
+      authDecorators?: Record<string, string>,
     },
     debug?: boolean,
     ignoreErrors?: boolean,

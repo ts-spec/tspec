@@ -241,6 +241,7 @@ export const generateTspec = async (
     const app = parseNestControllers({
       tsconfigPath: params.tsconfigPath || 'tsconfig.json',
       controllerGlobs: params.specPathGlobs || ['src/**/*.controller.ts'],
+      authDecorators: params.openapi?.authDecorators,
     });
 
     logger.log(`Found ${app.controllers.length} controller(s)`);
