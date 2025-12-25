@@ -249,7 +249,7 @@ export const generateTspec = async (
     }
 
     logger.log('Generating OpenAPI spec...');
-    const openapi = generateOpenApiFromNest(app, {
+    const openapi = await generateOpenApiFromNest(app, {
       title: params.openapi?.title,
       version: params.openapi?.version,
       description: params.openapi?.description,

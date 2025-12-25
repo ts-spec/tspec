@@ -49,6 +49,8 @@ export interface ParsedNestApp {
   imports: Map<string, string>; // typeName -> import path
   typeDefinitions: Map<string, TypeDefinition>; // typeName -> type definition
   enumDefinitions: Map<string, EnumDefinition>; // enumName -> enum definition
+  /** TJS-generated schemas for all types (already resolved, no manual parsing needed) */
+  tjsSchemas?: Record<string, any>;
 }
 
 export interface EnumDefinition {
@@ -61,6 +63,21 @@ export interface TypeDefinition {
   name: string;
   properties: PropertyDefinition[];
   description?: string;
+  /**
+   * Index signature type for Record<K, V>, Map<K, V>, or { [key: string]: T }
+   * TODO(cleanup): This field can be removed once TJS is fully integrated.
+   * @deprecated - Will be removed when TJS fallback is no longer needed
+   */
+  indexSignature?: {
+    keyType: string;
+    valueType: string;
+  };
+  /**
+   * Type parameter names for generic types (e.g., ['T'] for DataResponse<T>, ['K', 'V'] for Map<K, V>)
+   * TODO(cleanup): This field can be removed once TJS is fully integrated.
+   * @deprecated - Will be removed when TJS fallback is no longer needed
+   */
+  typeParameters?: string[];
 }
 
 export interface PropertyDefinition {
@@ -80,4 +97,13 @@ export interface PropertyDefinition {
   maxLength?: number;
   pattern?: string;
   default?: unknown;
+  /**
+   * Index signature for Record<K, V>, Map<K, V>, or { [key: string]: T } properties
+   * TODO(cleanup): This field can be removed once TJS is fully integrated.
+   * @deprecated - Will be removed when TJS fallback is no longer needed
+   */
+  indexSignature?: {
+    keyType: string;
+    valueType: string;
+  };
 }

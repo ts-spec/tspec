@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import { globSync } from 'glob';
+import * as TJS from 'typescript-json-schema';
 
 import {
   NestControllerMetadata,
@@ -196,7 +197,82 @@ export const parseNestControllers = (options: NestParserOptions): ParsedNestApp 
     // Continue resolving nested types
   }
 
-  return { controllers, imports, typeDefinitions, enumDefinitions };
+  // Generate TJS schemas as fallback for types not found in typeDefinitions
+  // Filter out generic type strings (e.g., "DataResponse<User>") - TJS only accepts symbol names
+  const baseTypeNames = new Set<string>();
+  for (const typeName of typesToResolve) {
+    if (typeName.includes('<') || typeName.includes('[') || typeName.includes('|')) continue;
+    const primitives = ['string', 'number', 'boolean', 'void', 'undefined', 'null', 'any', 'unknown', 'never', 'object'];
+    if (primitives.includes(typeName.toLowerCase())) continue;
+    baseTypeNames.add(typeName);
+  }
+  const tjsSchemas = generateTjsSchemas(files, parsedConfig.options, baseTypeNames);
+
+  return { controllers, imports, typeDefinitions, enumDefinitions, tjsSchemas };
+};
+
+/**
+ * Generate JSON schemas for types using typescript-json-schema.
+ * TJS handles all the complex type resolution (generics, Record, Map, etc.) automatically.
+ */
+const generateTjsSchemas = (
+  files: string[],
+  compilerOptions: ts.CompilerOptions,
+  typeNames: Set<string>,
+): Record<string, any> | undefined => {
+  if (typeNames.size === 0) {
+    return undefined;
+  }
+
+  try {
+    const tjsProgram = TJS.getProgramFromFiles(files, {
+      ...compilerOptions,
+      noEmit: true,
+    });
+
+    const tjsSettings: TJS.PartialArgs = {
+      required: true,
+      noExtraProps: true,
+      strictNullChecks: true,
+      ignoreErrors: true,
+      esModuleInterop: compilerOptions.esModuleInterop,
+      constAsEnum: true,
+      validationKeywords: [
+        'title', 'pattern',
+        'minimum', 'maximum', 'exclusiveMinimum', 'exclusiveMaximum', 'multipleOf',
+        'minLength', 'maxLength',
+        'minItems', 'maxItems', 'uniqueItems',
+        'minProperties', 'maxProperties',
+        'format', 'description', 'default',
+        'deprecated', 'example', 'nullable',
+      ],
+    };
+
+    const generator = TJS.buildGenerator(tjsProgram, tjsSettings);
+    if (!generator) {
+      return undefined;
+    }
+
+    // Get schemas for all type names
+    // Filter to only include types that actually exist as symbols in the program
+    const typeNamesArray = Array.from(typeNames).filter((name) => {
+      const symbols = generator.getSymbols(name);
+      return symbols.length > 0;
+    });
+    
+    if (typeNamesArray.length === 0) {
+      return undefined;
+    }
+    
+    const result = generator.getSchemaForSymbols(typeNamesArray);
+    
+    // Deep clone to break references to TypeScript compiler internals
+    return result.definitions ? JSON.parse(JSON.stringify(result.definitions)) : undefined;
+  } catch (error) {
+    // If TJS fails, fall back to manual parsing (existing behavior)
+    console.warn('TJS schema generation failed, falling back to manual parsing:', error);
+    return undefined;
+  }
 };
 
 const parseController = (
@@ -551,6 +627,144 @@ const getTypeString = (
   return checker.typeToString(type);
 };
 
+/**
+ * Extract index signature info from a type using TypeScript's type checker
+ * 
+ * TODO(cleanup): This function can be removed once TJS is fully integrated.
+ * TJS already handles Record<K,V>, Map<K,V>, and index signatures automatically.
+ * @deprecated - Will be removed when TJS fallback is no longer needed
+ */
+const getIndexSignatureInfo = (
+  typeNode: ts.TypeNode | undefined,
+  checker: ts.TypeChecker,
+): { keyType: string; valueType: string } | undefined => {
+  if (!typeNode) return undefined;
+
+  const type = checker.getTypeFromTypeNode(typeNode);
+  return getIndexSignatureInfoFromType(type, checker);
+};
+
+/**
+ * Extract index signature info from a resolved Type object
+ * 
+ * TODO(cleanup): This function can be removed once TJS is fully integrated.
+ * TJS already handles Record<K,V>, Map<K,V>, and index signatures automatically.
+ * @deprecated - Will be removed when TJS fallback is no longer needed
+ */
+const getIndexSignatureInfoFromType = (
+  type: ts.Type,
+  checker: ts.TypeChecker,
+): { keyType: string; valueType: string } | undefined => {
+  // Skip primitive types - they have built-in index signatures but shouldn't be treated as Record/Map
+  // e.g., string[number] returns string, but we don't want to treat string as { [key: number]: string }
+  const typeString = checker.typeToString(type);
+  const primitives = ['string', 'number', 'boolean', 'symbol', 'bigint', 'void', 'undefined', 'null', 'any', 'unknown', 'never'];
+  if (primitives.includes(typeString.toLowerCase())) {
+    return undefined;
+  }
+  
+  // Skip array types - they have index signatures but should be treated as arrays, not Record/Map
+  // e.g., T[] or Array<T> should become { type: 'array', items: ... }
+  if (typeString.endsWith('[]') || typeString.startsWith('Array<')) {
+    return undefined;
+  }
+  // Also check using TypeChecker's method for tuple/array detection
+  if (checker.isArrayType(type) || checker.isTupleType(type)) {
+    return undefined;
+  }
+  
+  // Skip enum types - they also have index signatures but shouldn't be treated as Record/Map
+  // Check if the type is an enum by checking its flags
+  if (type.isUnion()) {
+    // Enum types are represented as unions of literal types
+    const allLiterals = type.types.every((t) => 
+      (t.flags & ts.TypeFlags.StringLiteral) !== 0 || 
+      (t.flags & ts.TypeFlags.NumberLiteral) !== 0
+    );
+    if (allLiterals) {
+      return undefined;
+    }
+  }
+  
+  // Also skip if it's a string/number enum
+  if ((type.flags & ts.TypeFlags.Enum) !== 0 || (type.flags & ts.TypeFlags.EnumLiteral) !== 0) {
+    return undefined;
+  }
+  
+  const indexInfos = checker.getIndexInfosOfType(type);
+  
+  if (indexInfos.length > 0) {
+    // Get the first index signature (typically string index)
+    const indexInfo = indexInfos[0];
+    const keyType = checker.typeToString(indexInfo.keyType);
+    const valueType = checker.typeToString(indexInfo.type);
+    return { keyType, valueType };
+  }
+  
+  return undefined;
+};
+
+/**
+ * Resolve a type from TypeNode and extract its properties.
+ * This uses TypeScript's type checker to get the instantiated type,
+ * so generics like DataResponse<User> are already resolved.
+ * 
+ * TODO(cleanup): This function can be removed once TJS is fully integrated.
+ * TJS already resolves all types including generics automatically.
+ * @deprecated - Will be removed when TJS fallback is no longer needed
+ */
+const resolveTypeDefinition = (
+  typeNode: ts.TypeNode,
+  checker: ts.TypeChecker,
+): TypeDefinition | null => {
+  const type = checker.getTypeFromTypeNode(typeNode);
+  const typeName = checker.typeToString(type);
+  
+  // Check for index signature (Record<K, V>, Map<K, V>, { [key: string]: T })
+  const indexSignature = getIndexSignatureInfoFromType(type, checker);
+  if (indexSignature) {
+    return { name: typeName, properties: [], indexSignature };
+  }
+  
+  // Get properties from the resolved type
+  const properties: PropertyDefinition[] = [];
+  const typeProperties = type.getProperties();
+  
+  for (const prop of typeProperties) {
+    const propName = prop.getName();
+    const propType = checker.getTypeOfSymbolAtLocation(prop, typeNode);
+    const propTypeString = checker.typeToString(propType);
+    
+    // Check if property is optional
+    const declarations = prop.getDeclarations();
+    const isOptional = declarations?.some((d) => 
+      (ts.isPropertySignature(d) || ts.isPropertyDeclaration(d)) && !!d.questionToken
+    ) ?? false;
+    
+    // Get JSDoc from declaration
+    const declaration = declarations?.[0];
+    const propDescription = declaration ? getJsDocDescription(declaration) : undefined;
+    const jsDocTags = declaration ? getJsDocTags(declaration) : {};
+    
+    // Check for index signature on property type
+    const propIndexSignature = getIndexSignatureInfoFromType(propType, checker);
+    
+    const isArray = propTypeString.endsWith('[]') || propTypeString.startsWith('Array<');
+    
+    properties.push({
+      name: propName,
+      type: propTypeString,
+      required: !isOptional,
+      description: propDescription,
+      isArray,
+      indexSignature: propIndexSignature,
+      ...jsDocTags,
+    });
+  }
+  
+  return { name: typeName, properties };
+};
+
 const getJsDocDescription = (node: ts.Node): string | undefined => {
   const jsDocComments = (node as any).jsDoc as ts.JSDoc[] | undefined;
   if (!jsDocComments?.length) return undefined;
@@ -680,6 +894,14 @@ const collectTypeNames = (typeStr: string, typesToResolve: Set<string>): void =>
   }
 };
 
+// Extract type parameter names from a class or interface declaration
+const getTypeParameters = (node: ts.ClassDeclaration | ts.InterfaceDeclaration): string[] | undefined => {
+  if (!node.typeParameters || node.typeParameters.length === 0) {
+    return undefined;
+  }
+  return node.typeParameters.map((tp) => tp.name.text);
+};
+
 // Parse class or interface declaration to TypeDefinition
 const parseTypeDefinition = (
   node: ts.ClassDeclaration | ts.InterfaceDeclaration,
@@ -690,6 +912,7 @@ const parseTypeDefinition = (
 
   const properties: PropertyDefinition[] = [];
   const description = getJsDocDescription(node);
+  const typeParameters = getTypeParameters(node);
 
   node.members.forEach((member) => {
     if (ts.isPropertyDeclaration(member) || ts.isPropertySignature(member)) {
@@ -703,6 +926,9 @@ const parseTypeDefinition = (
 
       // Check if it's an array type
       const isArray = propType.endsWith('[]') || propType.startsWith('Array<');
+      
+      // Extract index signature info for Record<K, V>, Map<K, V>, etc.
+      const indexSignature = getIndexSignatureInfo(member.type, checker);
 
       properties.push({
         name: propName,
@@ -710,12 +936,13 @@ const parseTypeDefinition = (
         required,
         description: propDescription,
         isArray,
+        indexSignature,
         ...jsDocTags,
       });
     }
   });
 
-  return { name: typeName, properties, description };
+  return { name: typeName, properties, description, typeParameters };
 };
 
 // Parse type alias declaration to TypeDefinition
@@ -739,6 +966,7 @@ const parseTypeAliasDefinition = (
         const required = !member.questionToken;
         const propDescription = getJsDocDescription(member);
         const isArray = propType.endsWith('[]') || propType.startsWith('Array<');
+        const indexSignature = getIndexSignatureInfo(member.type, checker);
 
         properties.push({
           name: propName,
@@ -746,11 +974,18 @@ const parseTypeAliasDefinition = (
           required,
           description: propDescription,
           isArray,
+          indexSignature,
         });
       }
     });
 
     return { name: typeName, properties, description };
+  }
+
+  // Check if the type alias itself is a Record/Map type (e.g., type MyRecord = Record<string, number>)
+  const indexSignature = getIndexSignatureInfo(node.type, checker);
+  if (indexSignature) {
+    return { name: typeName, properties: [], description, indexSignature };
   }
 
   // For other type aliases, return empty properties

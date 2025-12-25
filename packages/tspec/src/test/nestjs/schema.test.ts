@@ -6,7 +6,7 @@ import { generateOpenApiFromNest } from '../../nestjs/openapiGenerator';
 describe('NestJS Schema Generation', () => {
   const fixturesPath = path.join(__dirname, 'fixtures');
 
-  const getOpenApiSpec = () => {
+  const getOpenApiSpec = async () => {
     const result = parseNestControllers({
       tsconfigPath: path.join(fixturesPath, 'tsconfig.json'),
       controllerGlobs: [path.join(fixturesPath, 'users.controller.ts')],
@@ -19,8 +19,8 @@ describe('NestJS Schema Generation', () => {
   };
 
   describe('JSDoc parsing', () => {
-    it('should parse @example tag', () => {
-      const openapi = getOpenApiSpec();
+    it('should parse @example tag', async () => {
+      const openapi = await getOpenApiSpec();
       const userDto = openapi.components?.schemas?.UserDto as any;
 
       expect(userDto).toBeDefined();
@@ -29,16 +29,16 @@ describe('NestJS Schema Generation', () => {
       expect(userDto.properties.name.example).toBe('홍길동');
     });
 
-    it('should parse @minimum and @maximum tags', () => {
-      const openapi = getOpenApiSpec();
+    it('should parse @minimum and @maximum tags', async () => {
+      const openapi = await getOpenApiSpec();
       const userDto = openapi.components?.schemas?.UserDto as any;
 
       expect(userDto.properties.age.minimum).toBe(0);
       expect(userDto.properties.age.maximum).toBe(150);
     });
 
-    it('should parse @minLength and @maxLength tags', () => {
-      const openapi = getOpenApiSpec();
+    it('should parse @minLength and @maxLength tags', async () => {
+      const openapi = await getOpenApiSpec();
       const createUserDto = openapi.components?.schemas?.CreateUserDto as any;
 
       expect(createUserDto.properties.name.minLength).toBe(2);
@@ -46,8 +46,8 @@ describe('NestJS Schema Generation', () => {
       expect(createUserDto.properties.password.minLength).toBe(8);
     });
 
-    it('should parse @pattern tag', () => {
-      const openapi = getOpenApiSpec();
+    it('should parse @pattern tag', async () => {
+      const openapi = await getOpenApiSpec();
       const createUserDto = openapi.components?.schemas?.CreateUserDto as any;
 
       expect(createUserDto.properties.email.pattern).toBe(
@@ -55,8 +55,8 @@ describe('NestJS Schema Generation', () => {
       );
     });
 
-    it('should parse @deprecated tag', () => {
-      const openapi = getOpenApiSpec();
+    it('should parse @deprecated tag', async () => {
+      const openapi = await getOpenApiSpec();
       const userDto = openapi.components?.schemas?.UserDto as any;
 
       expect(userDto.properties.legacyField.deprecated).toBe(true);
@@ -64,8 +64,8 @@ describe('NestJS Schema Generation', () => {
   });
 
   describe('Enum parsing', () => {
-    it('should parse enum types with values', () => {
-      const openapi = getOpenApiSpec();
+    it('should parse enum types with values', async () => {
+      const openapi = await getOpenApiSpec();
       const genderSchema = openapi.components?.schemas?.Gender as any;
       const activityLevelSchema = openapi.components?.schemas?.ActivityLevel as any;
 
@@ -78,8 +78,8 @@ describe('NestJS Schema Generation', () => {
       expect(activityLevelSchema.enum).toEqual(['SEDENTARY', 'MODERATELY_ACTIVE', 'VERY_ACTIVE']);
     });
 
-    it('should reference enum in property schema', () => {
-      const openapi = getOpenApiSpec();
+    it('should reference enum in property schema', async () => {
+      const openapi = await getOpenApiSpec();
       const userDto = openapi.components?.schemas?.UserDto as any;
 
       // Gender property should reference the enum schema
@@ -94,8 +94,8 @@ describe('NestJS Schema Generation', () => {
   });
 
   describe('Nullable types', () => {
-    it('should handle nullable union types', () => {
-      const openapi = getOpenApiSpec();
+    it('should handle nullable union types', async () => {
+      const openapi = await getOpenApiSpec();
       const userDto = openapi.components?.schemas?.UserDto as any;
 
       expect(userDto.properties.email.nullable).toBe(true);
@@ -104,8 +104,8 @@ describe('NestJS Schema Generation', () => {
   });
 
   describe('Generic wrapper types', () => {
-    it('should resolve DataResponse<T> wrapper', () => {
-      const openapi = getOpenApiSpec();
+    it('should resolve DataResponse<T> wrapper', async () => {
+      const openapi = await getOpenApiSpec();
       const findOnePath = openapi.paths['/users/{id}']?.get;
 
       expect(findOnePath).toBeDefined();
@@ -117,8 +117,8 @@ describe('NestJS Schema Generation', () => {
       expect(responseSchema.properties.data.$ref).toBe('#/components/schemas/UserDto');
     });
 
-    it('should resolve PaginatedResponse<T> wrapper', () => {
-      const openapi = getOpenApiSpec();
+    it('should resolve PaginatedResponse<T> wrapper', async () => {
+      const openapi = await getOpenApiSpec();
       const findAllPath = openapi.paths['/users']?.get;
 
       expect(findAllPath).toBeDefined();
@@ -135,8 +135,8 @@ describe('NestJS Schema Generation', () => {
   });
 
   describe('Date types', () => {
-    it('should convert Date to string with date-time format', () => {
-      const openapi = getOpenApiSpec();
+    it('should convert Date to string with date-time format', async () => {
+      const openapi = await getOpenApiSpec();
       const userDto = openapi.components?.schemas?.UserDto as any;
 
       expect(userDto.properties.createdAt.type).toBe('string');
@@ -145,8 +145,8 @@ describe('NestJS Schema Generation', () => {
   });
 
   describe('API Tags', () => {
-    it('should parse @ApiTags decorator', () => {
-      const openapi = getOpenApiSpec();
+    it('should parse @ApiTags decorator', async () => {
+      const openapi = await getOpenApiSpec();
       const findAllPath = openapi.paths['/users']?.get;
 
       expect(findAllPath?.tags).toContain('Users');
@@ -154,8 +154,8 @@ describe('NestJS Schema Generation', () => {
   });
 
   describe('Required properties', () => {
-    it('should mark non-optional properties as required', () => {
-      const openapi = getOpenApiSpec();
+    it('should mark non-optional properties as required', async () => {
+      const openapi = await getOpenApiSpec();
       const userDto = openapi.components?.schemas?.UserDto as any;
 
       expect(userDto.required).toContain('id');
@@ -167,8 +167,8 @@ describe('NestJS Schema Generation', () => {
   });
 
   describe('Record types (Issue #89)', () => {
-    it('should handle Record<string, unknown> without creating invalid schema name', () => {
-      const openapi = getOpenApiSpec();
+    it('should handle Record<string, unknown> without creating invalid schema name', async () => {
+      const openapi = await getOpenApiSpec();
       const createUserDto = openapi.components?.schemas?.CreateUserDto as any;
 
       // meta property should be object with additionalProperties
@@ -181,9 +181,30 @@ describe('NestJS Schema Generation', () => {
     });
   });
 
+  describe('Array property types', () => {
+    it('should handle array properties correctly (not as Record/Map)', async () => {
+      const openapi = await getOpenApiSpec();
+      const userListResponseDto = openapi.components?.schemas?.UserListResponseDto as any;
+
+      expect(userListResponseDto).toBeDefined();
+      expect(userListResponseDto.properties.users).toBeDefined();
+      
+      // users property should be an array, NOT an object with additionalProperties
+      expect(userListResponseDto.properties.users.type).toBe('array');
+      expect(userListResponseDto.properties.users.items).toBeDefined();
+      expect(userListResponseDto.properties.users.items.$ref).toBe('#/components/schemas/UserDto');
+      
+      // Should NOT have additionalProperties (which would indicate Record/Map treatment)
+      expect(userListResponseDto.properties.users.additionalProperties).toBeUndefined();
+      
+      // totalCount should be a number
+      expect(userListResponseDto.properties.totalCount.type).toBe('number');
+    });
+  });
+
   describe('@Query() DTO expansion (Issue #91)', () => {
-    it('should expand @Query() DTO into individual query parameters', () => {
-      const openapi = getOpenApiSpec();
+    it('should expand @Query() DTO into individual query parameters', async () => {
+      const openapi = await getOpenApiSpec();
       const findAllPath = openapi.paths['/users']?.get;
 
       expect(findAllPath).toBeDefined();
@@ -225,8 +246,8 @@ describe('NestJS Schema Generation', () => {
       expect(nameParam.example).toBe('홍길동');
     });
 
-    it('should not have a single "query" parameter for DTO', () => {
-      const openapi = getOpenApiSpec();
+    it('should not have a single "query" parameter for DTO', async () => {
+      const openapi = await getOpenApiSpec();
       const findAllPath = openapi.paths['/users']?.get;
       
       const params = findAllPath?.parameters as any[];
