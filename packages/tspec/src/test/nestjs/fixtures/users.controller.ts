@@ -17,6 +17,9 @@ function Param(name?: string): ParameterDecorator {
 function Body(): ParameterDecorator {
   return () => {};
 }
+function Query(): ParameterDecorator {
+  return () => {};
+}
 function ApiTags(...tags: string[]): ClassDecorator {
   return () => {};
 }
@@ -140,6 +143,38 @@ export class PaginatedResponse<T> {
 }
 
 /**
+ * 사용자 목록 조회 쿼리 DTO
+ */
+export class ListUsersQueryDto {
+  /**
+   * 페이지네이션 토큰 (다음 페이지 조회용)
+   * @example "eyJvZmZzZXQiOjAsImxpbWl0IjoyMH0="
+   */
+  nextToken?: string;
+
+  /**
+   * 조회할 아이템 개수 (기본값: 20, 최대: 100)
+   * @minimum 1
+   * @maximum 100
+   * @default 20
+   */
+  limit?: number;
+
+  /**
+   * 시작 위치
+   * @minimum 0
+   * @default 0
+   */
+  offset?: number;
+
+  /**
+   * 이름 검색
+   * @example "홍길동"
+   */
+  name?: string;
+}
+
+/**
  * 사용자 API 컨트롤러
  */
 @ApiTags('Users')
@@ -150,7 +185,7 @@ export class UsersController {
    * @summary Get all users
    */
   @Get()
-  findAll(): Promise<PaginatedResponse<UserDto>> {
+  findAll(@Query() query: ListUsersQueryDto): Promise<PaginatedResponse<UserDto>> {
     return Promise.resolve({ data: [], nextToken: null, totalCount: 0 });
   }
 

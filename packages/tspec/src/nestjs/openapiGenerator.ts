@@ -4,6 +4,7 @@ import {
   NestControllerMetadata,
   NestMethodMetadata,
   ParsedNestApp,
+  PropertyDefinition,
 } from './types';
 import {
   buildSchemaRef as buildSchemaRefFromBuilder,
@@ -20,6 +21,38 @@ export interface GenerateOpenApiOptions {
   servers?: OpenAPIV3.ServerObject[];
   securitySchemes?: OpenAPIV3.ComponentsObject['securitySchemes'];
 }
+
+/**
+ * Build OpenAPI schema for a DTO property, including JSDoc annotations
+ */
+const buildPropertySchema = (
+  prop: PropertyDefinition,
+  context: SchemaBuilderContext,
+): OpenAPIV3.SchemaObject => {
+  const baseSchema = buildSchemaRefFromBuilder(prop.type, context);
+  
+  // If it's a reference, return primitive schema instead (for query params)
+  if ('$ref' in baseSchema) {
+    return buildPrimitiveSchemaFromBuilder(prop.type);
+  }
+  
+  // Merge JSDoc annotations into the schema
+  const schema: OpenAPIV3.SchemaObject = {
+    ...baseSchema,
+  };
+  
+  // Add JSDoc annotations
+  if (prop.minimum !== undefined) schema.minimum = prop.minimum;
+  if (prop.maximum !== undefined) schema.maximum = prop.maximum;
+  if (prop.minLength !== undefined) schema.minLength = prop.minLength;
+  if (prop.maxLength !== undefined) schema.maxLength = prop.maxLength;
+  if (prop.pattern !== undefined) schema.pattern = prop.pattern;
+  if (prop.format !== undefined) schema.format = prop.format;
+  if (prop.default !== undefined) schema.default = prop.default;
+  if (prop.deprecated !== undefined) schema.deprecated = prop.deprecated;
+  
+  return schema;
+};
 
 export const generateOpenApiFromNest = (
   app: ParsedNestApp,
@@ -149,6 +182,25 @@ const buildOperation = (
 
   for (const param of method.parameters) {
     if (param.category !== 'body' && param.category !== 'file' && param.category !== 'files') {
+      // If this is a DTO query parameter, expand its properties into individual query parameters
+      if (param.isDto && param.category === 'query') {
+        const typeDef = context.typeDefinitions.get(param.type);
+        if (typeDef && typeDef.properties.length > 0) {
+          for (const prop of typeDef.properties) {
+            const propSchema = buildPropertySchema(prop, context);
+            parameters.push({
+              name: prop.name,
+              in: 'query',
+              required: prop.required,
+              schema: propSchema,
+              description: prop.description,
+              example: prop.example as string | number | boolean | undefined,
+            });
+          }
+          continue;
+        }
+      }
+      
       parameters.push({
         name: param.name,
         in: param.category === 'param' ? 'path' : param.category,

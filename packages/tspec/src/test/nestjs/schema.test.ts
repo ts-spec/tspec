@@ -180,4 +180,60 @@ describe('NestJS Schema Generation', () => {
       expect(openapi.components?.schemas?.['string, unknown']).toBeUndefined();
     });
   });
+
+  describe('@Query() DTO expansion (Issue #91)', () => {
+    it('should expand @Query() DTO into individual query parameters', () => {
+      const openapi = getOpenApiSpec();
+      const findAllPath = openapi.paths['/users']?.get;
+
+      expect(findAllPath).toBeDefined();
+      expect(findAllPath?.parameters).toBeDefined();
+      
+      const params = findAllPath?.parameters as any[];
+      
+      // Should have individual query parameters from ListUsersQueryDto
+      const nextTokenParam = params.find(p => p.name === 'nextToken');
+      const limitParam = params.find(p => p.name === 'limit');
+      const offsetParam = params.find(p => p.name === 'offset');
+      const nameParam = params.find(p => p.name === 'name');
+
+      expect(nextTokenParam).toBeDefined();
+      expect(nextTokenParam.in).toBe('query');
+      expect(nextTokenParam.required).toBe(false);
+      expect(nextTokenParam.schema.type).toBe('string');
+      expect(nextTokenParam.example).toBe('eyJvZmZzZXQiOjAsImxpbWl0IjoyMH0=');
+
+      expect(limitParam).toBeDefined();
+      expect(limitParam.in).toBe('query');
+      expect(limitParam.required).toBe(false);
+      expect(limitParam.schema.type).toBe('number');
+      expect(limitParam.schema.minimum).toBe(1);
+      expect(limitParam.schema.maximum).toBe(100);
+      expect(limitParam.schema.default).toBe(20);
+
+      expect(offsetParam).toBeDefined();
+      expect(offsetParam.in).toBe('query');
+      expect(offsetParam.required).toBe(false);
+      expect(offsetParam.schema.type).toBe('number');
+      expect(offsetParam.schema.minimum).toBe(0);
+      expect(offsetParam.schema.default).toBe(0);
+
+      expect(nameParam).toBeDefined();
+      expect(nameParam.in).toBe('query');
+      expect(nameParam.required).toBe(false);
+      expect(nameParam.schema.type).toBe('string');
+      expect(nameParam.example).toBe('홍길동');
+    });
+
+    it('should not have a single "query" parameter for DTO', () => {
+      const openapi = getOpenApiSpec();
+      const findAllPath = openapi.paths['/users']?.get;
+      
+      const params = findAllPath?.parameters as any[];
+      
+      // Should NOT have a single "query" parameter
+      const queryParam = params.find(p => p.name === 'query');
+      expect(queryParam).toBeUndefined();
+    });
+  });
 });

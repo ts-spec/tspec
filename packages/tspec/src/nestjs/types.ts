@@ -35,6 +35,8 @@ export interface NestParameterMetadata {
   required: boolean;
   /** Field name for file upload (from FileInterceptor) */
   fieldName?: string;
+  /** Whether this is a DTO type that should be expanded into individual parameters (for @Query() without field name) */
+  isDto?: boolean;
 }
 
 export interface NestParserOptions {

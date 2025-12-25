@@ -439,15 +439,20 @@ const parseParameters = (
 
       const category = decoratorName.toLowerCase() as NestParameterMetadata['category'];
       const paramName = ts.isIdentifier(param.name) ? param.name.text : 'unknown';
-      const fieldName = getDecoratorStringArg(decorator) || paramName;
+      const decoratorArg = getDecoratorStringArg(decorator);
+      const fieldName = decoratorArg || paramName;
       const paramType = getTypeString(param.type, checker);
       const required = !param.questionToken;
+
+      // For @Query() without a field name argument, mark as DTO to expand into individual parameters
+      const isDto = category === 'query' && !decoratorArg;
 
       params.push({
         name: category === 'body' ? paramName : fieldName,
         type: paramType,
         category,
         required,
+        isDto,
       });
       break;
     }
