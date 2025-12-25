@@ -196,5 +196,116 @@ describe('NestJS Parser', () => {
       expect(withErrorOp.responses['200'].description).toBe('Successful response');
       expect(withErrorOp.responses['200'].content['application/json']).toBeDefined();
     });
+
+    it('should parse @ApiBearerAuth decorator and generate security field (Issue #94)', async () => {
+      const result = parseNestControllers({
+        tsconfigPath: path.join(fixturesPath, 'tsconfig.json'),
+        controllerGlobs: [path.join(fixturesPath, 'users.controller.ts')],
+      });
+
+      const openapi = await generateOpenApiFromNest(result, {
+        title: 'Users API',
+        version: '1.0.0',
+        securitySchemes: {
+          bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+          basicAuth: { type: 'http', scheme: 'basic' },
+          oauth2Auth: { type: 'oauth2', flows: {} },
+          apiKey: { type: 'apiKey', in: 'header', name: 'X-API-Key' },
+        },
+      });
+
+      // @ApiBearerAuth('bearerAuth') - with explicit name
+      const findOnePath = openapi.paths['/users/{id}'];
+      expect(findOnePath?.get).toBeDefined();
+      const findOneOp = findOnePath?.get as any;
+      expect(findOneOp.security).toBeDefined();
+      expect(findOneOp.security).toEqual([{ bearerAuth: [] }]);
+
+      // @ApiBearerAuth() - with default name
+      const createPath = openapi.paths['/users'];
+      expect(createPath?.post).toBeDefined();
+      const createOp = createPath?.post as any;
+      expect(createOp.security).toBeDefined();
+      expect(createOp.security).toEqual([{ bearer: [] }]);
+
+      // @ApiBasicAuth('basicAuth')
+      const updatePath = openapi.paths['/users/{id}'];
+      expect(updatePath?.put).toBeDefined();
+      const updateOp = updatePath?.put as any;
+      expect(updateOp.security).toBeDefined();
+      expect(updateOp.security).toEqual([{ basicAuth: [] }]);
+
+      // @ApiOAuth2(['read', 'write'], 'oauth2Auth')
+      const oauthPath = openapi.paths['/users/oauth-test'];
+      expect(oauthPath?.get).toBeDefined();
+      const oauthOp = oauthPath?.get as any;
+      expect(oauthOp.security).toBeDefined();
+      expect(oauthOp.security).toEqual([{ oauth2Auth: ['read', 'write'] }]);
+
+      // @ApiSecurity('apiKey', ['admin'])
+      const customSecurityPath = openapi.paths['/users/custom-security'];
+      expect(customSecurityPath?.get).toBeDefined();
+      const customSecurityOp = customSecurityPath?.get as any;
+      expect(customSecurityOp.security).toBeDefined();
+      expect(customSecurityOp.security).toEqual([{ apiKey: ['admin'] }]);
+
+      // No security decorator - should not have security field
+      const findAllPath = openapi.paths['/users'];
+      expect(findAllPath?.get).toBeDefined();
+      const findAllOp = findAllPath?.get as any;
+      expect(findAllOp.security).toBeUndefined();
+    });
+
+    it('should support custom auth decorators via authDecorators config (Issue #94)', async () => {
+      const result = parseNestControllers({
+        tsconfigPath: path.join(fixturesPath, 'tsconfig.json'),
+        controllerGlobs: [path.join(fixturesPath, 'users.controller.ts')],
+        authDecorators: {
+          Auth: 'bearerAuth',
+          AdminAuth: 'adminAuth',
+        },
+      });
+
+      const openapi = await generateOpenApiFromNest(result, {
+        title: 'Users API',
+        version: '1.0.0',
+        securitySchemes: {
+          bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+          adminAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+        },
+      });
+
+      // @Auth() - custom decorator mapped to bearerAuth
+      const protectedPath = openapi.paths['/users/protected'];
+      expect(protectedPath?.get).toBeDefined();
+      const protectedOp = protectedPath?.get as any;
+      expect(protectedOp.security).toBeDefined();
+      expect(protectedOp.security).toEqual([{ bearerAuth: [] }]);
+
+      // @AdminAuth() - custom decorator mapped to adminAuth
+      const adminOnlyPath = openapi.paths['/users/admin-only'];
+      expect(adminOnlyPath?.get).toBeDefined();
+      const adminOnlyOp = adminOnlyPath?.get as any;
+      expect(adminOnlyOp.security).toBeDefined();
+      expect(adminOnlyOp.security).toEqual([{ adminAuth: [] }]);
+
+      // Without authDecorators config, custom decorators should be ignored
+      const resultWithoutConfig = parseNestControllers({
+        tsconfigPath: path.join(fixturesPath, 'tsconfig.json'),
+        controllerGlobs: [path.join(fixturesPath, 'users.controller.ts')],
+        // No authDecorators config
+      });
+
+      const openapiWithoutConfig = await generateOpenApiFromNest(resultWithoutConfig, {
+        title: 'Users API',
+        version: '1.0.0',
+      });
+
+      // @Auth() without config - should not have security field
+      const protectedPathNoConfig = openapiWithoutConfig.paths['/users/protected'];
+      expect(protectedPathNoConfig?.get).toBeDefined();
+      const protectedOpNoConfig = protectedPathNoConfig?.get as any;
+      expect(protectedOpNoConfig.security).toBeUndefined();
+    });
   });
 });

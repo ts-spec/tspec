@@ -275,5 +275,6 @@ const buildOperation = (
     parameters: parameters.length > 0 ? parameters : undefined,
     requestBody,
     responses,
+    security: method.security,
   };
 };

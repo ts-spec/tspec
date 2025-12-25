@@ -20,7 +20,7 @@ const PARAM_DECORATORS = ['Param', 'Query', 'Body', 'Headers'];
 const FILE_DECORATORS = ['UploadedFile', 'UploadedFiles'];
 
 export const parseNestControllers = (options: NestParserOptions): ParsedNestApp => {
-  const { tsconfigPath, controllerGlobs } = options;
+  const { tsconfigPath, controllerGlobs, authDecorators } = options;
 
   const configFile = ts.readConfigFile(tsconfigPath, ts.sys.readFile);
   if (configFile.error) {
@@ -49,7 +49,7 @@ export const parseNestControllers = (options: NestParserOptions): ParsedNestApp 
 
     ts.forEachChild(sourceFile, (node) => {
       if (ts.isClassDeclaration(node)) {
-        const controller = parseController(node, checker, sourceFile);
+        const controller = parseController(node, checker, sourceFile, authDecorators);
         if (controller) {
           controllers.push(controller);
           collectImports(sourceFile, imports);
@@ -279,6 +279,7 @@ const parseController = (
   node: ts.ClassDeclaration,
   checker: ts.TypeChecker,
   sourceFile: ts.SourceFile,
+  authDecorators?: Record<string, string>,
 ): NestControllerMetadata | null => {
   const decorators = ts.canHaveDecorators(node) ? ts.getDecorators(node) : undefined;
   if (!decorators) return null;
@@ -301,7 +302,7 @@ const parseController = (
 
   node.members.forEach((member) => {
     if (ts.isMethodDeclaration(member)) {
-      const method = parseMethod(member, checker);
+      const method = parseMethod(member, checker, authDecorators);
       if (method) {
         methods.push(method);
       }
@@ -380,6 +381,86 @@ const parseApiResponses = (
   return responses;
 };
 
+// Security decorator names and their default security scheme names
+const SECURITY_DECORATORS: Record<string, string> = {
+  ApiBearerAuth: 'bearer',
+  ApiBasicAuth: 'basic',
+  ApiOAuth2: 'oauth2',
+  ApiSecurity: '',  // Uses first argument as security name
+};
+
+// Parse security decorators (@ApiBearerAuth, @ApiBasicAuth, @ApiOAuth2, @ApiSecurity, and custom decorators)
+const parseApiSecurity = (
+  decorators: readonly ts.Decorator[],
+  authDecorators?: Record<string, string>,
+): Array<Record<string, string[]>> => {
+  const security: Array<Record<string, string[]>> = [];
+
+  // Merge built-in security decorators with custom authDecorators
+  const allSecurityDecorators = { ...SECURITY_DECORATORS, ...authDecorators };
+
+  for (const decorator of decorators) {
+    if (!ts.isCallExpression(decorator.expression)) continue;
+    if (!ts.isIdentifier(decorator.expression.expression)) continue;
+
+    const decoratorName = decorator.expression.expression.text;
+    
+    // Check if it's a custom auth decorator (from authDecorators config)
+    if (authDecorators && decoratorName in authDecorators) {
+      const securityName = authDecorators[decoratorName];
+      security.push({ [securityName]: [] });
+      continue;
+    }
+    
+    // Check if it's a built-in security decorator
+    if (!(decoratorName in SECURITY_DECORATORS)) continue;
+
+    const args = decorator.expression.arguments;
+    let securityName: string;
+    let scopes: string[] = [];
+
+    if (decoratorName === 'ApiSecurity') {
+      // @ApiSecurity('securityName', ['scope1', 'scope2'])
+      if (args.length === 0) continue;
+      const firstArg = args[0];
+      if (!ts.isStringLiteral(firstArg)) continue;
+      securityName = firstArg.text;
+      
+      // Parse scopes if provided
+      if (args.length > 1 && ts.isArrayLiteralExpression(args[1])) {
+        scopes = args[1].elements
+          .filter((el): el is ts.StringLiteral => ts.isStringLiteral(el))
+          .map((el) => el.text);
+      }
+    } else if (decoratorName === 'ApiOAuth2') {
+      // @ApiOAuth2(['scope1', 'scope2'], 'securityName')
+      // First arg is scopes array, second arg is optional security name
+      if (args.length > 0 && ts.isArrayLiteralExpression(args[0])) {
+        scopes = args[0].elements
+          .filter((el): el is ts.StringLiteral => ts.isStringLiteral(el))
+          .map((el) => el.text);
+      }
+      if (args.length > 1 && ts.isStringLiteral(args[1])) {
+        securityName = args[1].text;
+      } else {
+        securityName = SECURITY_DECORATORS[decoratorName];
+      }
+    } else {
+      // @ApiBearerAuth('securityName') or @ApiBasicAuth('securityName')
+      // First argument is optional security scheme name
+      if (args.length > 0 && ts.isStringLiteral(args[0])) {
+        securityName = args[0].text;
+      } else {
+        securityName = SECURITY_DECORATORS[decoratorName];
+      }
+    }
+
+    security.push({ [securityName]: scopes });
+  }
+
+  return security;
+};
+
 // Parse @ApiTags decorator to extract tag names
 const parseApiTags = (
   decorators: readonly ts.Decorator[],
@@ -427,6 +508,7 @@ const parseApiTags = (
 const parseMethod = (
   node: ts.MethodDeclaration,
   checker: ts.TypeChecker,
+  authDecorators?: Record<string, string>,
 ): NestMethodMetadata | null => {
   const decorators = ts.canHaveDecorators(node) ? ts.getDecorators(node) : undefined;
   if (!decorators) return null;
@@ -463,6 +545,9 @@ const parseMethod = (
   // Parse @ApiResponse decorators
   const responses = parseApiResponses(decorators, checker);
 
+  // Parse security decorators (@ApiBearerAuth, @ApiBasicAuth, @ApiOAuth2, @ApiSecurity, and custom decorators)
+  const security = parseApiSecurity(decorators, authDecorators);
+
   return {
     name: methodName,
     httpMethod,
@@ -473,6 +558,7 @@ const parseMethod = (
     summary,
     tags: tags.length > 0 ? tags : undefined,
     responses: responses.length > 0 ? responses : undefined,
+    security: security.length > 0 ? security : undefined,
   };
 };
 
