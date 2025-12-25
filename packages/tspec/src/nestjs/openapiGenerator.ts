@@ -10,6 +10,7 @@ import {
   buildSchemaRef as buildSchemaRefFromBuilder,
   buildPrimitiveSchema as buildPrimitiveSchemaFromBuilder,
   unwrapPromise as unwrapPromiseFromBuilder,
+  mergeJsDocAnnotations,
   createSchemaBuilderContext,
   SchemaBuilderContext,
 } from '../generator/schemaBuilder';
@@ -23,7 +24,8 @@ export interface GenerateOpenApiOptions {
 }
 
 /**
- * Build OpenAPI schema for a DTO property, including JSDoc annotations
+ * Build OpenAPI schema for a DTO property, including JSDoc annotations.
+ * For query parameters, we need primitive schemas (not $ref).
  */
 const buildPropertySchema = (
   prop: PropertyDefinition,
@@ -36,22 +38,8 @@ const buildPropertySchema = (
     return buildPrimitiveSchemaFromBuilder(prop.type);
   }
   
-  // Merge JSDoc annotations into the schema
-  const schema: OpenAPIV3.SchemaObject = {
-    ...baseSchema,
-  };
-  
-  // Add JSDoc annotations
-  if (prop.minimum !== undefined) schema.minimum = prop.minimum;
-  if (prop.maximum !== undefined) schema.maximum = prop.maximum;
-  if (prop.minLength !== undefined) schema.minLength = prop.minLength;
-  if (prop.maxLength !== undefined) schema.maxLength = prop.maxLength;
-  if (prop.pattern !== undefined) schema.pattern = prop.pattern;
-  if (prop.format !== undefined) schema.format = prop.format;
-  if (prop.default !== undefined) schema.default = prop.default;
-  if (prop.deprecated !== undefined) schema.deprecated = prop.deprecated;
-  
-  return schema;
+  // Merge JSDoc annotations using shared utility
+  return mergeJsDocAnnotations(baseSchema, prop);
 };
 
 export const generateOpenApiFromNest = (
