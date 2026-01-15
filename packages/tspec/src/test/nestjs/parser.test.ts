@@ -50,7 +50,7 @@ describe('NestJS Parser', () => {
       const controller = result.controllers[0];
       expect(controller.name).toBe('FilesController');
       expect(controller.path).toBe('files');
-      expect(controller.methods).toHaveLength(5);
+      expect(controller.methods).toHaveLength(7);
 
       // Single file upload
       const uploadFile = controller.methods.find((m) => m.name === 'uploadFile');
@@ -167,6 +167,77 @@ describe('NestJS Parser', () => {
       // Should also have DTO fields (intakeAt, memo)
       expect(fromImageSchema.properties.intakeAt).toBeDefined();
       expect(fromImageSchema.properties.memo).toBeDefined();
+    });
+
+    it('should generate multipart/form-data for DTO with @format binary properties', async () => {
+      const result = parseNestControllers({
+        tsconfigPath: path.join(fixturesPath, 'tsconfig.json'),
+        controllerGlobs: [path.join(fixturesPath, 'files.controller.ts')],
+      });
+
+      const openapi = await generateOpenApiFromNest(result, {
+        title: 'Files API',
+        version: '1.0.0',
+      });
+
+      // Endpoint using @format binary in DTO (no @UploadedFile decorator)
+      const foodIntakePath = openapi.paths['/files/food-intake-from-image'];
+      expect(foodIntakePath?.post).toBeDefined();
+      const foodIntakeOp = foodIntakePath?.post as any;
+      
+      // Should use multipart/form-data content type
+      expect(foodIntakeOp.requestBody.content['multipart/form-data']).toBeDefined();
+      const schema = foodIntakeOp.requestBody.content['multipart/form-data'].schema;
+      
+      // File field should be binary
+      expect(schema.properties.file).toEqual({ 
+        type: 'string', 
+        format: 'binary',
+        description: '음식 이미지 파일',
+      });
+      
+      // Other fields should be normal
+      expect(schema.properties.intakeAt).toBeDefined();
+      expect(schema.properties.intakeAt.format).toBe('date-time');
+      
+      // Required should include file
+      expect(schema.required).toContain('file');
+    });
+
+    it('should handle multiple @format binary properties in DTO', async () => {
+      const result = parseNestControllers({
+        tsconfigPath: path.join(fixturesPath, 'tsconfig.json'),
+        controllerGlobs: [path.join(fixturesPath, 'files.controller.ts')],
+      });
+
+      const openapi = await generateOpenApiFromNest(result, {
+        title: 'Files API',
+        version: '1.0.0',
+      });
+
+      // Endpoint with multiple file fields
+      const multiFilePath = openapi.paths['/files/with-multiple-files'];
+      expect(multiFilePath?.post).toBeDefined();
+      const multiFileOp = multiFilePath?.post as any;
+      
+      expect(multiFileOp.requestBody.content['multipart/form-data']).toBeDefined();
+      const schema = multiFileOp.requestBody.content['multipart/form-data'].schema;
+      
+      // Both file fields should be binary
+      expect(schema.properties.mainImage).toEqual({ 
+        type: 'string', 
+        format: 'binary',
+        description: '메인 이미지',
+      });
+      expect(schema.properties.thumbnail).toEqual({ 
+        type: 'string', 
+        format: 'binary',
+        description: '썸네일 이미지',
+      });
+      
+      // Non-file field should be normal
+      expect(schema.properties.title.type).toBe('string');
+      expect(schema.properties.title.format).toBeUndefined();
     });
 
     it('should generate 200 response when only error responses are defined via @ApiResponse (Issue #87)', async () => {

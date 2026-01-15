@@ -101,11 +101,20 @@ const buildOperation = (
   const parameters: OpenAPIV3.ParameterObject[] = [];
   let requestBody: OpenAPIV3.RequestBodyObject | undefined;
 
-  // Check for file upload parameters
+  // Check for file upload parameters (from @UploadedFile/@UploadedFiles decorators)
   const fileParams = method.parameters.filter(p => p.category === 'file' || p.category === 'files');
   const bodyParams = method.parameters.filter(p => p.category === 'body');
 
-  if (fileParams.length > 0) {
+  // Check if body DTO contains file upload properties (@format binary JSDoc tag)
+  const bodyHasFileUpload = bodyParams.some(bodyParam => {
+    const typeDef = context.typeDefinitions.get(bodyParam.type);
+    if (typeDef) {
+      return typeDef.properties.some(prop => prop.format === 'binary');
+    }
+    return false;
+  });
+
+  if (fileParams.length > 0 || bodyHasFileUpload) {
     // Build multipart/form-data request body for file uploads
     const properties: Record<string, OpenAPIV3.SchemaObject> = {};
     const required: string[] = [];
@@ -127,22 +136,59 @@ const buildOperation = (
 
     // Include body params in multipart form if present
     for (const bodyParam of bodyParams) {
-      const bodySchema = buildSchemaRefFromBuilder(bodyParam.type, context);
+      const typeDef = context.typeDefinitions.get(bodyParam.type);
       
-      // If it's a $ref, resolve it from context.schemas to get properties
-      if ('$ref' in bodySchema) {
-        const refName = bodySchema.$ref.replace('#/components/schemas/', '');
-        const resolvedSchema = context.schemas[refName];
-        if (resolvedSchema && 'properties' in resolvedSchema && resolvedSchema.properties) {
-          Object.assign(properties, resolvedSchema.properties);
-          if (resolvedSchema.required) {
-            required.push(...resolvedSchema.required);
+      if (typeDef) {
+        // Build properties directly from type definition to handle @format binary and MulterFile
+        for (const prop of typeDef.properties) {
+          // Check if property has @format binary JSDoc tag
+          if (prop.format === 'binary') {
+            // Handle array of files
+            if (prop.type.endsWith('[]')) {
+              properties[prop.name] = {
+                type: 'array',
+                items: { type: 'string', format: 'binary' },
+                description: prop.description,
+              };
+            } else {
+              properties[prop.name] = {
+                type: 'string',
+                format: 'binary',
+                description: prop.description,
+              };
+            }
+          } else {
+            // Regular property - build schema with JSDoc annotations
+            const propSchema = buildSchemaRefFromBuilder(prop.type, context);
+            if ('$ref' in propSchema) {
+              properties[prop.name] = propSchema as OpenAPIV3.SchemaObject;
+            } else {
+              properties[prop.name] = mergeJsDocAnnotations(propSchema, prop);
+            }
+          }
+          
+          if (prop.required) {
+            required.push(prop.name);
           }
         }
-      } else if ('properties' in bodySchema && bodySchema.properties) {
-        Object.assign(properties, bodySchema.properties);
-        if (bodySchema.required) {
-          required.push(...bodySchema.required);
+      } else {
+        // Fallback: resolve from built schema
+        const bodySchema = buildSchemaRefFromBuilder(bodyParam.type, context);
+        
+        if ('$ref' in bodySchema) {
+          const refName = bodySchema.$ref.replace('#/components/schemas/', '');
+          const resolvedSchema = context.schemas[refName];
+          if (resolvedSchema && 'properties' in resolvedSchema && resolvedSchema.properties) {
+            Object.assign(properties, resolvedSchema.properties);
+            if (resolvedSchema.required) {
+              required.push(...resolvedSchema.required);
+            }
+          }
+        } else if ('properties' in bodySchema && bodySchema.properties) {
+          Object.assign(properties, bodySchema.properties);
+          if (bodySchema.required) {
+            required.push(...bodySchema.required);
+          }
         }
       }
     }
@@ -151,7 +197,7 @@ const buildOperation = (
     const uniqueRequired = [...new Set(required)];
     
     requestBody = {
-      required: fileParams.some(p => p.required),
+      required: fileParams.some(p => p.required) || bodyHasFileUpload,
       content: {
         'multipart/form-data': {
           schema: {

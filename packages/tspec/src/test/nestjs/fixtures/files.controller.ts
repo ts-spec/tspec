@@ -66,6 +66,47 @@ class CreateFromImageDto {
   memo?: string;
 }
 
+/**
+ * DTO with file property using @format binary JSDoc tag
+ * Use @format binary to indicate file upload fields
+ */
+class CreateFoodIntakeFromImageDto {
+  /**
+   * 음식 이미지 파일
+   * @format binary
+   */
+  file!: any;
+
+  /**
+   * 섭취 시간 (미입력 시 현재 시간)
+   * @format date-time
+   * @example "2024-11-24T12:30:00.000Z"
+   */
+  intakeAt?: string;
+}
+
+/**
+ * DTO with multiple file properties using @format binary
+ */
+class CreateWithMultipleFilesDto {
+  /**
+   * 메인 이미지
+   * @format binary
+   */
+  mainImage!: any;
+
+  /**
+   * 썸네일 이미지
+   * @format binary
+   */
+  thumbnail!: any;
+
+  /**
+   * 제목
+   */
+  title!: string;
+}
+
 // Mock ApiResponse decorator
 function ApiResponse(options: { status: number; description?: string; type?: any }): MethodDecorator {
   return () => {};
@@ -131,6 +172,28 @@ export class FilesController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   createWithErrorResponse(
     @Body() metadata: FileMetadata,
+  ): Promise<UploadResponse> {
+    return Promise.resolve({ fileName: '', url: '' });
+  }
+
+  /**
+   * Upload file using @format binary in DTO (no @UploadedFile decorator)
+   * @summary Create food intake from image using DTO with @format binary
+   */
+  @Post('food-intake-from-image')
+  createFoodIntakeFromImage(
+    @Body() dto: CreateFoodIntakeFromImageDto,
+  ): Promise<UploadResponse> {
+    return Promise.resolve({ fileName: '', url: '' });
+  }
+
+  /**
+   * Upload multiple files using @format binary in DTO
+   * @summary Create with multiple file fields
+   */
+  @Post('with-multiple-files')
+  createWithMultipleFiles(
+    @Body() dto: CreateWithMultipleFilesDto,
   ): Promise<UploadResponse> {
     return Promise.resolve({ fileName: '', url: '' });
   }

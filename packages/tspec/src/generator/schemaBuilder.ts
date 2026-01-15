@@ -88,6 +88,15 @@ export const mergeJsDocAnnotations = (
   baseSchema: OpenAPIV3.SchemaObject,
   prop: PropertyDefinition,
 ): OpenAPIV3.SchemaObject => {
+  // If @format binary is specified, treat as file upload regardless of original type
+  if (prop.format === 'binary') {
+    return {
+      type: 'string',
+      format: 'binary',
+      description: prop.description,
+    };
+  }
+
   const schema: OpenAPIV3.SchemaObject = {
     ...baseSchema,
     description: prop.description || baseSchema.description,
