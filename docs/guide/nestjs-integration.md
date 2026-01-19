@@ -294,6 +294,10 @@ Tspec parses the following NestJS decorators:
 ### Swagger Decorators
 - `@ApiTags(...tags)` - Adds tags to all operations in the controller
 - `@ApiResponse({ status, description?, type? })` - Defines response status codes and types
+- `@ApiBearerAuth(name?)` - Adds Bearer token authentication to the operation
+- `@ApiBasicAuth(name?)` - Adds Basic authentication to the operation
+- `@ApiOAuth2(scopes[], name?)` - Adds OAuth2 authentication with scopes
+- `@ApiSecurity(name, scopes?)` - Adds custom security scheme
 
 ## JSDoc Support
 
@@ -316,9 +320,8 @@ findAll(): Promise<Book[]> {
 The current NestJS integration has some limitations:
 
 1. **Type inference**: Complex generic types may not be fully resolved
-2. **Custom decorators**: Only standard NestJS decorators are supported
-3. **Validation decorators**: `class-validator` decorators are not parsed
-4. **Interceptors/Guards**: These are not reflected in the generated spec
+2. **Validation decorators**: `class-validator` decorators are not parsed
+3. **Interceptors/Guards**: These are not reflected in the generated spec
 
 ::: tip
 For more advanced use cases, consider using the standard Tspec approach with `Tspec.DefineApiSpec` alongside your NestJS controllers.
@@ -359,6 +362,7 @@ console.log(JSON.stringify(spec, null, 2));
 | `openapi.description` | `string` | - | API description |
 | `openapi.securityDefinitions` | `object` | - | Security schemes |
 | `openapi.servers` | `array` | - | Server URLs |
+| `openapi.authDecorators` | `object` | - | Map custom decorator names to security scheme names |
 
 ## Using @ApiResponse
 
@@ -414,6 +418,138 @@ responses:
 ::: tip
 When `@ApiResponse` decorators are present, they override the default response generation based on return type.
 :::
+
+## Security Decorators
+
+Tspec supports security decorators from `@nestjs/swagger` to add authentication requirements to your API operations.
+
+### Using @ApiBearerAuth
+
+Add Bearer token authentication to endpoints:
+
+```ts
+import { Controller, Get } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
+
+@Controller('users')
+export class UsersController {
+  @Get('me')
+  @ApiBearerAuth('bearerAuth')  // Uses 'bearerAuth' security scheme
+  getCurrentUser(): Promise<User> {
+    // This endpoint requires Bearer token authentication
+  }
+
+  @Get('profile')
+  @ApiBearerAuth()  // Uses default 'bearer' security scheme
+  getProfile(): Promise<UserProfile> {
+    // ...
+  }
+}
+```
+
+Make sure to define the security scheme in your config:
+
+```json
+{
+  "nestjs": true,
+  "openapi": {
+    "securityDefinitions": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
+```
+
+This generates:
+
+```yaml
+paths:
+  /users/me:
+    get:
+      security:
+        - bearerAuth: []
+```
+
+### Using @ApiOAuth2
+
+Add OAuth2 authentication with scopes:
+
+```ts
+@Get('admin')
+@ApiOAuth2(['read', 'write'], 'oauth2Auth')
+getAdminData(): Promise<AdminData> {
+  // Requires OAuth2 with read and write scopes
+}
+```
+
+### Custom Auth Decorators
+
+If you use composite decorators that wrap security decorators (e.g., using `applyDecorators`), you can configure Tspec to recognize them:
+
+```ts
+// auth.decorator.ts
+import { applyDecorators, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { AuthGuard } from './auth.guard';
+
+export function Auth(): MethodDecorator & ClassDecorator {
+  return applyDecorators(
+    UseGuards(AuthGuard),
+    ApiBearerAuth('access-token'),
+  );
+}
+
+export function AdminAuth(): MethodDecorator & ClassDecorator {
+  return applyDecorators(
+    UseGuards(AuthGuard, AdminGuard),
+    ApiBearerAuth('access-token'),
+  );
+}
+```
+
+Configure `authDecorators` in your tspec config to map custom decorators to security schemes:
+
+```json
+{
+  "nestjs": true,
+  "openapi": {
+    "securityDefinitions": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "authDecorators": {
+      "Auth": "bearerAuth",
+      "AdminAuth": "bearerAuth"
+    }
+  }
+}
+```
+
+Now your custom decorators will be recognized:
+
+```ts
+@Controller('users')
+export class UsersController {
+  @Get('me')
+  @Auth()  // ✅ Recognized as bearerAuth
+  getCurrentUser(): Promise<User> {
+    // ...
+  }
+
+  @Get('admin')
+  @AdminAuth()  // ✅ Recognized as bearerAuth
+  getAdminData(): Promise<AdminData> {
+    // ...
+  }
+}
+```
 
 ## Using @ApiTags
 

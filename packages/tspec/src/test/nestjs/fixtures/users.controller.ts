@@ -23,6 +23,25 @@ function Query(): ParameterDecorator {
 function ApiTags(...tags: string[]): ClassDecorator {
   return () => {};
 }
+function ApiBearerAuth(name?: string): MethodDecorator & ClassDecorator {
+  return () => {};
+}
+function ApiBasicAuth(name?: string): MethodDecorator & ClassDecorator {
+  return () => {};
+}
+function ApiOAuth2(scopes?: string[], name?: string): MethodDecorator & ClassDecorator {
+  return () => {};
+}
+function ApiSecurity(name: string, scopes?: string[]): MethodDecorator & ClassDecorator {
+  return () => {};
+}
+// Custom composite decorator (simulating applyDecorators pattern)
+function Auth(): MethodDecorator & ClassDecorator {
+  return () => {};
+}
+function AdminAuth(): MethodDecorator & ClassDecorator {
+  return () => {};
+}
 
 /**
  * 사용자 성별
@@ -205,25 +224,28 @@ export class UsersController {
   }
 
   /**
-   * 사용자 상세 조회
+   * 사용자 상세 조회 (인증 필요)
    */
   @Get(':id')
+  @ApiBearerAuth('bearerAuth')
   findOne(@Param('id') id: string): Promise<DataResponse<UserDto>> {
     return Promise.resolve({ data: {} as UserDto });
   }
 
   /**
-   * 사용자 생성
+   * 사용자 생성 (인증 필요 - 기본 이름)
    */
   @Post()
+  @ApiBearerAuth()
   create(@Body() createUserDto: CreateUserDto): Promise<DataResponse<UserDto>> {
     return Promise.resolve({ data: {} as UserDto });
   }
 
   /**
-   * 사용자 수정
+   * 사용자 수정 (Basic Auth 필요)
    */
   @Put(':id')
+  @ApiBasicAuth('basicAuth')
   update(
     @Param('id') id: string,
     @Body() updateUserDto: Partial<CreateUserDto>,
@@ -232,10 +254,46 @@ export class UsersController {
   }
 
   /**
+   * OAuth2 테스트
+   */
+  @Get('oauth-test')
+  @ApiOAuth2(['read', 'write'], 'oauth2Auth')
+  oauthTest(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  /**
+   * 커스텀 시큐리티 테스트
+   */
+  @Get('custom-security')
+  @ApiSecurity('apiKey', ['admin'])
+  customSecurityTest(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  /**
    * 사용자 목록 조회 (배열 프로퍼티 테스트용)
    */
   @Get('list')
   getList(): Promise<UserListResponseDto> {
     return Promise.resolve({ users: [], totalCount: 0 });
+  }
+
+  /**
+   * 커스텀 Auth 데코레이터 테스트
+   */
+  @Get('protected')
+  @Auth()
+  protectedEndpoint(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  /**
+   * 커스텀 AdminAuth 데코레이터 테스트
+   */
+  @Get('admin-only')
+  @AdminAuth()
+  adminOnlyEndpoint(): Promise<void> {
+    return Promise.resolve();
   }
 }

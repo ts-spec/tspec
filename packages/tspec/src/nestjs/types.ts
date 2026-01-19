@@ -24,6 +24,8 @@ export interface NestMethodMetadata {
   summary?: string;
   tags?: string[];
   responses?: NestApiResponse[];
+  /** Security requirements from @ApiBearerAuth, @ApiBasicAuth, @ApiOAuth2, @ApiSecurity decorators */
+  security?: Array<Record<string, string[]>>;
 }
 
 export type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete' | 'options' | 'head';
@@ -42,6 +44,12 @@ export interface NestParameterMetadata {
 export interface NestParserOptions {
   tsconfigPath: string;
   controllerGlobs: string[];
+  /**
+   * Map custom decorator names to security scheme names.
+   * Useful for composite decorators that wrap @ApiBearerAuth, etc.
+   * @example { "Auth": "bearerAuth", "AdminAuth": "bearerAuth" }
+   */
+  authDecorators?: Record<string, string>;
 }
 
 export interface ParsedNestApp {
